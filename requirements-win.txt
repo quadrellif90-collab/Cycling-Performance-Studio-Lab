@@ -1,0 +1,4 @@
+# Windows-specific dependencies
+-r requirements-common.txt
+pythonnet>=3.0
+pywebview[cef]>=5.0

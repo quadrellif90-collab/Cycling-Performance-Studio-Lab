@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <h1>Impostazioni</h1>
+    </div>
+
+    <div class="settings-section">
+        <h2>Sincronizzazione</h2>
+        <div class="sync-targets">
+            {% for target in sync_targets %}
+            <div class="sync-target">
+                <div class="target-info">
+                    <span class="target-name">{{ target.display_name }}</span>
+                    <span class="target-key">{{ target.key }}</span>
+                </div>
+                <div class="target-status {% if target.is_configured %}configured{% else %}not-configured{% endif %}">
+                    {% if target.is_configured %}
+                    <span>✓ Configurato</span>
+                    {% else %}
+                    <span>✗ Non configurato</span>
+                    {% endif %}
+                </div>
+                {% if target.can_write %}
+                <button class="btn-link small" onclick="configureTarget('{{ target.key }}')">Configura</button>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="settings-section">
+        <h2>Credenziali Profilo</h2>
+        <p>Le credenziali sono salvate nel file <code>.env</code> per ogni profilo.</p>
+        
+        <form id="env-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>ICU Athlete ID</label>
+                    <input type="text" id="env-icu-athlete" placeholder="es. icu_athlete_123">
+                </div>
+                <div class="form-group">
+                    <label>ICU API Key</label>
+                    <input type="text" id="env-icu-key" placeholder="es. api_key_here">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>ICU Access Token</label>
+                    <input type="text" id="env-icu-token" placeholder="es. access_token_here">
+                </div>
+                <div class="form-group">
+                    <label>BIA Vision API Key</label>
+                    <input type="text" id="env-bia-key" placeholder="es. bia_vision_key (opzionale)">
+                </div>
+            </div>
+            <button type="submit" class="btn-primary">Salva Credenziali</button>
+        </form>
+
+        <div class="env-status" id="env-status"></div>
+    </div>
+
+    <div class="settings-section">
+        <h2>Formati Data e Numeri</h2>
+        <p>Puoi configurare il formato visualizzazione per l'Italia:</p>
+        <div class="format-opts">
+            <label>
+                <input type="checkbox" id="format-italian" {{ 'checked' if italian_format }}>Formato Italiano (DD/MM/YYYY, virgola decimale)
+            </label>
+        </div>
+        <p class="small">Riavvia l'app dopo il cambio di formato.</p>
+    </div>
+</div>
+{% endblock %}

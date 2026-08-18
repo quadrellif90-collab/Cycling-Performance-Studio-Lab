@@ -1,0 +1,73 @@
+{
+    "app": {
+        "dashboard": "Dashboard",
+        "profile": "Profile",
+        "workouts": "Workout Library",
+        "analytics": "Analytics",
+        "settings": "Settings",
+        "create_profile": "Create Profile",
+        "delete_profile": "Delete Profile",
+        "save": "Save",
+        "cancel": "Cancel",
+        "sync": "Sync",
+        "configure": "Configure",
+        "save_athlete": "Save Athlete",
+        "env_status": "Env Status"
+    },
+    "profile": {
+        "ftp": "FTP (W)",
+        "weight": "Weight (kg)",
+        "lthr": "LTHR (bpm)",
+        "max_hr": "Max HR (bpm)",
+        "source_ftp": "FTP:",
+        "source_max_hr": "Max HR:",
+        "save_profile": "Save Profile",
+        "no_profile": "No active profile"
+    },
+    "workouts": {
+        "title": "Workout Library",
+        "filter_type": "Filter by type",
+        "filter_min_tss": "Min TSS",
+        "filter_max_tss": "Max TSS",
+        "refresh": "Refresh Library",
+        "workout": "Workout",
+        "type": "Type",
+        "duration": "Duration",
+        "tss": "TSS",
+        "no_workouts": "No workouts available"
+    },
+    "analytics": {
+        "readiness": "Readiness Score",
+        "power_curve": "Power Curve",
+        "fitness_signature": "Fitness Signature",
+        "injury_manager": "Injury Manager",
+        "bia_body_comp": "BIA Body Composition",
+        "readiness_score": "Readiness Score",
+        "hrv": "HRV (ms)",
+        "sleep": "Sleep (h)",
+        "tsb": "TSB",
+        "upload_bia": "Upload BIA PDF",
+        "no_bia_result": "No BIA result"
+    },
+    "settings": {
+        "title": "Settings",
+        "sync": "Sync",
+        "sync_targets": "Sync Targets",
+        "configure_target": "Configure",
+        "credentials": "Credentials",
+        "save_credentials": "Save Credentials",
+        "env_status": "Env Status",
+        "format": "Format",
+        "italian_format": "Italian Format (DD/MM/YYYY, comma decimal)",
+        "data_export": "Data Export",
+        "backup": "Backup",
+        "restore": "Restore"
+    },
+    "common": {
+        "save": "Save",
+        "cancel": "Cancel",
+        "error": "Error",
+        "success": "Success",
+        "loading": "Loading..."
+    }
+}
