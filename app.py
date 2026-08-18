@@ -364,7 +364,8 @@ class CpWprimeRequest(BaseModel):
 async def api_estimate_ftp(request: Request):
     """Estimate FTP from best effort data."""
     data = await request.json()
-    efforts = data.get("efforts", {})
+    raw_efforts = data.get("efforts", {})
+    efforts = {int(k): int(v) for k, v in raw_efforts.items()}
     ftp = estimate_ftp(efforts) if efforts else None
     return {"ftp": ftp, "success": ftp is not None}
 
@@ -372,8 +373,9 @@ async def api_estimate_ftp(request: Request):
 async def api_fitness_signature(request: Request):
     """Compute fitness signature (FTP, LTP, HIE, Pmax)."""
     data = await request.json()
-    efforts = data.get("efforts", {})
-    ftp = data.get("ftp")
+    raw_efforts = data.get("efforts", {})
+    efforts = {int(k): int(v) for k, v in raw_efforts.items()}
+    ftp = int(data.get("ftp", 0)) if data.get("ftp") else None
     signature = compute_fitness_signature(efforts, ftp) if efforts and ftp else None
     if signature is None:
         return JSONResponse({"error": "Insufficient data"}, status_code=400)
