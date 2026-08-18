@@ -26,6 +26,7 @@ from xml.etree import ElementTree as ET
 import httpx
 import uvicorn
 from fastapi import FastAPI, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -60,10 +61,12 @@ from config import config
 from error_codes import Codes, _log_error, REGISTRY
 from log_config import setup_logging
 from profile_manager import ProfileManager
-from sync_targets import get_target, connected_targets
+from sync_targets import get_target, connected_targets, list_targets
 import injury_manager
 import gpx_parser
 import session_manager
+import caching
+import data_export
 
 # Setup logging
 setup_logging()
@@ -118,6 +121,24 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Global exception handler
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    return JSONResponse(
+        {"error": "Internal server error", "detail": str(exc)},
+        status_code=500,
+    )
+
 # Static files and templates
 BASE_DIR = Path(__file__).parent
 app.mount("/static", StaticFiles(directory=BASE_DIR / "frontend" / "static"), name="static")
@@ -131,6 +152,37 @@ gpx_parser.register_routes(app)
 
 # Register session routes
 session_manager.register_routes(app)
+
+# =============================================================================
+# API Routes - Data Export
+# =============================================================================
+
+@app.get("/api/export/backup")
+async def api_export_backup():
+    """Create a backup of the active profile."""
+    pm = get_pm()
+    if not pm.active_id:
+        return JSONResponse({"error": "No active profile"}, status_code=400)
+    result = data_export.export_profile_backup(pm.active_id)
+    return result
+
+@app.get("/api/export/metrics")
+async def api_export_metrics():
+    """Export metrics for the active profile."""
+    pm = get_pm()
+    if not pm.active_id:
+        return JSONResponse({"error": "No active profile"}, status_code=400)
+    result = data_export.export_metrics_export(pm.active_id)
+    return result
+
+@app.get("/api/export/zip")
+async def api_export_zip():
+    """Create a ZIP backup of the active profile."""
+    pm = get_pm()
+    if not pm.active_id:
+        return JSONResponse({"error": "No active profile"}, status_code=400)
+    result = data_export.export_zip_backup(pm.active_id)
+    return result
 
 # Helper to get profile manager
 def get_pm() -> ProfileManager:
@@ -167,7 +219,7 @@ async def profile_page(request: Request):
 @app.get("/workouts", response_class=HTMLResponse)
 async def workouts_page(request: Request):
     """Workout library page."""
-    return templates.TemplateResponse("workouts.html", {"request": request})
+    return templates.TemplateResponse("workouts.html", {"request": request, "workouts": []})
 
 @app.get("/analytics", response_class=HTMLResponse)
 async def analytics_page(request: Request):
@@ -315,7 +367,14 @@ async def api_estimate_ftp(request: Request):
     """Estimate FTP from best effort data."""
     data = await request.json()
     efforts = data.get("efforts", {})
+    cache_key = f"ftp:{hash(frozenset(efforts.items()))}" if efforts else None
+    if cache_key:
+        cached = caching.get_global_cache().get(cache_key)
+        if cached is not None:
+            return {"ftp": cached, "success": True, "cached": True}
     ftp = estimate_ftp(efforts) if efforts else None
+    if ftp is not None and cache_key:
+        caching.get_global_cache().set(cache_key, ftp)
     return {"ftp": ftp, "success": ftp is not None}
 
 @app.post("/api/fitness/signature")

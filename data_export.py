@@ -1,7 +1,7 @@
 """
 Data Export Module for Cycling Performance Studio Lab.
 
-Fornisce funzionalità di backup, export dati esportazione completa del profilo,
+Fornisce funzionalita di backup, export dati esportazione completa del profilo,
 export workout, export metriche, e formati compatibili con altri software.
 """
 
@@ -9,12 +9,15 @@ import json
 import os
 import csv
 import zipfile
-from datetime import date, datetime
+import logging
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from profile_manager import get as pm_get
 from error_codes import _log_error, REGISTRY
+
+logger = logging.getLogger(__name__)
 
 
 INJURIES_EXPORT_FILENAME = "injuries_backup.json"
@@ -27,16 +30,16 @@ def get_profile_dir(profile_id: str) -> Path:
     return Path(os.getenv("APPDATA", Path.home() / ".cpsl")) / "profiles" / profile_id
 
 
-def export_profile_backup(profile_id: str, backup_dir: Optional[Path] = None) -> Path:
+def export_profile_backup(profile_id: str, backup_dir: Optional[Path] = None) -> Dict[str, Any]:
     """Crea un backup completo del profilo."""
     try:
         pm = pm_get()
         if profile_id != pm.active_id:
-            return JSONResponse({"error": "Profile not active"}, status_code=400)
+            return {"error": "Profile not active"}
 
         profile_dir = get_profile_dir(profile_id)
         if not profile_dir.exists():
-            return JSONResponse({"error": "Profile directory not found"}, status_code=404)
+            return {"error": "Profile directory not found"}
 
         if backup_dir is None:
             backup_dir = profile_dir / "backups"
@@ -87,14 +90,14 @@ def export_profile_backup(profile_id: str, backup_dir: Optional[Path] = None) ->
                 if f.startswith(backup_name)
             ]
         }
-        with open(backup_dir / f"{manifest_name}_manifest.json", "w", encoding="utf-8") as f:
+        with open(backup_dir / f"{backup_name}_manifest.json", "w", encoding="utf-8") as f:
             json.dump(manifest, f, indent=2)
 
-        return JSONResponse({"backup_path": str(backup_dir), "manifest": manifest})
+        return {"backup_path": str(backup_dir), "manifest": manifest}
 
     except Exception as e:
         _log_error("E_EXPORT_FAILED", e)
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return {"error": str(e)}
 
 
 def export_metrics_export(profile_id: str, metrics_type: str = "all") -> Dict[str, Any]:
@@ -162,16 +165,16 @@ def export_metrics_export(profile_id: str, metrics_type: str = "all") -> Dict[st
         return {"error": str(e)}
 
 
-def export_zip_backup(profile_id: str, backup_dir: Optional[Path] = None) -> Path:
-    """Crea un archivio ZIP compressato del profilo."""
+def export_zip_backup(profile_id: str, backup_dir: Optional[Path] = None) -> Dict[str, Any]:
+    """Crea un archivio ZIP compresso del profilo."""
     try:
         pm = pm_get()
         if profile_id != pm.active_id:
-            return JSONResponse({"error": "Profile not active"}, status_code=404)
+            return {"error": "Profile not active"}
 
         profile_dir = get_profile_dir(profile_id)
         if not profile_dir.exists():
-            return JSONResponse({"error": "Profile directory not found"}, status_code=404)
+            return {"error": "Profile directory not found"}
 
         if backup_dir is None:
             backup_dir = profile_dir / "backups"
@@ -192,9 +195,6 @@ def export_zip_backup(profile_id: str, backup_dir: Optional[Path] = None) -> Pat
 
         # Aggiungi rides directory se esiste
         rides_dir = profile_dir / "rides"
-        rides_relative = "rides"
-        if rides_dir.exists():
-            rides_relative = "rides"
 
         # Crea ZIP
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
@@ -203,10 +203,14 @@ def export_zip_backup(profile_id: str, backup_dir: Optional[Path] = None) -> Pat
                     zf.write(filepath, filename)
             # Aggiungi rides directory
             if rides_dir.exists():
-                zf.write(rides_dir, rides_relative)
+                for root, dirs, files in os.walk(rides_dir):
+                    for file in files:
+                        file_path = Path(root) / file
+                        arcname = os.path.relpath(file_path, profile_dir)
+                        zf.write(file_path, arcname)
 
-        return JSONResponse({"zip_path": str(zip_path), "size": zip_path.stat().st_size})
+        return {"zip_path": str(zip_path), "size": zip_path.stat().st_size}
 
     except Exception as e:
         _log_error("E_EXPORT_FAILED", e)
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return {"error": str(e)}

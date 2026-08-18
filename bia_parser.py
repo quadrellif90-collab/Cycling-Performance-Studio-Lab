@@ -196,14 +196,53 @@ def analyze_bia(
 
 
 def _extract_text_from_pdf(pdf_content: bytes) -> str:
-    """
-    Estrae testo da un file PDF.
+    """Extract text from a PDF file using available libraries."""
+    try:
+        import io
+        # Try PyPDF2 first
+        try:
+            from PyPDF2 import PdfReader
+            reader = PdfReader(io.BytesIO(pdf_content))
+            text_parts = []
+            for page in reader.pages:
+                text = page.extract_text()
+                if text:
+                    text_parts.append(text)
+            return "\n".join(text_parts)
+        except ImportError:
+            pass
 
-    In una implementazione completa, userebbe PyPDF2, pdfminer.six, o similar.
-    Per ora restituiamo stringa vuota per simulare il fallback.
-    """
-    # TODO: Implementare con PyPDF2, pdfminer.six, o similar
-    return ""
+        # Try pdfminer.six
+        try:
+            from pdfminer.high_level import extract_text
+            text = extract_text(io.BytesIO(pdf_content))
+            return text
+        except ImportError:
+            pass
+
+        # Try pdftotext (poppler)
+        try:
+            import subprocess
+            import tempfile
+            with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+                tmp.write(pdf_content)
+                tmp_path = tmp.name
+            result = subprocess.run(
+                ["pdftotext", tmp_path, "-"],
+                capture_output=True, text=True, timeout=30
+            )
+            os.unlink(tmp_path)
+            if result.returncode == 0:
+                return result.stdout
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            pass
+
+        logger.warning("No PDF text extraction library available. Install PyPDF2 or pdfminer.six.")
+        return ""
+
+    except Exception as e:
+        logger.error(f"PDF text extraction failed: {e}")
+        return ""
 
 
 def _format_results(vision_result: Dict[str, Any]) -> Dict[str, Any]:

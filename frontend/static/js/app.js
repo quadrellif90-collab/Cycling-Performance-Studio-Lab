@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <li class="profile-item" data-profile-id="${pid}">
                 <span class="profile-color" style="background: ${getColor(pid)}"></span>
                 <span class="profile-name">${pid.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</span>
-                {% if pid == active_profile %}<span class="status-badge">Attivo</span>{% endif %}
+                ${pid === state.activeProfile ? '<span class="status-badge">Attivo</span>' : ''}
             </li>
         `).join('');
     }

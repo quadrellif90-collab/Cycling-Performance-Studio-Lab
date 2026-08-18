@@ -11,7 +11,7 @@
         <ul>
             {% for pid in profiles %}
             <li class="profile-item" data-profile-id="{{ pid }}">
-                <span class="profile-color" style="background: {{ get_color(pid) }}"></span>
+                <span class="profile-color" data-pid="{{ pid }}"></span>
                 <span class="profile-name">{{ pid|title }}</span>
                 {% if pid == active_profile %}
                 <span class="status-badge">Attivo</span>
@@ -71,4 +71,18 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var colors = ['#3498db','#2ecc71','#e67e22','#9b59b6','#e74c3c','#f1c40f','#1abc9c','#e91e63'];
+    document.querySelectorAll('.profile-color[data-pid]').forEach(function(el) {
+        var pid = el.dataset.pid;
+        var hash = 0;
+        for (var i = 0; i < pid.length; i++) hash = ((hash << 5) - hash) + pid.charCodeAt(i);
+        el.style.background = colors[Math.abs(hash) % colors.length];
+    });
+});
+</script>
 {% endblock %}
