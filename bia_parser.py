@@ -8,6 +8,7 @@ Supporto doppio modalità:
 
 from __future__ import annotations
 
+import asyncio
 import re
 import logging
 from typing import Any, Dict, List, Optional
@@ -167,17 +168,17 @@ def analyze_bia(
         if vision_enabled:
             # Use Vision API
             try:
-                from .bia_vision import BIAVisionClient
+                import asyncio
                 client = BIAVisionClient()
                 if client.is_configured():
                     result = asyncio.run(client.analyze_pdf(pdf_content))
                     return _format_results(result)
-            except ImportError:
+            except Exception:
                 pass  # Fall through to local parser
 
         # Fallback: local parser
         if not pdf_text:
-            return {"error": "Impossible estrarre testo dal PDF}
+            return {"error": "Impossibile estrarre testo dal PDF"}
 
         result = local_pdf_parse(pdf_text)
         if result:
@@ -189,7 +190,9 @@ def analyze_bia(
             "suggestion": "Verificare il formato del file PDF o caricare chiave BIA Vision API",
         }
 
-    return {"error": "Modalità analisi non supportata}
+    except Exception as e:
+        logger.error(f"BIA analysis failed: {e}")
+        return {"error": f"Analisi BIA fallita: {str(e)}"}
 
 
 def _extract_text_from_pdf(pdf_content: bytes) -> str:

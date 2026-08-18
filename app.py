@@ -61,6 +61,9 @@ from error_codes import Codes, _log_error, REGISTRY
 from log_config import setup_logging
 from profile_manager import ProfileManager
 from sync_targets import get_target, connected_targets
+import injury_manager
+import gpx_parser
+import session_manager
 
 # Setup logging
 setup_logging()
@@ -119,6 +122,15 @@ app = FastAPI(
 BASE_DIR = Path(__file__).parent
 app.mount("/static", StaticFiles(directory=BASE_DIR / "frontend" / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "frontend" / "templates")
+
+# Register injury routes
+injury_manager.register_routes(app)
+
+# Register GPX routes
+gpx_parser.register_routes(app)
+
+# Register session routes
+session_manager.register_routes(app)
 
 # Helper to get profile manager
 def get_pm() -> ProfileManager:
@@ -298,7 +310,7 @@ class FitnessEstimation(BaseModel):
 class CpWprimeRequest(BaseModel):
     efforts: Dict[int, int]
 
-@app.post("/api/fitness/estimate ftp")
+@app.post("/api/fitness/estimate-ftp")
 async def api_estimate_ftp(request: Request):
     """Estimate FTP from best effort data."""
     data = await request.json()

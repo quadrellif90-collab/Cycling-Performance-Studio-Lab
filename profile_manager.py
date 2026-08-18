@@ -464,6 +464,95 @@ class ProfileManager:
 
     # ---- Public data getters ----
 
+    @property
+    def active_id(self) -> Optional[str]:
+        return self._active_id
+
+    @property
+    def ftp(self) -> Optional[float]:
+        athlete = self.active_athlete()
+        return float(athlete["ftp"]) if athlete and "ftp" in athlete else None
+
+    @property
+    def weight_kg(self) -> Optional[float]:
+        athlete = self.active_athlete()
+        return float(athlete["weight_kg"]) if athlete and "weight_kg" in athlete else None
+
+    @property
+    def lbm_kg(self) -> Optional[float]:
+        athlete = self.active_athlete()
+        return float(athlete.get("lbm_kg", 0)) if athlete else None
+
+    @property
+    def lthr(self) -> Optional[int]:
+        athlete = self.active_athlete()
+        return int(athlete.get("lthr", 0)) if athlete else None
+
+    @property
+    def max_hr(self) -> Optional[int]:
+        athlete = self.active_athlete()
+        return int(athlete.get("max_hr", 0)) if athlete else None
+
+    @property
+    def cp(self) -> Optional[float]:
+        athlete = self.active_athlete()
+        return float(athlete.get("cp", 0)) if athlete else None
+
+    @property
+    def wprime_j(self) -> Optional[float]:
+        athlete = self.active_athlete()
+        return float(athlete.get("wprime_j", 0)) if athlete else None
+
+    @property
+    def pmax_w(self) -> Optional[float]:
+        athlete = self.active_athlete()
+        return float(athlete.get("pmax_w", 0)) if athlete else None
+
+    @property
+    def target_mode(self) -> str:
+        athlete = self.active_athlete()
+        return athlete.get("target_mode", "performance") if athlete else "performance"
+
+    @property
+    def cap_short_intervals(self) -> bool:
+        athlete = self.active_athlete()
+        return athlete.get("cap_short_intervals", False) if athlete else False
+
+    @property
+    def icu_athlete_id(self) -> str:
+        env = self.active_env()
+        return env.get("ICU_ATHLETE_ID", "")
+
+    @property
+    def icu_api_key(self) -> str:
+        env = self.active_env()
+        return env.get("ICU_API_KEY", "")
+
+    @property
+    def icu_access_token(self) -> str:
+        env = self.active_env()
+        return env.get("ICU_ACCESS_TOKEN", "")
+
+    @property
+    def icu_name(self) -> str:
+        env = self.active_env()
+        return env.get("ICU_NAME", "")
+
+    @property
+    def bia_vision_api_key(self) -> str:
+        env = self.active_env()
+        return env.get("BIA_VISION_API_KEY", "")
+
+    @property
+    def bia_vision_base_url(self) -> str:
+        env = self.active_env()
+        return env.get("BIA_VISION_BASE_URL", "https://api.bia.vision/v1")
+
+    @property
+    def bia_vision_model(self) -> str:
+        env = self.active_env()
+        return env.get("BIA_VISION_MODEL", "general")
+
     def active_athlete(self) -> Optional[Dict]:
         """Return current profile's athlete dict."""
         if not self._active_id:
