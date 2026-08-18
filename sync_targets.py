@@ -8,6 +8,7 @@ Each target implements the SyncTarget base class with standardized interfaces.
 from __future__ import annotations
 
 import abc
+import asyncio
 import base64
 import json
 import logging
@@ -16,6 +17,10 @@ from collections.abc import Callable
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Optional
+
+import httpx
+
+from error_codes import _log_error
 
 logger = logging.getLogger(__name__)
 
@@ -230,7 +235,11 @@ class IntervalsIcuTarget(SyncTarget):
     def stop_sync(self) -> None:
         """Stop Intervals.icu sync process."""
         if self._http and not self._http.is_closed:
-            asyncio.get_event_loop().create_task(self._http.aclose())
+            try:
+                loop = asyncio.get_running_loop()
+                loop.create_task(self._http.aclose())
+            except RuntimeError:
+                pass
         logger.info("Intervals.icu sync stopped")
 
     def restart_sync(self) -> None:

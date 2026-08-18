@@ -31,7 +31,7 @@
             <div class="card-body">
                 <canvas id="power-canvas" width="220" height="140"></canvas>
                 <p class="small">Power duration curve da ride recenti</p>
-                <button class="btn-link small" onclick="refreshPowerCurve()">Aggiorna</button>
+                <button class="btn-link small" onclick="window.CPSL.refreshPowerCurve()">Aggiorna</button>
             </div>
         </div>
 
@@ -43,19 +43,19 @@
             <div class="card-body">
                 <canvas id="fitness-canvas" width="220" height="120"></canvas>
                 <p class="small">FTP, LTP, HIE, Pmax da best efforts</p>
-                <button class="btn-link small" onclick="updateFitnessSig()">Aggiorna</button>
+                <button class="btn-link small" onclick="window.CPSL.updateFitnessSig()">Aggiorna</button>
             </div>
         </div>
 
         <!-- CP/W' Card -->
         <div class="analytics-card">
             <div class="card-header">
-                <h3>CP / W\' Analysis</h3>
+                <h3>CP / W' Analysis</h3>
             </div>
             <div class="card-body">
                 <canvas id="cpwprime-canvas" width="220" height="100"></canvas>
-                <p class="small">Critical Power e W\' anaerobico</p>
-                <button class="btn-link small" onclick="updateCpwprime()">Aggiorna</button>
+                <p class="small">Critical Power e W' anaerobico</p>
+                <button class="btn-link small" onclick="window.CPSL.updateCpwprime()">Aggiorna</button>
             </div>
         </div>
 
@@ -66,7 +66,7 @@
             </div>
             <div class="card-body">
                 <p>Traccia infortuni e protocolli return-to-ride.</p>
-                <button class="btn-link" onclick="openInjuryManager()">Gestisci Infortuni</button>
+                <button class="btn-link" onclick="window.CPSL.openInjuryManager()">Gestisci Infortuni</button>
             </div>
         </div>
 
@@ -79,7 +79,7 @@
                 <p>Analisi composizione corporea da file PDF BIA.</p>
                 <div class="file-upload">
                     <input type="file" id="bia-upload" accept=".pdf">
-                    <button class="btn-secondary" onclick="uploadBIA()">Carica PDF</button>
+                    <button class="btn-secondary" onclick="window.CPSL.uploadBIA()">Carica PDF</button>
                 </div>
                 <div id="bia-result" class="hidden">
                     <h4>Risultati BIA</h4>
@@ -89,74 +89,4 @@
         </div>
     </div>
 </div>
-
-<script>
-// CPSL State management
-window.CPSL_STATE = {
-    activeProfile: null,
-    italianFormat: false
-};
-
-// Initialize charts on load
-document.addEventListener('DOMContentLoaded', function() {
-    // Sample data for initial load (will be replaced by API calls)
-    window.sampleEfforts = {300: 280, 600: 250, 1200: 220};
-    window.sampleFTP = 209;
-
-    // Initial API calls
-    updateFitnessSig();
-    updateCpwprime();
-});
-
-// API call: Fitness Signature
-function updateFitnessSig() {
-    fetch('/api/fitness/signature', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            efforts: window.sampleEfforts,
-            ftp: window.sampleFTP
-        })
-    })
-    .then(resp => resp.json())
-    .then(data => {
-        if (data.success && charts.fitness) {
-            charts.fitness.data.datasets[0].data = [
-                data.ftp,
-                data.ltp,
-                data.hie,
-                data.peak_power
-            ];
-            charts.fitness.update();
-        }
-    })
-    .catch(err => console.error('Error:', err));
-}
-
-// API call: CP/W\' Analysis
-function updateCpwprime() {
-    fetch('/api/fitness/cp-wprime', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ efforts: window.sampleEfforts })
-    })
-    .then(resp => resp.json())
-    .then(data => {
-        if (data.success && charts.cpwprime) {
-            charts.cpwprime.data.datasets[0].data = [data.cp, data.w_prime];
-            charts.cpwprime.update();
-        }
-    })
-    .catch(err => console.error('Error:', err));
-}
-
-// Power curve refresh
-function refreshPowerCurve() {
-    // Could fetch from /api/fitness/aggregate with ride data
-    // For now, just reset to sample data
-    if (charts.powerCurve) {
-        charts.powerCurve.data.datasets[0].data = [320, 280, 250, 200, 180, 150];
-        charts.powerCurve.update();
-    }
-}
-</script>
+{% endblock %}

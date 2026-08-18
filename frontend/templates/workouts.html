@@ -26,13 +26,13 @@
     </div>
 
     <div class="workout-library">
-        {% if workouts|length > 0 %}
+        {% if workouts and workouts|length > 0 %}
         <ul class="workout-list">
             {% for w in workouts %}
             <li class="workout-item" data-workout="{{ w.id }}">
                 <div class="workout-info">
-                    <span class="workout-name">{{ w.name | truncate(30) }}</span>
-                    <span class="workout-type">{{ w.primary_type | title }}</span>
+                    <span class="workout-name">{{ w.name }}</span>
+                    <span class="workout-type">{{ w.primary_type }}</span>
                     <span class="workout-meta">{{ w.duration_min }}min | {{ w.tss }}TSS</span>
                 </div>
                 <button class="btn-tertiary details-btn" data-id="{{ w.id }}">Dettagli</button>
@@ -49,12 +49,8 @@
 
     <div class="library-stats">
         <div class="stat-box">
-            <div class="stat-value">{{ workouts|length }}</div>
+            <div class="stat-value">{{ workouts|length if workouts else 0 }}</div>
             <div class="stat-label">Workout</div>
-        </div>
-        <div class="stat-box">
-            <div class="stat-value">{% set anaerobic = workouts|selectattr('primary_type')|selectattr('eq', 'anaerobic')|list %}{% if anaerobic %}{{ anaerobic|length }}{% else %}0{% endif %}{% endif %}</div>
-            <div class="stat-label">Anaerobico</div>
         </div>
     </div>
 </div>

@@ -5,7 +5,7 @@ from datetime import date
 
 def test_injury_lifecycle():
     """Test complete injury lifecycle."""
-    im = get()
+    im = get("test-injury-profile")
 
     # Create
     inj = im.create_injury("Test Knee", date(2024, 1, 10), "medium", "active", "Pain during squats")
