@@ -101,9 +101,9 @@ async def lifespan(app: FastAPI):
     global _profile_manager
     logger.info("Starting Cycling Performance Studio Lab")
     
-    # Initialize profile manager
-    _profile_manager = ProfileManager.get()
-    await _profile_manager.initialize()
+    # Initialize profile manager (module-level singleton)
+    from profile_manager import get as pm_get
+    _profile_manager = pm_get()
     
     # Start background tasks
     yield
@@ -186,8 +186,10 @@ async def api_export_zip():
 
 # Helper to get profile manager
 def get_pm() -> ProfileManager:
+    global _profile_manager
     if _profile_manager is None:
-        raise RuntimeError("Profile manager not initialized")
+        from profile_manager import get as pm_get
+        _profile_manager = pm_get()
     return _profile_manager
 
 # =============================================================================
@@ -198,40 +200,36 @@ def get_pm() -> ProfileManager:
 async def index(request: Request):
     """Main dashboard."""
     pm = get_pm()
-    return templates.TemplateResponse("index.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "index.html", {
         "profiles": pm.list_profiles(),
         "active_profile": pm.active_id,
-        "config": config,
     })
 
 @app.get("/profile", response_class=HTMLResponse)
 async def profile_page(request: Request):
     """Profile management page."""
     pm = get_pm()
-    return templates.TemplateResponse("profile.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "profile.html", {
         "profiles": pm.list_profiles(),
         "active_profile": pm.active_id,
-        "athlete": pm.active_athlete if pm.active_id else {},
+        "athlete": pm.active_athlete() if pm.active_id else {},
     })
 
 @app.get("/workouts", response_class=HTMLResponse)
 async def workouts_page(request: Request):
     """Workout library page."""
-    return templates.TemplateResponse("workouts.html", {"request": request, "workouts": []})
+    return templates.TemplateResponse(request, "workouts.html", {"workouts": []})
 
 @app.get("/analytics", response_class=HTMLResponse)
 async def analytics_page(request: Request):
     """Analytics dashboard page."""
-    return templates.TemplateResponse("analytics.html", {"request": request})
+    return templates.TemplateResponse(request, "analytics.html", {})
 
 @app.get("/settings", response_class=HTMLResponse)
 async def settings_page(request: Request):
     """Settings page."""
     pm = get_pm()
-    return templates.TemplateResponse("settings.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "settings.html", {
         "sync_targets": list_targets(),
         "connected": connected_targets(),
     })
@@ -367,14 +365,7 @@ async def api_estimate_ftp(request: Request):
     """Estimate FTP from best effort data."""
     data = await request.json()
     efforts = data.get("efforts", {})
-    cache_key = f"ftp:{hash(frozenset(efforts.items()))}" if efforts else None
-    if cache_key:
-        cached = caching.get_global_cache().get(cache_key)
-        if cached is not None:
-            return {"ftp": cached, "success": True, "cached": True}
     ftp = estimate_ftp(efforts) if efforts else None
-    if ftp is not None and cache_key:
-        caching.get_global_cache().set(cache_key, ftp)
     return {"ftp": ftp, "success": ftp is not None}
 
 @app.post("/api/fitness/signature")
@@ -398,13 +389,15 @@ async def api_fitness_signature(request: Request):
 async def api_cp_wprime(request: Request):
     """Compute Monod-Scherrer CP/W' values."""
     data = await request.json()
-    efforts = data.get("efforts", {})
-    cp, wprime = compute_cp_wprime(efforts)
-    if cp is None or wprime is None:
+    raw_efforts = data.get("efforts", {})
+    efforts = {int(k): int(v) for k, v in raw_efforts.items()}
+    result = compute_cp_wprime(efforts)
+    if result is None:
         return JSONResponse({"error": "Insufficient data for CP/W' fit"}, status_code=400)
+    cp, wprime = result
     return {
-        "cp": cp,
-        "w_prime": wprime,
+        "cp": round(cp, 1),
+        "w_prime": round(wprime, 1),
         "success": True
     }
 
