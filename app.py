@@ -289,7 +289,7 @@ async def api_get_athlete(profile_id: str):
     pm = get_pm()
     if profile_id != pm.active_id:
         return JSONResponse({"error": "Profile not active"}, status_code=400)
-    return pm.active_athlete
+    return pm.active_athlete()
 
 @app.post("/api/profiles/{profile_id}/athlete")
 async def api_save_athlete(profile_id: str, request: Request):
