@@ -1,87 +1,155 @@
 {% extends "base.html" %}
+{% block page_title %}Profile{% endblock %}
 {% block content %}
-<div class="page">
-    <div class="page-header">
-        <h1>Gestione Profilo</h1>
+
+<!-- Profile Selection -->
+<div class="card" style="margin-bottom:16px">
+    <div class="card-header">
+        <h3>Profiles</h3>
+        <button class="btn btn-sm" onclick="CPSL.createProfile()">+ New</button>
     </div>
-
-    {% if profiles %}
-    <div class="profiles-list">
-        <h2>I Tuoi Profili</h2>
-        <ul>
-            {% for pid in profiles %}
-            <li class="profile-item" data-profile-id="{{ pid }}">
-                <span class="profile-color" data-pid="{{ pid }}"></span>
-                <span class="profile-name">{{ pid|title }}</span>
-                {% if pid == active_profile %}
-                <span class="status-badge">Attivo</span>
-                {% endif %}
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-
-    <div class="profile-actions">
-        <button class="btn-primary" onclick="createProfile()">Nuovo Profilo</button>
-        <button class="btn-secondary" onclick="deleteProfile()">Elimina</button>
-    </div>
-    {% else %}
-    <div class="empty-state">
-        <h2>Nessun profilo creato</h2>
-        <p>Crea il tuo primo profilo per iniziare a tracciare i dati.</p>
-        <button class="btn-primary" onclick="createProfile()">Crea Primo Profilo</button>
-    </div>
-    {% endif %}
-
-    <div class="profile-details">
-        <h2>Dettagli Profilo Attivo</h2>
-        
-        <form id="athlete-form">
-            <div class="form-row">
-                <div class="form-group">
-                    <label>FTP (W)</label>
-                    <input type="number" id="athlete-ftp" min="50" max="600" value="{{ athlete.ftp | default(200) }}" step="1">
-                </div>
-                <div class="form-group">
-                    <label>Peso (kg)</label>
-                    <input type="number" id="athlete-weight" min="30" max="200" value="{{ athlete.weight_kg | default(70) }}" step="0.1">
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>LTHR (bpm)</label>
-                    <input type="number" id="athlete-lthr" min="100" max="250" value="{{ athlete.lthr | default(180) }}" step="1">
-                </div>
-                <div class="form-group">
-                    <label>Max HR (bpm)</label>
-                    <input type="number" id="athlete-max-hr" min="100" max="250" value="{{ athlete.max_hr | default(190) }}" step="1">
-                </div>
-            </div>
-
-            <button type="submit" class="btn-primary" form="athlete-form">Salva Atleta</button>
-        </form>
-
-        <hr>
-
-        <h3>Metriche Fonti</h3>
-        <div class="source-tags">
-            <span class="tag ftp-source">FTP: {{ athlete.ftp_source | default('manual') }}</span>
-            <span class="tag max-hr-source">Max HR: {{ athlete.max_hr_source | default('manual') }}</span>
-        </div>
+    <div id="profiles-grid" class="grid g3">
+        <div class="empty-state"><p>No profiles yet</p></div>
     </div>
 </div>
+
+<!-- Athlete Data -->
+<div class="card" style="margin-bottom:16px">
+    <div class="card-header">
+        <h3>Athlete Data</h3>
+    </div>
+    <form id="athlete-form">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="athlete-ftp">FTP (W)</label>
+                <input type="number" id="athlete-ftp" min="50" max="600" step="1" value="{{ athlete.ftp if athlete and athlete.ftp else '' }}">
+            </div>
+            <div class="form-group">
+                <label for="athlete-weight">Weight (kg)</label>
+                <input type="number" id="athlete-weight" min="30" max="200" step="0.1" value="{{ athlete.weight_kg if athlete and athlete.weight_kg else '' }}">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="athlete-lthr">LTHR (bpm)</label>
+                <input type="number" id="athlete-lthr" min="100" max="250" step="1" value="{{ athlete.lthr if athlete and athlete.lthr else '' }}">
+            </div>
+            <div class="form-group">
+                <label for="athlete-maxhr">Max HR (bpm)</label>
+                <input type="number" id="athlete-maxhr" min="100" max="250" step="1" value="{{ athlete.max_hr if athlete and athlete.max_hr else '' }}">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="athlete-wprime">W' (kJ)</label>
+                <input type="number" id="athlete-wprime" min="5" max="40" step="0.5" value="{{ (athlete.wprime_j / 1000)|int if athlete and athlete.wprime_j else '' }}">
+            </div>
+            <div class="form-group">
+                <label for="athlete-pmax">Pmax (W)</label>
+                <input type="number" id="athlete-pmax" min="200" max="2500" step="1" value="{{ athlete.pmax if athlete and athlete.pmax else '' }}">
+            </div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save Athlete</button>
+        </div>
+    </form>
+</div>
+
+<!-- Zones -->
+<div class="card" style="margin-bottom:16px">
+    <div class="card-header">
+        <h3>Heart Rate Zones (Coggan from LTHR)</h3>
+    </div>
+    <table id="hr-zones-table">
+        <thead><tr><th>Zone</th><th>Name</th><th>Range</th><th>% LTHR</th></tr></thead>
+        <tbody id="hr-zones-body"><tr><td colspan="4" class="loading">Set LTHR to compute zones</td></tr></tbody>
+    </table>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+    <div class="card-header">
+        <h3>Power Zones (Coggan from FTP)</h3>
+    </div>
+    <table id="power-zones-table">
+        <thead><tr><th>Zone</th><th>Name</th><th>Range</th><th>% FTP</th></tr></thead>
+        <tbody id="power-zones-body"><tr><td colspan="4" class="loading">Set FTP to compute zones</td></tr></tbody>
+    </table>
+</div>
+
+<!-- BIA Analysis -->
+<div class="card" style="margin-bottom:16px">
+    <div class="card-header">
+        <h3>BIA Analysis (Body Composition)</h3>
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label for="bia-upload">Upload BIA PDF</label>
+            <input type="file" id="bia-upload" accept=".pdf">
+        </div>
+        <div class="form-group" style="justify-content:flex-end">
+            <button class="btn btn-primary" onclick="CPSL.uploadBIA()">Analyze</button>
+        </div>
+    </div>
+    <div id="bia-result" style="display:none; margin-top:12px; padding:12px; background:var(--surface2); border-radius:6px; font-size:12px; font-family:monospace; white-space:pre-wrap; max-height:300px; overflow-y:auto"></div>
+</div>
+
+<!-- Injury Tracker -->
+<div class="card">
+    <div class="card-header">
+        <h3>Injury Tracker</h3>
+        <button class="btn btn-sm" onclick="CPSL.showInjuryForm()">+ Add Injury</button>
+    </div>
+    <div id="injuries-list"></div>
+</div>
+
+<!-- Injury Form Modal -->
+<div class="modal-overlay" id="injury-modal">
+    <div class="modal">
+        <h2>Register Injury</h2>
+        <form id="injury-form">
+            <div class="form-group" style="margin-bottom:12px">
+                <label>Injury Name</label>
+                <input type="text" id="injury-name" placeholder="e.g. Left knee pain" required>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Start Date</label>
+                    <input type="date" id="injury-date-start" required>
+                </div>
+                <div class="form-group">
+                    <label>Severity</label>
+                    <select id="injury-severity">
+                        <option value="minor">Minor</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="severe">Severe</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom:12px">
+                <label>Notes</label>
+                <textarea id="injury-notes" rows="3" placeholder="Description of the injury..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-ghost" onclick="CPSL.closeModal('injury-modal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var colors = ['#3498db','#2ecc71','#e67e22','#9b59b6','#e74c3c','#f1c40f','#1abc9c','#e91e63'];
-    document.querySelectorAll('.profile-color[data-pid]').forEach(function(el) {
-        var pid = el.dataset.pid;
-        var hash = 0;
-        for (var i = 0; i < pid.length; i++) hash = ((hash << 5) - hash) + pid.charCodeAt(i);
-        el.style.background = colors[Math.abs(hash) % colors.length];
+    CPSL.loadProfile();
+    document.getElementById('athlete-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        CPSL.saveAthlete();
+    });
+    document.getElementById('injury-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        CPSL.saveInjury();
     });
 });
 </script>

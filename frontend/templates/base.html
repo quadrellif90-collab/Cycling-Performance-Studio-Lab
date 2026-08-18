@@ -5,32 +5,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cycling Performance Studio Lab</title>
     <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header>
-        <div class="logo">
-            <span>CPSL</span>
-            <span>Cycling Performance Studio Lab</span>
+<div class="app-layout">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">CPSL</div>
+            <div class="sidebar-version">v0.1.0</div>
         </div>
-        <nav>
-            <a href="/">Dashboard</a>
-            <a href="/profile">Profilo</a>
-            <a href="/workouts">Workout Library</a>
-            <a href="/analytics">Analytics</a>
-            <a href="/settings">Impostazioni</a>
+        <nav class="sidebar-nav">
+            <a href="/" class="nav-item {% if active_page == 'dashboard' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <span class="nav-label">Dashboard</span>
+            </a>
+            <a href="/profile" class="nav-item {% if active_page == 'profile' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span class="nav-label">Profile</span>
+            </a>
+            <a href="/workouts" class="nav-item {% if active_page == 'workouts' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <span class="nav-label">Workouts</span>
+            </a>
+            <a href="/analytics" class="nav-item {% if active_page == 'analytics' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                <span class="nav-label">Analytics</span>
+            </a>
+            <a href="/settings" class="nav-item {% if active_page == 'settings' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span class="nav-label">Settings</span>
+            </a>
         </nav>
-    </header>
+        <div class="sidebar-footer">
+            <div class="profile-switcher" onclick="CPSL.openProfilePicker()">
+                <div class="profile-avatar" id="sidebar-avatar">{{ active_profile[0]|upper if active_profile else '?' }}</div>
+                <div class="profile-info">
+                    <div class="profile-name" id="sidebar-profile-name">{{ active_profile|replace('-',' ')|title if active_profile else 'No Profile' }}</div>
+                    <div class="profile-sub" id="sidebar-profile-sub">FTP: {{ athlete.ftp if athlete and athlete.ftp else '--' }}W</div>
+                </div>
+            </div>
+        </div>
+    </aside>
 
-    <main class="container">
-        {% block content %}{% endblock %}
-    </main>
+    <div class="main-content">
+        <div class="top-bar">
+            <h2>{% block page_title %}Dashboard{% endblock %}</h2>
+            <div class="top-bar-actions">
+                {% block top_actions %}{% endblock %}
+            </div>
+        </div>
+        <div class="page-body">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</div>
 
-    <footer>
-        <p>Cycling Performance Studio Lab v0.1.0</p>
-    </footer>
+<!-- Profile Picker Modal -->
+<div class="modal-overlay" id="profile-modal">
+    <div class="modal">
+        <h2>Select Profile</h2>
+        <div id="profile-list"></div>
+        <div class="form-actions">
+            <button class="btn" onclick="CPSL.createProfile()">New Profile</button>
+            <button class="btn btn-ghost" onclick="CPSL.closeModal('profile-modal')">Close</button>
+        </div>
+    </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="/static/js/app.js"></script>
-    {% block scripts %}{% endblock %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="/static/js/app.js"></script>
+{% block scripts %}{% endblock %}
 </body>
 </html>

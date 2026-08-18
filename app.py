@@ -140,7 +140,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 # Static files and templates
-BASE_DIR = Path(__file__).parent
+BASE_DIR = Path(getattr(sys, '_MEIPASS', Path(__file__).parent))
 app.mount("/static", StaticFiles(directory=BASE_DIR / "frontend" / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "frontend" / "templates")
 
@@ -200,9 +200,12 @@ def get_pm() -> ProfileManager:
 async def index(request: Request):
     """Main dashboard."""
     pm = get_pm()
+    athlete = pm.active_athlete() if pm.active_id else {}
     return templates.TemplateResponse(request, "index.html", {
         "profiles": pm.list_profiles(),
         "active_profile": pm.active_id,
+        "active_page": "dashboard",
+        "athlete": athlete,
     })
 
 @app.get("/profile", response_class=HTMLResponse)
@@ -212,24 +215,36 @@ async def profile_page(request: Request):
     return templates.TemplateResponse(request, "profile.html", {
         "profiles": pm.list_profiles(),
         "active_profile": pm.active_id,
+        "active_page": "profile",
         "athlete": pm.active_athlete() if pm.active_id else {},
     })
 
 @app.get("/workouts", response_class=HTMLResponse)
 async def workouts_page(request: Request):
     """Workout library page."""
-    return templates.TemplateResponse(request, "workouts.html", {"workouts": []})
+    pm = get_pm()
+    return templates.TemplateResponse(request, "workouts.html", {
+        "active_profile": pm.active_id,
+        "active_page": "workouts",
+    })
 
 @app.get("/analytics", response_class=HTMLResponse)
 async def analytics_page(request: Request):
     """Analytics dashboard page."""
-    return templates.TemplateResponse(request, "analytics.html", {})
+    pm = get_pm()
+    return templates.TemplateResponse(request, "analytics.html", {
+        "active_profile": pm.active_id,
+        "active_page": "analytics",
+        "athlete": pm.active_athlete() if pm.active_id else {},
+    })
 
 @app.get("/settings", response_class=HTMLResponse)
 async def settings_page(request: Request):
     """Settings page."""
     pm = get_pm()
     return templates.TemplateResponse(request, "settings.html", {
+        "active_profile": pm.active_id,
+        "active_page": "settings",
         "sync_targets": list_targets(),
         "connected": connected_targets(),
     })
@@ -407,6 +422,22 @@ async def api_cp_wprime(request: Request):
 # API Routes - Diagnostics
 # =============================================================================
 
+@app.get("/api/workouts")
+async def api_list_workouts():
+    """List available workouts from the workouts directory."""
+    import os
+    workout_dir = Path(__file__).parent / "workouts"
+    workouts = []
+    if workout_dir.exists():
+        for f in sorted(workout_dir.iterdir()):
+            if f.suffix.lower() in ('.zwo', '.fit', '.json'):
+                workouts.append({
+                    "filename": f.name,
+                    "name": f.stem.replace('_', ' ').replace('-', ' ').title(),
+                    "path": str(f),
+                })
+    return {"workouts": workouts, "count": len(workouts)}
+
 @app.get("/api/diag/recent-errors")
 async def api_recent_errors():
     """Get recent errors from diagnostic ring."""
@@ -428,27 +459,42 @@ async def api_health():
 # =============================================================================
 
 def run_web():
-    """Run the web server (for development)."""
-    uvicorn.run(
-        "app:app",
-        host="127.0.0.1",
-        port=config.DOMESTIQUE_PORT,
-        reload=True,
-        log_level="info",
-    )
+    """Run the web server (for development or PyInstaller bundle)."""
+    if getattr(sys, 'frozen', False):
+        uvicorn.run(
+            app,
+            host="127.0.0.1",
+            port=config.DOMESTIQUE_PORT,
+            log_level="info",
+        )
+    else:
+        uvicorn.run(
+            "app:app",
+            host="127.0.0.1",
+            port=config.DOMESTIQUE_PORT,
+            reload=True,
+            log_level="info",
+        )
 
 def run_desktop():
     """Run as desktop application with pywebview."""
     import webview
     
-    # Start FastAPI in background thread
     def start_server():
-        uvicorn.run(
-            "app:app",
-            host="127.0.0.1",
-            port=config.DOMESTIQUE_PORT,
-            log_level="warning",
-        )
+        if getattr(sys, 'frozen', False):
+            uvicorn.run(
+                app,
+                host="127.0.0.1",
+                port=config.DOMESTIQUE_PORT,
+                log_level="warning",
+            )
+        else:
+            uvicorn.run(
+                "app:app",
+                host="127.0.0.1",
+                port=config.DOMESTIQUE_PORT,
+                log_level="warning",
+            )
     
     server_thread = threading.Thread(target=start_server, daemon=True)
     server_thread.start()

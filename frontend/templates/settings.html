@@ -1,74 +1,92 @@
 {% extends "base.html" %}
+{% block page_title %}Settings{% endblock %}
 {% block content %}
-<div class="page">
-    <div class="page-header">
-        <h1>Impostazioni</h1>
-    </div>
 
-    <div class="settings-section">
-        <h2>Sincronizzazione</h2>
-        <div class="sync-targets">
-            {% for target in sync_targets %}
-            <div class="sync-target">
-                <div class="target-info">
-                    <span class="target-name">{{ target.display_name }}</span>
-                    <span class="target-key">{{ target.key }}</span>
-                </div>
-                <div class="target-status {% if target.is_configured %}configured{% else %}not-configured{% endif %}">
-                    {% if target.is_configured %}
-                    <span>✓ Configurato</span>
-                    {% else %}
-                    <span>✗ Non configurato</span>
-                    {% endif %}
-                </div>
-                {% if target.can_write %}
-                <button class="btn-link small" onclick="configureTarget('{{ target.key }}')">Configura</button>
-                {% endif %}
-            </div>
-            {% endfor %}
+<!-- ICU Sync -->
+<div class="card" style="margin-bottom:16px">
+    <div class="card-header">
+        <h3>Intervals.icu Connection</h3>
+    </div>
+    <div id="icu-status">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px">
+            <span class="badge b-low" id="icu-badge">Not Connected</span>
+            <span style="font-size:12px; color:var(--text2)" id="icu-info"></span>
         </div>
     </div>
-
-    <div class="settings-section">
-        <h2>Credenziali Profilo</h2>
-        <p>Le credenziali sono salvate nel file <code>.env</code> per ogni profilo.</p>
-        
-        <form id="env-form">
-            <div class="form-row">
-                <div class="form-group">
-                    <label>ICU Athlete ID</label>
-                    <input type="text" id="env-icu-athlete" placeholder="es. icu_athlete_123">
-                </div>
-                <div class="form-group">
-                    <label>ICU API Key</label>
-                    <input type="text" id="env-icu-key" placeholder="es. api_key_here">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>ICU Access Token</label>
-                    <input type="text" id="env-icu-token" placeholder="es. access_token_here">
-                </div>
-                <div class="form-group">
-                    <label>BIA Vision API Key</label>
-                    <input type="text" id="env-bia-key" placeholder="es. bia_vision_key (opzionale)">
-                </div>
-            </div>
-            <button type="submit" class="btn-primary">Salva Credenziali</button>
-        </form>
-
-        <div class="env-status" id="env-status"></div>
-    </div>
-
-    <div class="settings-section">
-        <h2>Formati Data e Numeri</h2>
-        <p>Puoi configurare il formato visualizzazione per l'Italia:</p>
-        <div class="format-opts">
-            <label>
-                <input type="checkbox" id="format-italian">Formato Italiano (DD/MM/YYYY, virgola decimale)
-            </label>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Athlete ID</label>
+            <input type="text" id="icu-athlete-id" placeholder="e.g. 12345">
         </div>
-        <p class="small">Riavvia l'app dopo il cambio di formato.</p>
+        <div class="form-group">
+            <label>API Key</label>
+            <input type="password" id="icu-api-key" placeholder="From intervals.icu Settings">
+        </div>
+    </div>
+    <div class="form-actions">
+        <button class="btn btn-primary" onclick="CPSL.testICU()">Test Connection</button>
+        <button class="btn" onclick="CPSL.saveICU()">Save</button>
+        <button class="btn btn-success" onclick="CPSL.syncICU()">Sync Now</button>
     </div>
 </div>
+
+<!-- Profiles Management -->
+<div class="card" style="margin-bottom:16px">
+    <div class="card-header">
+        <h3>Profile Management</h3>
+    </div>
+    <div id="settings-profiles"></div>
+</div>
+
+<!-- Backup & Export -->
+<div class="card" style="margin-bottom:16px">
+    <div class="card-header">
+        <h3>Backup & Export</h3>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap">
+        <button class="btn" onclick="CPSL.exportBackup()">Export Backup (JSON)</button>
+        <button class="btn" onclick="CPSL.exportZIP()">Export Full Backup (ZIP)</button>
+        <button class="btn" onclick="CPSL.exportMetrics()">Export Metrics CSV</button>
+    </div>
+</div>
+
+<!-- GPX Import -->
+<div class="card" style="margin-bottom:16px">
+    <div class="card-header">
+        <h3>GPX Import</h3>
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Upload GPX File</label>
+            <input type="file" id="gpx-upload" accept=".gpx">
+        </div>
+        <div class="form-group" style="justify-content:flex-end">
+            <button class="btn btn-primary" onclick="CPSL.uploadGPX()">Parse GPX</button>
+        </div>
+    </div>
+    <div id="gpx-result" style="display:none; margin-top:12px; padding:12px; background:var(--surface2); border-radius:6px; font-size:12px"></div>
+</div>
+
+<!-- App Info -->
+<div class="card">
+    <div class="card-header">
+        <h3>About</h3>
+    </div>
+    <div style="font-size:12px; color:var(--text2)">
+        <p><strong>Cycling Performance Studio Lab</strong> v0.1.0</p>
+        <p style="margin-top:4px">Fork of <a href="https://github.com/platypus45/domestique" target="_blank">domestique</a> with PCC advanced features.</p>
+        <p style="margin-top:4px">License: Apache 2.0</p>
+        <p style="margin-top:8px">Math modules: power_curve, fitness_estimation, error_codes (identical to PCC)</p>
+        <p>Frontend: Vanilla JS + Chart.js (no frameworks)</p>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    CPSL.loadSettings();
+});
+</script>
 {% endblock %}

@@ -1,92 +1,80 @@
 {% extends "base.html" %}
+{% block page_title %}Analytics{% endblock %}
 {% block content %}
-<div class="page">
-    <div class="page-header">
-        <h1>Dashboard Analytics</h1>
+
+<!-- Rider Profile Card -->
+<div class="card" style="margin-bottom:16px">
+    <div class="card-header">
+        <h3>Rider Profile</h3>
     </div>
+    <div class="grid g4">
+        <div class="metric"><div class="mv c-blue" id="rp-ftp">--</div><div class="ml">FTP (W)</div></div>
+        <div class="metric"><div class="mv" id="rp-wkg">--</div><div class="ml">W/kg</div></div>
+        <div class="metric"><div class="mv c-green" id="rp-ltp">--</div><div class="ml">LTP (W)</div></div>
+        <div class="metric"><div class="mv c-orange" id="rp-hie">--</div><div class="ml">HIE (kJ)</div></div>
+        <div class="metric"><div class="mv c-red" id="rp-pmax">--</div><div class="ml">Pmax (W)</div></div>
+        <div class="metric"><div class="mv" id="rp-cp">--</div><div class="ml">CP (W)</div></div>
+        <div class="metric"><div class="mv" id="rp-wprime">--</div><div class="ml">W' (kJ)</div></div>
+        <div class="metric"><div class="mv c-green" id="rp-vo2">--</div><div class="ml">VO2max</div></div>
+    </div>
+</div>
 
-    <div class="analytics-grid">
-        
-        <!-- Readiness Card -->
-        <div class="analytics-card">
-            <div class="card-header">
-                <h3>Readiness Score</h3>
-                <div class="score-value" id="readiness-score">--</div>
-            </div>
-            <div class="card-body">
-                <p>Score composito basato su HRV, sonno e carico di training.</p>
-                <div class="details">
-                    <span>HRV: <strong id="hrv-value">--</strong> ms</span>
-                    <span>Sonno: <strong id="sleep-value">--</strong> h</span>
-                    <span>TSB: <strong id="tsb-value">--</strong></span>
-                </div>
-            </div>
+<!-- Charts Row -->
+<div class="grid g2" style="margin-bottom:16px">
+    <div class="card">
+        <div class="card-header">
+            <h3>Power Curve</h3>
+            <button class="btn btn-sm" onclick="CPSL.refreshPowerCurve()">Refresh</button>
         </div>
-
-        <!-- Power Curve Card -->
-        <div class="analytics-card">
-            <div class="card-header">
-                <h3>Curve Potenza</h3>
-            </div>
-            <div class="card-body">
-                <canvas id="power-canvas" width="220" height="140"></canvas>
-                <p class="small">Power duration curve da ride recenti</p>
-                <button class="btn-link small" onclick="window.CPSL.refreshPowerCurve()">Aggiorna</button>
-            </div>
+        <div class="chart-container">
+            <canvas id="power-canvas"></canvas>
         </div>
-
-        <!-- Fitness Signature Card -->
-        <div class="analytics-card">
-            <div class="card-header">
-                <h3>Fitness Signature</h3>
-            </div>
-            <div class="card-body">
-                <canvas id="fitness-canvas" width="220" height="120"></canvas>
-                <p class="small">FTP, LTP, HIE, Pmax da best efforts</p>
-                <button class="btn-link small" onclick="window.CPSL.updateFitnessSig()">Aggiorna</button>
-            </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h3>Fitness Signature</h3>
+            <button class="btn btn-sm" onclick="CPSL.computeFitness()">Compute</button>
         </div>
-
-        <!-- CP/W' Card -->
-        <div class="analytics-card">
-            <div class="card-header">
-                <h3>CP / W' Analysis</h3>
-            </div>
-            <div class="card-body">
-                <canvas id="cpwprime-canvas" width="220" height="100"></canvas>
-                <p class="small">Critical Power e W' anaerobico</p>
-                <button class="btn-link small" onclick="window.CPSL.updateCpwprime()">Aggiorna</button>
-            </div>
-        </div>
-
-        <!-- Injury Card -->
-        <div class="analytics-card">
-            <div class="card-header">
-                <h3>Gestione Infortuni</h3>
-            </div>
-            <div class="card-body">
-                <p>Traccia infortuni e protocolli return-to-ride.</p>
-                <button class="btn-link" onclick="window.CPSL.openInjuryManager()">Gestisci Infortuni</button>
-            </div>
-        </div>
-
-        <!-- BIA Card -->
-        <div class="analytics-card">
-            <div class="card-header">
-                <h3>BIA Body Composition</h3>
-            </div>
-            <div class="card-body">
-                <p>Analisi composizione corporea da file PDF BIA.</p>
-                <div class="file-upload">
-                    <input type="file" id="bia-upload" accept=".pdf">
-                    <button class="btn-secondary" onclick="window.CPSL.uploadBIA()">Carica PDF</button>
-                </div>
-                <div id="bia-result" class="hidden">
-                    <h4>Risultati BIA</h4>
-                    <p id="bia-msg"></p>
-                </div>
-            </div>
+        <div class="chart-container">
+            <canvas id="fitness-canvas"></canvas>
         </div>
     </div>
 </div>
+
+<!-- CP/W' Analysis -->
+<div class="grid g2">
+    <div class="card">
+        <div class="card-header">
+            <h3>CP / W' Analysis</h3>
+            <button class="btn btn-sm" onclick="CPSL.computeCpWprime()">Compute</button>
+        </div>
+        <div class="chart-container">
+            <canvas id="cpwprime-canvas"></canvas>
+        </div>
+        <div id="cpwprime-details" style="margin-top:12px; font-size:12px; color:var(--text2)">
+            Enter best efforts in Profile to compute.
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h3>Peak Efforts</h3>
+        </div>
+        <table>
+            <thead><tr><th>Duration</th><th>Power</th><th>% FTP</th></tr></thead>
+            <tbody id="peak-efforts-body">
+                <tr><td colspan="3" class="loading">No effort data</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/analytics.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    CPSL.loadAnalytics();
+});
+</script>
 {% endblock %}
