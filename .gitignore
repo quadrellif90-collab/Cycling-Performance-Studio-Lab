@@ -1,77 +1,10 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Virtual environments
-.venv/
-venv/
-env/
-ENV/
-
-# Distribution / packaging
 build/
 dist/
-*.egg-info/
-*.spec
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Application data
-*.db
-*.sqlite
-*.sqlite3
+*.spec.bak
+__pycache__/
+*.pyc
+*.pyo
 *.log
-
-# Environment files (sensitive)
-.env
-.env.local
-.env.*.local
-.oauth.env
-
-# User profiles (runtime generated)
-profiles/*
-!profiles/.gitkeep
-
-# Workout library (large, can be regenerated)
-workouts/*.zwo
-workouts/.content_classification.json
-workouts/.library_index.json
-workouts/.structure_index.json
-workouts/.golden_set.json
-
-# Routes (large JSON)
-routes.json
-
-# Cache
-.pytest_cache/
-.coverage
-htmlcov/
-.mypy_cache/
-.ruff_cache/
-
-# Build artifacts
-*.exe
-*.dmg
-*.AppImage
-*.deb
-*.rpm
-*.msi
-
-# PyInstaller
-*.manifest
-*.spec
-
-# Temporary files
-tmp/
-temp/
 *.tmp
+pcc_debug.log
+pcc_import_error.log
