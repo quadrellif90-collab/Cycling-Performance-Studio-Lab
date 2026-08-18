@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <h1>Gestione Profilo</h1>
+    </div>
+
+    {% if profiles %}
+    <div class="profiles-list">
+        <h2>I Tuoi Profili</h2>
+        <ul>
+            {% for pid in profiles %}
+            <li class="profile-item" data-profile-id="{{ pid }}">
+                <span class="profile-color" style="background: {{ get_color(pid) }}"></span>
+                <span class="profile-name">{{ pid|title }}</span>
+                {% if pid == active_profile %}
+                <span class="status-badge">Attivo</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="profile-actions">
+        <button class="btn-primary" onclick="createProfile()">Nuovo Profilo</button>
+        <button class="btn-secondary" onclick="deleteProfile()">Elimina</button>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h2>Nessun profilo creato</h2>
+        <p>Crea il tuo primo profilo per iniziare a tracciare i dati.</p>
+        <button class="btn-primary" onclick="createProfile()">Crea Primo Profilo</button>
+    </div>
+    {% endif %}
+
+    <div class="profile-details">
+        <h2>Dettagli Profilo Attivo</h2>
+        
+        <form id="athlete-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>FTP (W)</label>
+                    <input type="number" id="athlete-ftp" min="50" max="600" value="{{ athlete.ftp | default(200) }}" step="1">
+                </div>
+                <div class="form-group">
+                    <label>Peso (kg)</label>
+                    <input type="number" id="athlete-weight" min="30" max="200" value="{{ athlete.weight_kg | default(70) }}" step="0.1">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>LTHR (bpm)</label>
+                    <input type="number" id="athlete-lthr" min="100" max="250" value="{{ athlete.lthr | default(180) }}" step="1">
+                </div>
+                <div class="form-group">
+                    <label>Max HR (bpm)</label>
+                    <input type="number" id="athlete-max-hr" min="100" max="250" value="{{ athlete.max_hr | default(190) }}" step="1">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary" form="athlete-form">Salva Atleta</button>
+        </form>
+
+        <hr>
+
+        <h3>Metriche Fonti</h3>
+        <div class="source-tags">
+            <span class="tag ftp-source">FTP: {{ athlete.ftp_source | default('manual') }}</span>
+            <span class="tag max-hr-source">Max HR: {{ athlete.max_hr_source | default('manual') }}</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

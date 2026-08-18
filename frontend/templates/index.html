@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page">
+    <div class="page-header">
+        <h1>Benvenuto in Cycling Performance Studio Lab</h1>
+        <p class="subtitle">Professional cycling analytics platform</p>
+    </div>
+
+    <div class="welcome-box">
+        <h2>Benvenuto!</h2>
+        <p>Puoi iniziare configurando il tuo primo profilo o esplorando la libreria workout disponibile.</p>
+
+        <div class="quick-actions">
+            <div class="action-card">
+                <h3>Crea Nuovo Profilo</h3>
+                <p>Imposta il tuo atleta FTP, peso e parametri per personalizzare allenamenti e analisi.</p>
+                <button class="btn-secondary" onclick="openProfileModal()">Crea Profilo</button>
+            </div>
+
+            <div class="action-card">
+                <h3>Sincronizza ICU</h3>
+                <p>Collega Intervals.icu per sincronizzare workout e dati wellness.</p>
+                <button class="btn-secondary" onclick="openSyncModal()">Configura Sync</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-card">
+            <h3>Profilo Attivo</h3>
+            <p id="active-profile-name">Nessun profilo attivo</p>
+        </div>
+        <div class="info-card">
+            <h3>Workout Library</h3>
+            <p id="workout-count">0 workout disponibili</p>
+        </div>
+        <div class="info-card">
+            <h3>Ultima Sync</h3>
+            <p id="last-sync">Jamais</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

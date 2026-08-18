@@ -1,0 +1,73 @@
+{
+    "app": {
+        "dashboard": "Dashboard",
+        "profile": "Profilo",
+        "workouts": "Libreria Workout",
+        "analytics": "Analytics",
+        "settings": "Impostazioni",
+        "create_profile": "Crea Profilo",
+        "delete_profile": "Elimina Profilo",
+        "save": "Salva",
+        "cancel": "Annulla",
+        "sync": "Sincronizza",
+        "configure": "Configura",
+        "save_athlete": "Salva Atleta",
+        "env_status": "Stato Credenziali"
+    },
+    "profile": {
+        "ftp": "FTP (W)",
+        "weight": "Peso (kg)",
+        "lthr": "LTHR (bpm)",
+        "max_hr": "Max HR (bpm)",
+        "source_ftp": "FTP:",
+        "source_max_hr": "Max HR:",
+        "save_profile": "Salva Profilo",
+        "no_profile": "Nessun profilo attivo"
+    },
+    "workouts": {
+        "title": "Libreria Workout",
+        "filter_type": "Filtra per tipo",
+        "filter_min_tss": "Min TSS",
+        "filter_max_tss": "Max TSS",
+        "refresh": "Aggiorna Libreria",
+        "workout": "Workout",
+        "type": "Tipo",
+        "duration": "Durata",
+        "tss": "TSS",
+        "no_workouts": "Nessun workout disponibile"
+    },
+    "analytics": {
+        "readiness": "Readiness Score",
+        "power_curve": "Curve Potenza",
+        "fitness_signature": "Fitness Signature",
+        "injury_manager": "Gestione Infortuni",
+        "bia_body_comp": "BIA Body Composition",
+        "readiness_score": "Score Readiness",
+        "hrv": "HRV (ms)",
+        "sleep": "Sonno (h)",
+        "tsb": "TSB",
+        "upload_bia": "Carica PDF BIA",
+        "no_bia_result": "Nessun risultato BIA"
+    },
+    "settings": {
+        "title": "Impostazioni",
+        "sync": "Sincronizzazione",
+        "sync_targets": "Destinazioni Sync",
+        "configure_target": "Configura",
+        "credentials": "Credenziali Profilo",
+        "save_credentials": "Salva Credenziali",
+        "env_status": "Stato Credenziali",
+        "format": "Formato",
+        "italian_format": "Formato Italiano (DD/MM/YYYY, virgola decimale)",
+        "data_export": "Esportazione Dati",
+        "backup": "Backup",
+        "restore": "Ripristina"
+    },
+    "common": {
+        "save": "Salva",
+        "cancel": "Annulla",
+        "error": "Errore",
+        "success": "Successo",
+        "loading": "Caricamento..."
+    }
+}
