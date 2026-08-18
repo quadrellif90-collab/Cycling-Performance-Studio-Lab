@@ -16,6 +16,9 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
 logger = logging.getLogger(__name__)
 
 _injury_manager_instances: Dict[str, "InjuryManager"] = {}
@@ -237,8 +240,6 @@ class InjuryManager:
 
 
 def register_routes(app: Any) -> None:
-    from fastapi import Request
-    from fastapi.responses import JSONResponse
 
     @app.post("/api/injuries")
     async def api_create_injury(request: Request):

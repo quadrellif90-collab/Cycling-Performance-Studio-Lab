@@ -20,6 +20,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
 logger = logging.getLogger(__name__)
 
 SESSION_TTL = 3600.0  # 1 hour
