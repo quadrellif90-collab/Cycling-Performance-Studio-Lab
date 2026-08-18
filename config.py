@@ -1,113 +1,129 @@
-"""
-Global configuration constants for Cycling Performance Studio Lab.
-Per-profile values are resolved dynamically via ProfileManager proxy (see __getattr__).
-"""
+"""Configuration — health tracker.
 
-from __future__ import annotations
+Global constants stay here. Per-profile values (athlete data, ICU creds,
+paths) are resolved dynamically via __getattr__ which proxies to
+ProfileManager.
+"""
+import os
+from pathlib import Path
 
+# ── Intervals.icu base URL (truly global) ────────────────────────────────────
 ICU_BASE = "https://intervals.icu/api/v1"
-ICU_OAUTH_AUTHORIZE = "https://intervals.icu/oauth/authorize"
-ICU_OAUTH_TOKEN = "https://intervals.icu/oauth/token"
-ICU_OAUTH_CLIENT_ID = "511"
-ICU_OAUTH_REDIRECT_PATH = "/oauth/callback"
+
+# ── Intervals.icu OAuth (per-profile "Connect") — global app credentials ──────
+# Issued by ICU after app registration (email support@intervals.icu). BLANK until
+# provisioned → the OAuth flow returns "oauth_not_configured" and the API-key path
+# stays the only option (zero behaviour change until creds land). Read from env so
+# the build can inject them without hard-coding. NOTE: the client_secret ships in
+# the distributed binary (installed-app OAuth, no PKCE here) — it is NOT truly
+# secret; ICU can rotate it. The per-user access token is what protects ride data,
+# and it is no more exposed than today's API key.
+def _load_oauth_env() -> None:
+    """Populate ICU_OAUTH_* from a gitignored ``.oauth.env`` (KEY=VALUE) if present
+    so the client_secret never enters this PUBLIC repo. Dev drops the file in the
+    repo root; the build bundles it into the frozen app (see domestique.spec) so
+    the shipped binary has it. A real environment variable still wins (setdefault)."""
+    import sys
+    candidates = [Path(__file__).resolve().parent / ".oauth.env"]
+    _mei = getattr(sys, "_MEIPASS", None)
+    if _mei:
+        candidates.append(Path(_mei) / ".oauth.env")
+    for _p in candidates:
+        try:
+            if not _p.is_file():
+                continue
+            for _line in _p.read_text(encoding="utf-8").splitlines():
+                _line = _line.strip()
+                if not _line or _line.startswith("#") or "=" not in _line:
+                    continue
+                _k, _v = _line.split("=", 1)
+                os.environ.setdefault(_k.strip(), _v.strip())
+        except Exception:
+            pass
+
+
+_load_oauth_env()
+# client_id is NOT secret (it travels in the browser authorize URL) → safe default.
+ICU_OAUTH_CLIENT_ID = os.environ.get("ICU_OAUTH_CLIENT_ID", "511")
+# client_secret comes ONLY from .oauth.env / the environment — never hard-coded here.
+ICU_OAUTH_CLIENT_SECRET = os.environ.get("ICU_OAUTH_CLIENT_SECRET", "")
+ICU_OAUTH_AUTHORIZE_URL = "https://intervals.icu/oauth/authorize"
+ICU_OAUTH_TOKEN_URL = "https://intervals.icu/api/oauth/token"
+# The callback has to land on whatever port we actually bound, so this follows
+# DOMESTIQUE_PORT (set by launcher.py once the port is resolved) rather than
+# naming one. Safe to vary: intervals.icu ignores the port on loopback
+# redirects entirely — their own app-management page says "http://localhost/*
+# is always allowed, no need to add it", and probing their validator confirms
+# any port and path is accepted for both `localhost` and `127.0.0.1`, on every
+# client_id, not just ours. So no re-registration is needed when it changes.
+#
+# 127.0.0.1 rather than localhost: RFC 8252 §8.3 calls the localhost form NOT
+# RECOMMENDED (it can resolve to a non-loopback interface and is vulnerable to
+# a mangled hosts file or a client firewall), and §7.3's "MUST allow any port"
+# guarantee is scoped to the IP literal. Do NOT switch to [::1] — intervals.icu
+# rejects it — and keep the host lowercase, as their matching is case-sensitive.
+ICU_OAUTH_REDIRECT_URI = (
+    f"http://127.0.0.1:{os.environ.get('DOMESTIQUE_PORT') or '22400'}"
+    f"/oauth/icu/callback")
+# CALENDAR:WRITE (v3.0.1, IP_ICU_PUSH): lets the push engine upsert planned
+# workouts onto the athlete's ICU calendar. Pre-existing connections granted
+# only the READ set keep working read-only; the UI offers a one-click
+# reconnect to pick up the new scope (granted scopes are stamped per profile).
+# ONE scope per area: intervals.icu rejects the authorize request with
+# "Duplicate scope CALENDAR" if an area appears twice (v3.0.2 hotfix —
+# CALENDAR:READ + CALENDAR:WRITE together bricked reconnect). WRITE covers
+# the calendar reads the app does.
 ICU_OAUTH_SCOPES = "ACTIVITY:READ,WELLNESS:READ,LIBRARY:READ,CALENDAR:WRITE"
 
-TERRA_BASE = "https://api.tryterra.co/v2"
-
-DOMESTIQUE_PORT = 22400
-
+# ── Weekly mesocycle planner — Seiler (2010), Stöggl & Sperlich (2014) ───────
 WEEKLY_LIT_PCT = 0.80
 WEEKLY_HIT_PCT = 0.20
 MAX_HIT_PER_WEEK = 2
+MIN_HIT_GAP_HOURS = 48
+LONG_RIDE_DAY = 6
+FTP_TEST_INTERVAL_WEEKS = 6
+TAPER_AUTO_LOCK = True
+PLAN_RECALC_INTERVAL_DAYS = 7
 
-ACWR_GREEN_LOW = 0.85
+# ── Training load thresholds ─────────────────────────────────────────────────
+ACWR_GREEN_LOW  = 0.85
 ACWR_GREEN_HIGH = 1.15
 ACWR_ORANGE_HIGH = 1.25
+RAMP_RATE_GREEN  = 7
+RAMP_RATE_ORANGE = 9
+MONOTONY_GREEN   = 1.5
+MONOTONY_RED     = 2.0
+TSB_RED          = -30
 
-RAMP_RATE_GREEN = 5.0
-RAMP_RATE_ORANGE = 10.0
-
-TSB_RED_LINE = -30.0
-
-SLEEP_GREEN = 7.5
+# ── Sleep thresholds (hours) ─────────────────────────────────────────────────
+SLEEP_GREEN  = 7.5
 SLEEP_ORANGE = 6.5
 
-EA_OPTIMAL = 45.0
-EA_SAFE = 35.0
-EA_DANGER = 30.0
-
-PROFILE_SCHEMA_VERSION = 4
-_PROFILE_ID_RE = r'^[a-z0-9][a-z0-9_-]{0,31}$'
-
-PRESET_COLORS = [
-    "blue", "green", "orange", "purple",
-    "red", "yellow", "cyan", "pink"
-]
-
-STANDARD_DURATIONS = [1, 5, 15, 30, 60, 120, 300, 480, 600, 1200, 1800, 3600]
-MONOD_DURATIONS_S = (180, 300, 600, 1200)
-MONOD_MIN_POINTS = 3
-MONOD_R2_MIN = 0.90
-
-FTP_SCALING_FACTORS = {
-    300: 0.80,
-    480: 0.86,
-    1200: 0.95,
-    1800: 0.97,
-    3600: 1.00,
-}
-MIN_FTP_EFFORT_DURATION = 300
-
-_PG_2011_W_PER_KG = {
-    1: 23.7, 5: 14.9, 15: 9.7, 30: 7.5,
-    60: 6.3, 120: 5.4, 300: 4.8, 480: 4.4,
-    600: 4.2, 1200: 3.8, 1800: 3.5, 3600: 3.1,
-}
-
-SYNC_GATE_TIMEOUT_S = 10.0
-
-WORK_FLOOR_FRAC = 0.75
-TOL_FRAC = 0.05
-TOL_MIN_W = 10.0
-TRANSIENT_GRACE_S = 3
-ALIGN_MAX_OFFSET_S = 120
-MISSING_BELOW_FLOOR_FRAC = 0.5
-MISSING_TARGET_FRAC = 0.90
+# ── EA thresholds (kcal/kg LBM/day) — IOC consensus (Mountjoy et al., 2018) ─
+EA_OPTIMAL  = 45
+EA_SAFE     = 35
+EA_DANGER   = 30
 
 
-class _ConfigProxy:
-    def __getattr__(self, name: str):
-        # Check if it's a module-level config constant
-        import config as _cfg
-        if hasattr(_cfg, name):
-            return getattr(_cfg, name)
-        
-        from profile_manager import ProfileManager, get as pm_get
-        pm = pm_get()
-        mapping = {
-            "ATHLETE_FTP_W": lambda: pm.ftp,
-            "ATHLETE_WEIGHT_KG": lambda: pm.weight_kg,
-            "ATHLETE_LBM_KG": lambda: pm.lbm_kg,
-            "ATHLETE_LTHR": lambda: pm.lthr,
-            "ATHLETE_MAX_HR": lambda: pm.max_hr,
-            "ATHLETE_CP_W": lambda: pm.cp,
-            "ATHLETE_WPRIME_J": lambda: pm.wprime_j,
-            "ATHLETE_PMAX_W": lambda: pm.pmax_w,
-            "ATHLETE_AGE": lambda: getattr(pm, "age", None),
-            "ATHLETE_SEX": lambda: getattr(pm, "sex", None),
-            "TARGET_MODE": lambda: pm.target_mode,
-            "CAP_SHORT_INTERVALS": lambda: pm.cap_short_intervals,
-            "ICU_ATHLETE_ID": lambda: pm.icu_athlete_id,
-            "ICU_API_KEY": lambda: pm.icu_api_key,
-            "ICU_ACCESS_TOKEN": lambda: pm.icu_access_token,
-            "ICU_NAME": lambda: pm.icu_name,
-            "BIA_VISION_API_KEY": lambda: pm.bia_vision_api_key,
-            "BIA_VISION_BASE_URL": lambda: pm.bia_vision_base_url,
-            "BIA_VISION_MODEL": lambda: pm.bia_vision_model,
-        }
-        if name in mapping:
-            return mapping[name]()
-        raise AttributeError(f"Config has no attribute {name!r}")
+# ── Dynamic proxy for per-profile values ─────────────────────────────────────
 
+def __getattr__(name: str):
+    """Resolve per-profile values on access via ProfileManager.
 
-config = _ConfigProxy()
+    Only evaluates the REQUESTED attribute (not all 16) for performance.
+    """
+    from profile_manager import ProfileManager
+    pm = ProfileManager.get()
+    # Map attribute names to property accessors (lazy — only requested one evaluates)
+    _props = {
+        "ATHLETE_FTP_W": "ftp", "ATHLETE_WEIGHT_KG": "weight_kg",
+        "ATHLETE_LBM_KG": "lbm_kg", "ATHLETE_LTHR": "lthr",
+        "ATHLETE_MAX_HR": "max_hr",
+        "HRV_BASELINE_MEAN": "hrv_baseline_mean", "HRV_BASELINE_SD": "hrv_baseline_sd",
+        "RHR_BASELINE": "rhr_baseline",
+        "ICU_ATHLETE_ID": "icu_athlete_id", "ICU_API_KEY": "icu_api_key",
+        "ICU_ACCESS_TOKEN": "icu_access_token",
+    }
+    if name in _props:
+        return getattr(pm, _props[name])
+    raise AttributeError(f"module 'config' has no attribute {name!r}")

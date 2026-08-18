@@ -13,7 +13,10 @@ import re
 import logging
 from typing import Any, Dict, List, Optional
 
-from config import config
+import os
+BIA_VISION_API_KEY = os.environ.get("BIA_VISION_API_KEY", "")
+BIA_VISION_BASE_URL = os.environ.get("BIA_VISION_BASE_URL", "https://api.bia.vision/v1")
+BIA_VISION_MODEL = os.environ.get("BIA_VISION_MODEL", "general")
 from error_codes import _log_error, REGISTRY
 
 logger = logging.getLogger(__name__)
@@ -23,8 +26,8 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 # Flag per attivare/disattivare la Vision API
-ENABLE_BIA_VISION = config.BIA_VISION_API_KEY is not None and bool(
-    config.BIA_VISION_API_KEY.strip()
+ENABLE_BIA_VISION = BIA_VISION_API_KEY is not None and bool(
+    BIA_VISION_API_KEY.strip()
 )
 
 # Pattern keyword per parser locale (ricerca di valori chiave nei PDF)
@@ -71,9 +74,9 @@ class BIAVisionClient:
     """Client per BIA Vision API (third-party service)."""
 
     def __init__(self) -> None:
-        self.api_key: str = config.BIA_VISION_API_KEY or ""
-        self.base_url: str = config.BIA_VISION_BASE_URL or "https://api.bia.vision/v1"
-        self.model: str = config.BIA_VISION_MODEL or "general"
+        self.api_key: str = BIA_VISION_API_KEY or ""
+        self.base_url: str = BIA_VISION_BASE_URL or "https://api.bia.vision/v1"
+        self.model: str = BIA_VISION_MODEL or "general"
 
     def is_configured(self) -> bool:
         """Check if Vision API is configured."""
