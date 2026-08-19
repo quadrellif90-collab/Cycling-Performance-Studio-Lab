@@ -803,9 +803,15 @@ try:
         cp, wprime = result
         return {"cp": round(cp, 1), "w_prime": round(wprime, 1), "success": True}
 
-    _inj.register_routes(app)
     _gpx.register_routes(app)
     _sess.register_routes(app)
+
+    # PCC v2 routes (Huawei HRV, Terra, Custom Charts, Onboarding, etc.)
+    try:
+        from pcc_routes_v2 import register_pcc_routes as _reg_pcc_v2
+        _reg_pcc_v2(app)
+    except Exception as _e:
+        log.debug(f"pcc_routes_v2 registration failed: {_e}")
 
     @app.post("/api/bia/analyze")
     async def api_bia_analyze(request: Request):
