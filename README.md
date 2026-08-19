@@ -4,6 +4,7 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-009688.svg)](https://fastapi.tiangolo.com/)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
+[![Tests](https://img.shields.io/badge/tests-150%20passing-brightgreen.svg)]()
 
 Professional cycling analytics platform combining the best of **Domestique** and **PCC** into a single, unified application.
 
@@ -11,30 +12,7 @@ Professional cycling analytics platform combining the best of **Domestique** and
 
 ---
 
-## Cos'e
-
-Cycling Performance Studio Lab (CPSL) e un'applicazione desktop/web per ciclisti professionisti e amatoriali che offre:
-
-- **Analisi della performance** con modelli matematici avanzati (FTP, CP/W', HIE, Pmax)
-- **Sincronizzazione** con Intervals.icu e altri servizi
-- **Gestione profili** multipli con credenziali separate
-- **Tracking infortuni** con protocolli return-to-ride
-- **Analisi composizione corporea** (BIA) da PDF
-- **Import/Export** dati in formati standard (GPX, FIT, ICS)
-
-### Origine del Progetto
-
-Questo progetto nasce come **fork di [Domestique](https://github.com/platypus45/domestique)** (v3.10.0), un'applicazione open source per il monitoraggio dell'allenamento ciclistico. A Domestique sono state integrate tutte le funzionalita avanzate di **PCC** (Personal Cycling Coach), un'altra applicazione open source che condivide gli stessi moduli matematici di base.
-
-**Moduli matematici condivisi** tra Domestique e PCC:
-- `fitness_estimation.py` - Stima FTP e firma di fitness
-- `power_curve.py` - Curva di potenza e analisi potenza-duration
-- `training_live.py` - Metriche di training in tempo reale
-- `error_codes.py` - Codici di errore strutturati (50 codici)
-
----
-
-## Features
+## Features (v0.5.0)
 
 ### Analisi della Performance
 
@@ -43,52 +21,90 @@ Questo progetto nasce come **fork di [Domestique](https://github.com/platypus45/
 | **FTP Estimation** | Stima FTP dai best efforts usando scaling factors Coggan |
 | **Fitness Signature** | Calcolo completo: FTP, LTP, HIE, Pmax |
 | **CP/W' Analysis** | Modello Monod-Scherrer per Critical Power e W' |
+| **CP Models** | Modelli Morton 3P, 2P, Marinescu per performance |
 | **Power Curve** | Curva potenza-duration con dati da Intervals.icu |
 | **Aerobic Decoupling** | Analisi decoupling aerobico per valutare resistenza |
-| **Ramp Test FTP** | Advisory e capping per test a rampa |
 | **Readiness Score** | Score composito HRV + sonno + carico training |
+| **Strain Score** | Calcolo strain e debolezza (XSS) per sessioni |
+| **Tau Fitting** | Fitting parametri debolezza per atleta |
+| **Continuous Policy** | Goal engine continuo con deload trigger |
 
-### Gestione Dati
-
-| Funzionalita | Descrizione |
-|-------------|-------------|
-| **Multi-Profile** | Profili multipli con credenziali separate (.env) |
-| **Sync Intervals.icu** | Push/pull attivita e wellness con OAuth2 |
-| **GPX Import** | Parsing file GPX con dati potenza/FC/FCR |
-| **FIT Import** | Import file FIT da dispositivi Garmin/Wahoo |
-| **ICS Export** | Esporta piani di allenamento in formato iCalendar |
-| **Data Export** | Backup completo profilo (ZIP, JSON) |
-
-### Strumenti
+### Training & Pianificazione
 
 | Funzionalita | Descrizione |
 |-------------|-------------|
-| **Injury Manager** | CRUD infortuni con persistenza JSON e severity tracking |
-| **BIA Analysis** | Analisi composizione corporea da PDF (Vision API o parser locale) |
-| **Sleep/HRV** | Analisi qualita sonno e basi HRV |
-| **Capacity Cap** | Capping FTP e advisory per atleti |
-| **Zones** | Calcolo zone HR e potenza (modello Coggan) |
+| **Training Planner** | Generazione piani settimanali con TSS target |
+| **Daily Recalculate** | Ricalcolo giornaliero con adjustment automatico |
+| **Block Model** | Raccomandazioni per blocchi di allenamento |
+| **Strength & Mobility** | Piani forza e mobilita per fase di allenamento |
+| **Mobility Plan** | Routine giornaliere stretching/mobilita |
+| **Calendar ICS** | Esporta piani in formato iCalendar |
+| **Plan Export** | Esporta piani in HTML |
+
+### Nutrizione & Composizione Corporea
+
+| Funzionalita | Descrizione |
+|-------------|-------------|
+| **Nutrition** | Calcolo macro giornalieri per tipo di allenamento |
+| **Diet** | Piani alimentari settimanali con hydratation e fueling |
+| **Supplements** | Raccomandazioni integratori per peso/categoria |
+| **BIA Parser** | Analisi composizione corporea da PDF (OCR o Vision API) |
+| **BIA Vision** | Estrazione BIA da immagini via Google Vision API |
+| **Diet Parser** | Parsing piani alimentari da PDF |
+
+### Analisi Avanzata
+
+| Funzionalita | Descrizione |
+|-------------|-------------|
+| **HRV Engine** | Analisi HRV con baseline e trend |
+| **Huawei HRV** | Import dati HRV da Huawei Watch |
+| **Pedal Asymmetry** | Analisi asimmetria pedale (L/R balance, TE, PS) |
+| **Activity Insights** | Classificazione protocollo e insights sessione |
+| **Metabolic Profile** | Profilo metabolico con decodificatore |
+| **Custom Charts** | Grafici personalizzati con metriche libere |
+| **Field Test Protocols** | Protocolli test campo (CP test, ramp test, etc.) |
+
+### Integrazione & Sync
+
+| Funzionalita | Descrizione |
+|-------------|-------------|
+| **Intervals.icu** | Sync bidirezionale con OAuth2 |
+| **Terra** | Integrazione con Terra API per wearables |
+| **Huawei** | Import dati da dispositivi Huawei |
+| **Upstream Check** | Verifica aggiornamenti disponibili |
+| **Data Export** | Bundle ZIP con tutti i dati profilo |
+| **Activity RPE** | Log RPE per sessioni |
 
 ### Architettura
 
 | Funzionalita | Descrizione |
 |-------------|-------------|
-| **Pluggable Sync** | Architettura modulare per sincronizzazione multi-target |
-| **Per-Profile Config** | Configurazione separata per ogni profilo |
+| **68 Moduli** | Codice modulare e testabile |
+| **224 API Routes** | API REST complete con OpenAPI docs |
+| **Multi-Profile** | Profili multipli con credenziali separate |
+| **Pluggable Sync** | Architettura modulare per sync multi-target |
 | **LRU Cache** | Cache con TTL per computazioni costose |
-| **Session Manager** | Gestione sessioni multi-utente con audit log |
-| **Error Registry** | 50 codici di errore strutturati E_<domain>_<failure> |
-| **CORS + Middleware** | Exception handler globale, CORS abilitato |
+| **Session Manager** | Gestione sessioni con audit log |
+| **Error Registry** | Codici di errore strutturati |
+| **Injury Manager** | CRUD infortuni con persistenza JSON |
 
-### Frontend
+### Frontend (13 Tab)
 
-| Pagina | Descrizione |
-|--------|-------------|
-| **Dashboard** | Overview profilo attivo e metriche principali |
-| **Profilo** | Gestione dati atleta e credenziali |
-| **Workout Library** | Libreria workout con filtri e statistiche |
-| **Analytics** | Grafici Chart.js: Power Curve, Fitness Signature, CP/W' |
-| **Impostazioni** | Configurazione sync, credenziali, formati |
+| Tab | Descrizione |
+|-----|-------------|
+| **Home** | Overview con TID heatmap, daily adapt, strength, calendar |
+| **Activity Picker** | Selezione attivita per analisi |
+| **Library** | Libreria workout con filtri |
+| **Courses** | Gestione percorsi |
+| **Plan** | Piani di allenamento |
+| **Analysis** | Analisi dettagliata sessione |
+| **DFA** | Analisi DFA alpha per intensita |
+| **HRV** | Dashboard HRV completa |
+| **Nutrition** | Piani nutrizionali |
+| **BIA** | Composizione corporea |
+| **Profile** | Dati atleta e configurazione |
+| **What's New** | Changelog e novita |
+| **Settings** | Configurazione sync, credenziali |
 
 ---
 
@@ -125,10 +141,10 @@ L'app sara disponibile su `http://127.0.0.1:22400`
 build_win.bat
 
 # macOS
-./build_mac.sh
+./build_dmg.sh
 
-# Linux
-./build_linux.sh
+# Linux (in docker ubuntu:22.04)
+docker run --rm -v "$PWD":/src -w /src ubuntu:22.04 bash build_linux.sh
 ```
 
 ---
@@ -137,123 +153,51 @@ build_win.bat
 
 ```
 Cycling Performance Studio Lab/
-├── app.py                  # Entry point FastAPI + pywebview
-├── config.py               # Configurazione globale + proxy per profilo
-├── profile_manager.py      # Singleton gestione profili
-├── error_codes.py          # 50 codici di errore strutturati
-├── sync_targets.py         # Architettura sync modulare
-├── injury_manager.py       # CRUD infortuni + persistenza JSON
-├── bia_parser.py           # Analisi BIA da PDF
-├── gpx_parser.py           # Parsing file GPX
-├── caching.py              # Cache LRU con TTL
-├── fitness_estimation.py   # Stima FTP, firma fitness
-├── power_curve.py          # Analisi curva potenza
-├── training_live.py        # Metriche training tempo reale
-├── user_home.py            # Utilita directory utente
-├── zones.py                # Calcolo zone HR e potenza
-├── db.py                   # Sync gate e write atomici
-├── ride_storage.py         # Storage dati ride ICU
-├── capacity_cap.py         # Capping FTP e advisory
-├── data_export.py          # Backup e export dati
-├── session_manager.py      # Gestione sessioni multi-utente
+├── app.py                      # Entry point FastAPI (224 routes)
+├── launcher.py                 # Desktop entry point (pywebview)
+├── pcc_routes_v2.py            # PCC API routes modulare
+├── config.py                   # Configurazione globale
+├── profile_manager.py          # Singleton gestione profili
+├── training_planner.py         # Generazione piani + block model
+├── zones.py                    # Calcolo zone HR e potenza
+├── fitness_estimation.py       # Stima FTP, firma fitness
+├── power_curve.py              # Analisi curva potenza
+├── cp_models.py                # Modelli CP (Morton 3P/2P)
+├── hrv_engine.py               # Analisi HRV
+├── nutrition.py                # Macro e integrazione
+├── diet.py                     # Piani alimentari
+├── bia_parser.py               # Analisi BIA da PDF
+├── pedal_asymmetry.py          # Asimmetria pedale
+├── activity_insights.py        # Insights sessione
+├── custom_charts.py            # Grafici personalizzati
+├── injury_manager.py           # CRUD infortuni
+├── session_manager.py          # Gestione sessioni
+├── data_export.py              # Backup e export
+├── user_home.py                # Directory utente (~/.cpsl)
+├── assets/                     # Icone app (.ico/.icns/.png)
+│   ├── icon.ico
+│   ├── icon.icns
+│   └── linux/                  # Icone Linux (hicolor)
 ├── frontend/
-│   ├── templates/          # 6 pagine HTML (Jinja2)
-│   │   ├── base.html       # Template base con Chart.js
-│   │   ├── index.html      # Dashboard
-│   │   ├── profile.html    # Gestione profilo
-│   │   ├── workouts.html   # Libreria workout
-│   │   ├── analytics.html  # Grafici analytics
-│   │   └── settings.html   # Impostazioni
+│   ├── templates/
+│   │   └── dashboard.html      # SPA dashboard (13 tab)
 │   └── static/
-│       ├── css/main.css    # Stili responsive
-│       └── js/
-│           ├── app.js      # SPA router + gestione profili
-│           └── analytics.js # Integrazione Chart.js
-├── locales/
-│   ├── en.json             # Traduzioni inglesi
-│   └── it.json             # Traduzioni italiane
-├── tests/
-│   ├── test_basic.py       # Test core functionality
-│   ├── test_injury.py      # Test injury manager
-│   └── __init__.py
-├── requirements-common.txt # Dipendenze comuni
-├── requirements-win.txt    # Dipendenze Windows
-├── requirements-mac.txt    # Dipendenze macOS
-├── requirements-linux.txt  # Dipendenze Linux
-├── pyproject.toml          # Configurazione ruff/black
-├── pytest.ini              # Configurazione pytest
-├── API_ENDPOINTS.md        # Documentazione API completa
-├── README.md               # Questo file
-└── LICENSE                 # Apache License 2.0
-```
-
----
-
-## API
-
-Vedi [API_ENDPOINTS.md](API_ENDPOINTS.md) per la documentazione completa.
-
-### Endpoints Principali
-
-| Method | Endpoint | Descrizione |
-|--------|----------|-------------|
-| POST | `/api/fitness/estimate-ftp` | Stima FTP dai best efforts |
-| POST | `/api/fitness/signature` | Calcola firma fitness completa |
-| POST | `/api/fitness/cp-wprime` | Analisi CP/W' Monod-Scherrer |
-| GET | `/api/injuries` | Lista infortuni + sommario |
-| POST | `/api/injuries` | Crea infortunio |
-| POST | `/api/gpx/import` | Upload e parsing file GPX |
-| GET | `/api/export/backup` | Backup completo profilo |
-| GET | `/api/diag/health` | Health check |
-
-### EsempioRichiesta
-
-```json
-POST /api/fitness/estimate-ftp
-{
-  "efforts": {
-    "300": 280,
-    "600": 250,
-    "1200": 220,
-    "3600": 210
-  }
-}
-
-Response:
-{
-  "ftp": 209,
-  "success": true
-}
-```
-
----
-
-## Configurazione
-
-### Profili
-
-Ogni profilo ha la sua configurazione in `~/.cpsl/profiles/<id>/`:
-
-```
-~/.cpsl/profiles/
-├── marco/
-│   ├── athlete.json        # Dati atleta (FTP, peso, LTHR, etc.)
-│   ├── user_prefs.json     # Preferenze utente
-│   ├── .env                # Credenziali ICU, BIA Vision
-│   ├── injuries.json       # Dati infortuni
-│   ├── rides/              # Cache ride ICU
-│   └── plans/              # Piani allenamento
-└── laura/
-    └── ...
-```
-
-### Credenziali (.env)
-
-```env
-ICU_ATHLETE_ID=your_athlete_id
-ICU_API_KEY=your_api_key
-ICU_ACCESS_TOKEN=your_access_token
-BIA_VISION_API_KEY=your_bia_key
+├── tests/                      # 150 test (6 file)
+│   ├── conftest.py             # Fixtures hermetic
+│   ├── test_core_modules.py    # 27 test moduli core
+│   ├── test_training_analysis.py # 29 test training/analysis
+│   ├── test_nutrition_bia.py   # 17 test nutrizione/BIA
+│   ├── test_utilities.py       # 31 test utilita
+│   ├── test_api_routes.py      # 22 test API routes
+│   └── test_pcc_modules.py     # 24 test moduli PCC
+├── CyclingPerformanceStudioLab.spec  # PyInstaller spec
+├── build_dmg.sh                # macOS DMG builder
+├── build_linux.sh              # Linux AppImage builder
+├── requirements-common.txt     # Dipendenze comuni
+├── pytest.ini                  # Configurazione pytest
+├── API_ENDPOINTS.md            # Documentazione API
+├── VERSION                     # 3.10.0
+└── LICENSE                     # Apache License 2.0
 ```
 
 ---
@@ -261,11 +205,38 @@ BIA_VISION_API_KEY=your_bia_key
 ## Testing
 
 ```bash
-# Esegui tutti i test
+# Esegui tutti i test (150 test, 6 file)
 pytest tests/ -v
 
-# Test moduli matematici
-python test_math_modules.py
+# Solo test moduli core
+pytest tests/test_core_modules.py -v
+
+# Solo test API
+pytest tests/test_api_routes.py -v
+
+# Con copertura
+pytest tests/ --cov=. --cov-report=html
+```
+
+---
+
+## API
+
+Vedi [API_ENDPOINTS.md](API_ENDPOINTS.md) per la documentazione completa (224 endpoints).
+
+### Esempio
+
+```bash
+# Stima FTP
+curl -X POST http://127.0.0.1:22400/api/fitness/estimate-ftp \
+  -H "Content-Type: application/json" \
+  -d '{"efforts": {"300": 280, "600": 250, "1200": 220}}'
+
+# Nutrition macros
+curl http://127.0.0.1:22400/api/nutrition-full
+
+# HRV summary
+curl http://127.0.0.1:22400/api/hrv/summary
 ```
 
 ---
@@ -278,31 +249,12 @@ Vedi il file [LICENSE](LICENSE) per i dettagli completi.
 
 ### Attribuzioni
 
-- **Domestique** - [github.com/platypus45/domestique](https://github.com/platypus45/domestique) - Licenza: Apache 2.0
-- **PCC** - Moduli matematici condivisi (fitness_estimation, power_curve, training_live)
-- **FastAPI** - [fastapi.tiangolo.com](https://fastapi.tiangolo.com/) - Licenza: MIT
-- **Chart.js** - [chartjs.org](https://www.chartjs.org/) - Licenza: MIT
-- **PyWebview** - [pywebview.flowrl.com](https://pywebview.flowrl.com/) - Licenza: BSD
+- **Domestique** - [github.com/platypus45/domestique](https://github.com/platypus45/domestique) - Apache 2.0
+- **PCC** - Moduli matematici condivisi - Apache 2.0
+- **FastAPI** - [fastapi.tiangolo.com](https://fastapi.tiangolo.com/) - MIT
+- **Chart.js** - [chartjs.org](https://www.chartjs.org/) - MIT
+- **PyWebview** - [pywebview.flowrl.com](https://pywebview.flowrl.com/) - BSD
 
 ---
 
-## Contribuire
-
-Contributi benvenuti! Per favore:
-
-1. Fork il progetto
-2. Crea una branch per la tua feature (`git checkout -b feature/nuova-feature`)
-3. Commit le tue modifiche (`git commit -m 'Aggiungi nuova feature'`)
-4. Push sulla branch (`git push origin feature/nuova-feature`)
-5. Apri un Pull Request
-
----
-
-## Supporto
-
-- **Issue**: [GitHub Issues](https://github.com/quadrellif90-collab/Cycling-Performance-Studio-Lab/issues)
-- **Docs**: [API_ENDPOINTS.md](API_ENDPOINTS.md)
-
----
-
-**Fatto con ❤️ per la community del ciclismo**
+**Fatto con per la community del ciclismo**
