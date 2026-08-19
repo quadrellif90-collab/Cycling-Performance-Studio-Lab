@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Long Course Ironman Brick</name>
+  <description>Ironman simulation. 2hr bike at race pace then 30min run. Total ~2.5hr.</description>
+  <category>Triathlon Brick</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="1200" PowerLow="0.6500" PowerHigh="0.5500"/>
+    <SteadyState Duration="3600" Power="0.7500"/>
+    <SteadyState Duration="1800" Power="0.8000"/>
+    <SteadyState Duration="1200" Power="0.7500"/>
+    <SteadyState Duration="1800" Power="0.7500"/>
+    <Cooldown Duration="600" PowerLow="0.6000" PowerHigh="0.7000"/>
+  </workout>
+</workout_file>

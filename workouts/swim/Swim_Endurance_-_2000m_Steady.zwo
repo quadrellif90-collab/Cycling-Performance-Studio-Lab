@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Swim Endurance - 2000m Steady</name>
+  <description>Long steady swim for aerobic base. Consistent pace with kick sets. Total ~45min.</description>
+  <category>Swim Endurance</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="480" PowerLow="0.6000" PowerHigh="0.5000"/>
+    <SteadyState Duration="600" Power="0.7000"/>
+    <SteadyState Duration="300" Power="0.6500"/>
+    <SteadyState Duration="600" Power="0.7200"/>
+    <SteadyState Duration="300" Power="0.6500"/>
+    <SteadyState Duration="600" Power="0.7000"/>
+    <Cooldown Duration="480" PowerLow="0.5000" PowerHigh="0.6000"/>
+  </workout>
+</workout_file>

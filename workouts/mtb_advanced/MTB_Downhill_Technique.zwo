@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>MTB Downhill Technique</name>
+  <description>Simulate downhill sections. High power bursts with coast recovery. Total ~35min.</description>
+  <category>MTB Downhill</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="480" PowerLow="0.7000" PowerHigh="0.5000"/>
+    <SteadyState Duration="30" Power="1.2000"/>
+    <Interval Duration="90" PowerLow="0.4500" PowerHigh="0.4500"/>
+    <SteadyState Duration="30" Power="1.2500"/>
+    <Interval Duration="90" PowerLow="0.4500" PowerHigh="0.4500"/>
+    <SteadyState Duration="30" Power="1.2000"/>
+    <Interval Duration="90" PowerLow="0.4500" PowerHigh="0.4500"/>
+    <SteadyState Duration="30" Power="1.2500"/>
+    <Interval Duration="90" PowerLow="0.4500" PowerHigh="0.4500"/>
+    <SteadyState Duration="30" Power="1.2000"/>
+    <Interval Duration="90" PowerLow="0.4500" PowerHigh="0.4500"/>
+    <SteadyState Duration="30" Power="1.2500"/>
+    <Interval Duration="90" PowerLow="0.4500" PowerHigh="0.4500"/>
+    <Cooldown Duration="480" PowerLow="0.5000" PowerHigh="0.7000"/>
+  </workout>
+</workout_file>

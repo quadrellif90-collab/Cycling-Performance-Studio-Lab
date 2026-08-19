@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Beginner Triathlon - Bike-Run Transition</name>
+  <description>Gentle brick for beginners. Easy bike followed by short run. Total ~45min.</description>
+  <category>Triathlon Brick</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="600" PowerLow="0.6500" PowerHigh="0.5500"/>
+    <SteadyState Duration="1200" Power="0.7000"/>
+    <SteadyState Duration="600" Power="0.7500"/>
+    <Cooldown Duration="600" PowerLow="0.5500" PowerHigh="0.6500"/>
+  </workout>
+</workout_file>

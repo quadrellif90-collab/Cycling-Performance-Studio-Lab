@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Rest Day Mobility Flow</name>
+  <description>Gentle mobility work for recovery day. Stretching and light movement. Total ~20min.</description>
+  <category>Recovery</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="300" PowerLow="0.5000" PowerHigh="0.4000"/>
+    <SteadyState Duration="60" Power="0.5000"/>
+    <SteadyState Duration="60" Power="0.5000"/>
+    <SteadyState Duration="60" Power="0.5000"/>
+    <SteadyState Duration="60" Power="0.5000"/>
+    <SteadyState Duration="60" Power="0.5000"/>
+    <SteadyState Duration="60" Power="0.5000"/>
+    <Cooldown Duration="300" PowerLow="0.4000" PowerHigh="0.5000"/>
+  </workout>
+</workout_file>

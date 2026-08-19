@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Sprint Triathlon Brick - Torsten Abel</name>
+  <description>High-intensity sprint tri brick. 4x mini-brick (run 1km + bike 2mi at Level V). Total ~75min.</description>
+  <category>Triathlon Brick</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="600" PowerLow="0.7000" PowerHigh="0.6000"/>
+    <Warmup Duration="1200" PowerLow="0.7000" PowerHigh="0.6000"/>
+    <SteadyState Duration="300" Power="1.0500"/>
+    <SteadyState Duration="300" Power="1.0500"/>
+    <SteadyState Duration="300" Power="0.7000"/>
+    <SteadyState Duration="300" Power="1.0500"/>
+    <SteadyState Duration="300" Power="1.0500"/>
+    <SteadyState Duration="300" Power="0.7000"/>
+    <SteadyState Duration="300" Power="1.0500"/>
+    <SteadyState Duration="300" Power="1.0500"/>
+    <SteadyState Duration="300" Power="0.7000"/>
+    <SteadyState Duration="300" Power="1.0500"/>
+    <SteadyState Duration="300" Power="1.0500"/>
+    <Cooldown Duration="600" PowerLow="0.6000" PowerHigh="0.7000"/>
+  </workout>
+</workout_file>

@@ -443,6 +443,276 @@ MOBILITY_WORKOUTS = [
 ]
 
 
+# ─── Triathlon / Brick Workouts ──────────────────────────────────────────────
+
+TRIATHLON_WORKOUTS = [
+    {
+        "name": "Olympic Distance Brick - Sundried",
+        "desc": "Classic Olympic triathlon brick. Bike at Level III/IV then run at race pace. Total ~85min.",
+        "category": "Triathlon Brick",
+        "segments": [
+            ("Warmup", 1800, 0.60, 0.70),   # 30min bike WU
+            ("SteadyState", 1200, 0.80, 0.80),  # 20min Level III
+            ("SteadyState", 600, 0.70, 0.70),   # 10min Level II
+            ("SteadyState", 300, 0.90, 0.90),   # 5min Level IV
+            ("SteadyState", 1200, 0.80, 0.80),  # 20min run Level III
+            ("Cooldown", 600, 0.70, 0.60),      # 10min run CD
+        ],
+    },
+    {
+        "name": "Sprint Triathlon Brick - Torsten Abel",
+        "desc": "High-intensity sprint tri brick. 4x mini-brick (run 1km + bike 2mi at Level V). Total ~75min.",
+        "category": "Triathlon Brick",
+        "segments": [
+            ("Warmup", 600, 0.60, 0.70),   # 10min bike WU
+            ("Warmup", 1200, 0.60, 0.70),  # 20min run WU
+            ("SteadyState", 300, 1.05, 1.05),  # 1km run Level V
+            ("SteadyState", 300, 1.05, 1.05),  # 2mi bike Level V
+            ("SteadyState", 300, 0.70, 0.70),  # 5min RI
+            ("SteadyState", 300, 1.05, 1.05),
+            ("SteadyState", 300, 1.05, 1.05),
+            ("SteadyState", 300, 0.70, 0.70),
+            ("SteadyState", 300, 1.05, 1.05),
+            ("SteadyState", 300, 1.05, 1.05),
+            ("SteadyState", 300, 0.70, 0.70),
+            ("SteadyState", 300, 1.05, 1.05),
+            ("SteadyState", 300, 1.05, 1.05),
+            ("Cooldown", 600, 0.70, 0.60),  # 10min run CD
+        ],
+    },
+    {
+        "name": "Race Replication Brick - Dr Yelling",
+        "desc": "Simulate race-day effort. 10mi bike at Level IV then 2mi run at Level IV. Total ~55min.",
+        "category": "Triathlon Brick",
+        "segments": [
+            ("Warmup", 600, 0.60, 0.70),   # 10min bike WU
+            ("SteadyState", 1800, 0.90, 0.90),  # 10mi bike Level IV
+            ("SteadyState", 960, 0.90, 0.90),   # 2mi run Level IV
+            ("Cooldown", 600, 0.70, 0.60),       # 10min CD
+        ],
+    },
+    {
+        "name": "Beginner Triathlon - Bike-Run Transition",
+        "desc": "Gentle brick for beginners. Easy bike followed by short run. Total ~45min.",
+        "category": "Triathlon Brick",
+        "segments": [
+            ("Warmup", 600, 0.55, 0.65),   # 10min bike WU
+            ("SteadyState", 1200, 0.70, 0.70),  # 20min easy bike
+            ("SteadyState", 600, 0.75, 0.75),   # 10min easy run
+            ("Cooldown", 600, 0.65, 0.55),       # 10min CD
+        ],
+    },
+    {
+        "name": "Long Course Ironman Brick",
+        "desc": "Ironman simulation. 2hr bike at race pace then 30min run. Total ~2.5hr.",
+        "category": "Triathlon Brick",
+        "segments": [
+            ("Warmup", 1200, 0.55, 0.65),   # 20min bike WU
+            ("SteadyState", 3600, 0.75, 0.75),  # 60min bike steady
+            ("SteadyState", 1800, 0.80, 0.80),  # 30min race pace
+            ("SteadyState", 1200, 0.75, 0.75),  # 20min IM pace
+            ("SteadyState", 1800, 0.75, 0.75),  # 30min run
+            ("Cooldown", 600, 0.70, 0.60),
+        ],
+    },
+]
+
+
+# ─── Swim Workouts (bike-sport compatible ZWO) ──────────────────────────────
+
+SWIM_WORKOUTS = [
+    {
+        "name": "Swim Technique Drill - Catch & Pull",
+        "desc": "Technique-focused swim session. Drill sets with catch-up, fingertip drag, fist drill. Total ~40min.",
+        "category": "Swim Technique",
+        "segments": [
+            ("Warmup", 480, 0.50, 0.60),   # 8min easy swim
+            ("SteadyState", 120, 0.70, 0.70),  # catch-up drill
+            ("Interval", 30, 0.50, 0.50),
+            ("SteadyState", 120, 0.70, 0.70),  # fingertip drag
+            ("Interval", 30, 0.50, 0.50),
+            ("SteadyState", 120, 0.70, 0.70),  # fist drill
+            ("Interval", 30, 0.50, 0.50),
+            ("SteadyState", 120, 0.70, 0.70),
+            ("Interval", 30, 0.50, 0.50),
+            ("SteadyState", 120, 0.75, 0.75),  # pull buoy set
+            ("Interval", 30, 0.50, 0.50),
+            ("SteadyState", 120, 0.75, 0.75),
+            ("Cooldown", 480, 0.60, 0.50),
+        ],
+    },
+    {
+        "name": "Swim Endurance - 2000m Steady",
+        "desc": "Long steady swim for aerobic base. Consistent pace with kick sets. Total ~45min.",
+        "category": "Swim Endurance",
+        "segments": [
+            ("Warmup", 480, 0.50, 0.60),
+            ("SteadyState", 600, 0.70, 0.70),  # 10min steady
+            ("SteadyState", 300, 0.65, 0.65),  # 5min kick
+            ("SteadyState", 600, 0.72, 0.72),  # 10min steady
+            ("SteadyState", 300, 0.65, 0.65),  # 5min kick
+            ("SteadyState", 600, 0.70, 0.70),  # 10min steady
+            ("Cooldown", 480, 0.60, 0.50),
+        ],
+    },
+    {
+        "name": "Swim VO2max Intervals",
+        "desc": "High-intensity swim intervals. 8x100m at race pace with 20s rest. Total ~35min.",
+        "category": "Swim Intervals",
+        "segments": [
+            ("Warmup", 480, 0.50, 0.65),
+            ("SteadyState", 100, 0.95, 0.95),  # 100m hard
+            ("Interval", 20, 0.50, 0.50),       # rest
+            ("SteadyState", 100, 0.95, 0.95),
+            ("Interval", 20, 0.50, 0.50),
+            ("SteadyState", 100, 0.95, 0.95),
+            ("Interval", 20, 0.50, 0.50),
+            ("SteadyState", 100, 0.95, 0.95),
+            ("Interval", 20, 0.50, 0.50),
+            ("SteadyState", 100, 0.95, 0.95),
+            ("Interval", 20, 0.50, 0.50),
+            ("SteadyState", 100, 0.95, 0.95),
+            ("Interval", 20, 0.50, 0.50),
+            ("SteadyState", 100, 0.95, 0.95),
+            ("Interval", 20, 0.50, 0.50),
+            ("SteadyState", 100, 0.95, 0.95),
+            ("Cooldown", 480, 0.60, 0.50),
+        ],
+    },
+]
+
+
+# ─── Duathlon Workouts (run-bike-run) ────────────────────────────────────────
+
+DUATHLON_WORKOUTS = [
+    {
+        "name": "Duathlon Standard - Run Bike Run",
+        "desc": "Standard duathlon simulation. 5km run + 20km bike + 2.5km run. Total ~80min.",
+        "category": "Duathlon",
+        "segments": [
+            ("Warmup", 480, 0.60, 0.70),   # 8min run WU
+            ("SteadyState", 1200, 0.85, 0.85),  # 20min run race pace
+            ("SteadyState", 2400, 0.82, 0.82),  # 40min bike race pace
+            ("SteadyState", 750, 0.90, 0.90),   # 12.5min run fast
+            ("Cooldown", 480, 0.70, 0.60),
+        ],
+    },
+    {
+        "name": "Duathlon Sprint - Short & Sharp",
+        "desc": "Sprint duathlon. Short run, fast bike, fast run finish. Total ~45min.",
+        "category": "Duathlon",
+        "segments": [
+            ("Warmup", 300, 0.60, 0.70),   # 5min run WU
+            ("SteadyState", 600, 0.90, 0.90),  # 10min run
+            ("SteadyState", 1200, 0.88, 0.88),  # 20min bike
+            ("SteadyState", 600, 0.92, 0.92),   # 10min run
+            ("Cooldown", 300, 0.70, 0.60),
+        ],
+    },
+    {
+        "name": "Duathlon Bike Focus",
+        "desc": "Bike-dominant duathlon. Long bike with short run bookends. Total ~70min.",
+        "category": "Duathlon",
+        "segments": [
+            ("Warmup", 300, 0.60, 0.70),   # 5min run
+            ("SteadyState", 300, 0.80, 0.80),   # 5min run moderate
+            ("SteadyState", 3000, 0.82, 0.82),  # 50min bike
+            ("SteadyState", 600, 0.85, 0.85),   # 10min run
+            ("Cooldown", 300, 0.70, 0.60),
+        ],
+    },
+]
+
+
+# ─── Additional MTB / Enduro / Downhill ──────────────────────────────────────
+
+MTB_ADVANCED_WORKOUTS = [
+    {
+        "name": "MTB Downhill Technique",
+        "desc": "Simulate downhill sections. High power bursts with coast recovery. Total ~35min.",
+        "category": "MTB Downhill",
+        "segments": [
+            ("Warmup", 480, 0.50, 0.70),
+            ("SteadyState", 30, 1.20, 1.20),   # descend burst
+            ("Interval", 90, 0.45, 0.45),       # climb/recover
+            ("SteadyState", 30, 1.25, 1.25),
+            ("Interval", 90, 0.45, 0.45),
+            ("SteadyState", 30, 1.20, 1.20),
+            ("Interval", 90, 0.45, 0.45),
+            ("SteadyState", 30, 1.25, 1.25),
+            ("Interval", 90, 0.45, 0.45),
+            ("SteadyState", 30, 1.20, 1.20),
+            ("Interval", 90, 0.45, 0.45),
+            ("SteadyState", 30, 1.25, 1.25),
+            ("Interval", 90, 0.45, 0.45),
+            ("Cooldown", 480, 0.70, 0.50),
+        ],
+    },
+    {
+        "name": "MTB Enduro Stage Simulation",
+        "desc": "Simulate enduro stages. Mixed intensity with technical sections. Total ~50min.",
+        "category": "MTB Enduro",
+        "segments": [
+            ("Warmup", 480, 0.50, 0.65),
+            ("SteadyState", 300, 0.90, 0.90),   # stage 1
+            ("Interval", 120, 0.55, 0.55),       # transfer
+            ("SteadyState", 300, 0.95, 0.95),   # stage 2
+            ("Interval", 120, 0.55, 0.55),
+            ("SteadyState", 300, 0.90, 0.90),   # stage 3
+            ("Interval", 120, 0.55, 0.55),
+            ("SteadyState", 300, 0.95, 0.95),   # stage 4
+            ("Cooldown", 480, 0.70, 0.50),
+        ],
+    },
+    {
+        "name": "MTB Cross-Country Race Pace",
+        "desc": "XC race simulation. Sustained effort with punchy climbs. Total ~55min.",
+        "category": "MTB XC",
+        "segments": [
+            ("Warmup", 480, 0.50, 0.70),
+            ("SteadyState", 1800, 0.82, 0.82),  # 30min steady
+            ("SteadyState", 120, 1.00, 1.00),   # climb
+            ("SteadyState", 600, 0.80, 0.80),
+            ("SteadyState", 120, 1.05, 1.05),   # steep climb
+            ("SteadyState", 600, 0.82, 0.82),
+            ("SteadyState", 120, 1.00, 1.00),
+            ("Cooldown", 480, 0.70, 0.50),
+        ],
+    },
+]
+
+
+# ─── Active Recovery / Rest Day Workouts ─────────────────────────────────────
+
+ACTIVE_RECOVERY_WORKOUTS = [
+    {
+        "name": "Active Recovery Spin",
+        "desc": "Easy recovery spin. Keep HR low, legs spinning. Total ~30min.",
+        "category": "Recovery",
+        "segments": [
+            ("Warmup", 300, 0.40, 0.50),
+            ("SteadyState", 1200, 0.50, 0.50),
+            ("Cooldown", 300, 0.50, 0.40),
+        ],
+    },
+    {
+        "name": "Rest Day Mobility Flow",
+        "desc": "Gentle mobility work for recovery day. Stretching and light movement. Total ~20min.",
+        "category": "Recovery",
+        "segments": [
+            ("Warmup", 300, 0.40, 0.50),
+            ("SteadyState", 60, 0.50, 0.50),
+            ("SteadyState", 60, 0.50, 0.50),
+            ("SteadyState", 60, 0.50, 0.50),
+            ("SteadyState", 60, 0.50, 0.50),
+            ("SteadyState", 60, 0.50, 0.50),
+            ("SteadyState", 60, 0.50, 0.50),
+            ("Cooldown", 300, 0.50, 0.40),
+        ],
+    },
+]
+
+
 def build_zwo(name: str, desc: str, category: str, segments: list,
               sport: str = "bike") -> str:
     """Build a valid .zwo XML string."""
@@ -489,10 +759,15 @@ def main():
     categories = {
         "running": (RUNNING_WORKOUTS, "run"),
         "mtb": (MTB_WORKOUTS, "bike"),
+        "mtb_advanced": (MTB_ADVANCED_WORKOUTS, "bike"),
         "gravel": (GRAVEL_WORKOUTS, "bike"),
+        "triathlon": (TRIATHLON_WORKOUTS, "bike"),
+        "swim": (SWIM_WORKOUTS, "bike"),
+        "duathlon": (DUATHLON_WORKOUTS, "bike"),
         "cross_training": (CROSS_TRAINING_WORKOUTS, "bike"),
         "gym_functional": (GYM_FUNCTIONAL_WORKOUTS, "bike"),
         "mobility": (MOBILITY_WORKOUTS, "bike"),
+        "active_recovery": (ACTIVE_RECOVERY_WORKOUTS, "bike"),
     }
 
     total = 0

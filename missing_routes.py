@@ -525,3 +525,230 @@ def register_missing_routes(app):
             return totals
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── 15. Power-Duration Model ──────────────────────────────────────────
+    @app.get("/api/analytics/power-duration-model")
+    async def power_duration_model(
+        window_days: int = Query(90, ge=7, le=365),
+    ):
+        """Fit the Power-Duration Model (mFTP, FRC, Pmax, TTE) to the rider's curve."""
+        try:
+            from power_duration_model import fit_power_duration, predict_power_curve
+            from power_curve import aggregate_power_curve
+            curve = aggregate_power_curve(window_days=window_days)
+            rider_curve = curve.get("rider_curve", [])
+            best_efforts = {pt["duration_s"]: pt["watts"] for pt in rider_curve}
+            if not best_efforts:
+                return {"error": "No power data available", "fit": None}
+            fit = fit_power_duration(best_efforts, curve.get("weight_kg", 70.0))
+            if fit is None:
+                return {"error": "Insufficient data for model fitting", "fit": None}
+            return {"fit": fit.to_dict(), "source": "power_duration_model"}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── 16. Phenotype Classification & Radar Chart ────────────────────────
+    @app.get("/api/analytics/phenotype")
+    async def phenotype_classification(
+        window_days: int = Query(90, ge=7, le=365),
+    ):
+        """Classify athlete phenotype and return radar chart data."""
+        try:
+            from phenotype import classify_phenotype, get_radar_chart_data
+            from power_curve import aggregate_power_curve
+            curve = aggregate_power_curve(window_days=window_days)
+            rider_curve = curve.get("rider_curve", [])
+            best_efforts = {pt["duration_s"]: pt["watts"] for pt in rider_curve}
+            if not best_efforts:
+                return {"error": "No power data available", "phenotype": None}
+            result = classify_phenotype(best_efforts, curve.get("weight_kg", 70.0))
+            radar = get_radar_chart_data(best_efforts, curve.get("weight_kg", 70.0))
+            return {"phenotype": result.to_dict() if result else None, "radar": radar}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── 17. Breakthrough Detection ────────────────────────────────────────
+    @app.get("/api/analytics/breakthrough")
+    async def breakthrough_detection(
+        ride_id: str = Query(..., description="Ride ID to analyze"),
+    ):
+        """Detect fitness breakthroughs in a ride."""
+        try:
+            from breakthrough_detector import detect_breakthrough
+            from user_home import cpsl_home
+            ride_path = cpsl_home / "profiles" / "default" / "rides" / f"{ride_id}.json"
+            if not ride_path.exists():
+                return {"error": "Ride not found"}
+            ride = json.loads(ride_path.read_text(encoding="utf-8"))
+            power_stream = ride.get("streams", {}).get("watts", [])
+            if not power_stream:
+                return {"error": "No power stream data", "result": None}
+            sig = {
+                "cp_w": ride.get("ftp_at_ride", 200),
+                "wprime_j": 20000,
+                "pmax_w": ride.get("max_power", 600),
+                "tau_s": 30.0,
+            }
+            result = detect_breakthrough(power_stream, sig, ride.get("weight_kg", 70.0))
+            return {"result": result.to_dict()}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── 18. Durability Score ──────────────────────────────────────────────
+    @app.get("/api/analytics/durability")
+    async def durability_score(
+        window_days: int = Query(365, ge=30, le=365),
+    ):
+        """Compute durability score (power fade on long rides)."""
+        try:
+            from durability_score import compute_durability_score
+            from power_curve import _load_cached_rides, _filter_rides_by_window, _ride_power_stream
+            from power_curve import _profile_ftp_weight
+            all_rides = _load_cached_rides()
+            rides = _filter_rides_by_window(all_rides, window_days)
+            ride_data = []
+            for r in rides:
+                duration = r.get("duration_s", 0)
+                if duration < 7200:
+                    continue
+                stream = _ride_power_stream(r)
+                ride_data.append({
+                    "duration_s": duration,
+                    "power_stream": stream,
+                    "started_at": r.get("started_at", ""),
+                })
+            _, weight = _profile_ftp_weight()
+            result = compute_durability_score(ride_data, weight)
+            return {"result": result.to_dict()}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── 19. Training Phase Detection ──────────────────────────────────────
+    @app.get("/api/analytics/training-phases")
+    async def training_phase_detection():
+        """Detect training phases from weekly summary data."""
+        try:
+            from training_phase_detector import detect_training_phases
+            from user_home import cpsl_home
+            weekly_path = cpsl_home / "profiles" / "default" / "weekly_summary.json"
+            if not weekly_path.exists():
+                return {"error": "No weekly summary data", "result": None}
+            weekly_data = json.loads(weekly_path.read_text(encoding="utf-8"))
+            if not isinstance(weekly_data, list):
+                weekly_data = weekly_data.get("weeks", [])
+            result = detect_training_phases(weekly_data)
+            return {"result": result.to_dict()}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── 20. Custom Alerts ─────────────────────────────────────────────────
+    @app.get("/api/alerts/rules")
+    async def get_alert_rules():
+        """Get all custom alert rules."""
+        try:
+            from custom_alerts import load_rules
+            from user_home import cpsl_home
+            rules = load_rules(cpsl_home)
+            return {"rules": [r.to_dict() for r in rules]}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.post("/api/alerts/rules")
+    async def create_alert_rule(request: Request):
+        """Create a new custom alert rule."""
+        try:
+            from custom_alerts import create_rule, save_rules, load_rules, SUPPORTED_METRICS, OPERATORS
+            from user_home import cpsl_home
+            body = await request.json()
+            rule = create_rule(
+                name=body.get("name", "Unnamed Alert"),
+                metric=body.get("metric", "power_w"),
+                operator=body.get("operator", ">"),
+                value=float(body.get("value", 0)),
+                value2=body.get("value2"),
+                streak_seconds=int(body.get("streak_seconds", 0)),
+            )
+            rules = load_rules(cpsl_home)
+            rules.append(rule)
+            save_rules(rules, cpsl_home)
+            return {"status": "ok", "rule": rule.to_dict(),
+                    "supported_metrics": list(SUPPORTED_METRICS.keys()),
+                    "operators": OPERATORS}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.delete("/api/alerts/rules/{rule_id}")
+    async def delete_alert_rule(rule_id: str):
+        """Delete a custom alert rule."""
+        try:
+            from custom_alerts import load_rules, save_rules
+            from user_home import cpsl_home
+            rules = load_rules(cpsl_home)
+            rules = [r for r in rules if r.id != rule_id]
+            save_rules(rules, cpsl_home)
+            return {"status": "ok", "deleted": rule_id}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── 21. Adaptive Training Recommendation ──────────────────────────────
+    @app.get("/api/analytics/adaptive-recommendation")
+    async def adaptive_recommendation(
+        goal: str = Query("general_fitness", description="Training goal"),
+    ):
+        """Generate adaptive training recommendation."""
+        try:
+            from adaptive_planner import generate_adaptive_recommendation, GOAL_PROFILES
+            from analytics import polarization_index
+            from user_home import cpsl_home
+            profile_path = cpsl_home / "profiles" / "default" / "athlete.json"
+            athlete = {}
+            if profile_path.exists():
+                athlete = json.loads(profile_path.read_text(encoding="utf-8"))
+            result = generate_adaptive_recommendation(
+                goal=goal,
+                hrv_rmssd_pct=None,
+                sleep_score=None,
+                tsb=None,
+                current_weekly_tss=300,
+                current_weekly_hours=6,
+            )
+            return {
+                "recommendation": result.to_dict(),
+                "available_goals": {k: v["label"] for k, v in GOAL_PROFILES.items()},
+            }
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── 22. Polarization Index (per-ride) ──────────────────────────────────
+    @app.get("/api/analytics/polarization")
+    async def polarization_analytics(
+        window_days: int = Query(90, ge=7, le=365),
+    ):
+        """Compute polarization index and intensity distribution analytics."""
+        try:
+            from analytics import polarization_index, treff_polarization_index, classify_distribution
+            from power_curve import _load_cached_rides, _filter_rides_by_window
+            all_rides = _load_cached_rides()
+            rides = _filter_rides_by_window(all_rides, window_days)
+            zones_data = []
+            for r in rides:
+                zones = r.get("zones", {})
+                z1z2 = zones.get("z1_pct", 0) + zones.get("z2_pct", 0)
+                z3z4 = zones.get("z3_pct", 0) + zones.get("z4_pct", 0)
+                z5plus = zones.get("z5_pct", 0) + zones.get("z6_pct", 0) + zones.get("z7_pct", 0)
+                if z1z2 + z3z4 + z5plus > 0:
+                    pi_add = polarization_index(z1z2, z3z4, z5plus)
+                    pi_mult = treff_polarization_index(z1z2, z3z4, z5plus)
+                    classification = classify_distribution(z1z2, z3z4, z5plus, pi_add)
+                    zones_data.append({
+                        "date": r.get("started_at", "")[:10],
+                        "z1z2_pct": round(z1z2, 1),
+                        "z3z4_pct": round(z3z4, 1),
+                        "z5plus_pct": round(z5plus, 1),
+                        "pi_additive": pi_add,
+                        "pi_multiplicative": pi_mult,
+                        "classification": classification,
+                    })
+            return {"rides": zones_data, "n_rides": len(zones_data)}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)

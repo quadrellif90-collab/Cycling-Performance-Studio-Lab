@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>MTB Cross-Country Race Pace</name>
+  <description>XC race simulation. Sustained effort with punchy climbs. Total ~55min.</description>
+  <category>MTB XC</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="480" PowerLow="0.7000" PowerHigh="0.5000"/>
+    <SteadyState Duration="1800" Power="0.8200"/>
+    <SteadyState Duration="120" Power="1.0000"/>
+    <SteadyState Duration="600" Power="0.8000"/>
+    <SteadyState Duration="120" Power="1.0500"/>
+    <SteadyState Duration="600" Power="0.8200"/>
+    <SteadyState Duration="120" Power="1.0000"/>
+    <Cooldown Duration="480" PowerLow="0.5000" PowerHigh="0.7000"/>
+  </workout>
+</workout_file>

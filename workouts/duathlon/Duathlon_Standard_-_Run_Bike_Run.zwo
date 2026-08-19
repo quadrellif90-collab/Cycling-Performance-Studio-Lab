@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Duathlon Standard - Run Bike Run</name>
+  <description>Standard duathlon simulation. 5km run + 20km bike + 2.5km run. Total ~80min.</description>
+  <category>Duathlon</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="480" PowerLow="0.7000" PowerHigh="0.6000"/>
+    <SteadyState Duration="1200" Power="0.8500"/>
+    <SteadyState Duration="2400" Power="0.8200"/>
+    <SteadyState Duration="750" Power="0.9000"/>
+    <Cooldown Duration="480" PowerLow="0.6000" PowerHigh="0.7000"/>
+  </workout>
+</workout_file>
