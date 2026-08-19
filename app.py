@@ -21435,6 +21435,1452 @@ def api_diag_health(request: Request):
     return result
 
 
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PCC ROUTES — Imported from Performance Cycling Calculator
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+
+# ─── 1. POST /api/profiles/{profile_id}/reset ────────────────────────────────
+
+@app.post("/api/profiles/{profile_id}/reset")
+def api_profiles_reset(profile_id: str):
+    """v4.4 — 'Reset profilo': svuota TUTTI i dati (rides, piani, wellness,
+    DB, credenziali ICU) ma mantiene il profilo. L'app riparte pulita senza
+    passare dal wizard di creazione."""
+    from profile_manager import ProfileManager
+    _validate_profile_id(profile_id)
+    pm = ProfileManager.get()
+    if not any(p["id"] == profile_id
+               for p in pm._registry.get("profiles", [])):
+        return JSONResponse({"error": "profilo non trovato"}, status_code=404)
+    # 1. best-effort: rimuovi gli eventi pushati sul calendario ICU
+    try:
+        import icu_calendar_push as _icp
+        _icp.sweep_all()
+    except Exception:
+        _log.debug("reset: icu calendar sweep failed (best-effort)",
+                   exc_info=True)
+    # 2. purge dati sincronizzati dal DB
+    try:
+        db.purge_profile_data(profile_id)
+    except db.SyncBusy:
+        return JSONResponse(
+            {"ok": False, "error": "sync busy — riprova tra un momento"},
+            status_code=503)
+    except Exception as e:
+        _log.warning("reset: purge_profile_data failed: %s", e)
+    # 3. cancella file dati del profilo (plans/rides/wellness) mantenendo
+    #    la directory e il profilo stesso
+    import shutil as _sh
+    pdir = Path.home() / ".cpsl" / "profiles" / profile_id
+    removed = []
+    for sub in ("plans", "rides", "wellness"):
+        d = pdir / sub
+        if d.exists():
+            try:
+                _sh.rmtree(str(d))
+                removed.append(sub)
+            except OSError as e:
+                _log.warning("reset: rmtree %s failed: %s", d, e)
+    # 4. disconnetti ICU (token + api key + athlete id)
+    try:
+        pm.save_env("", "", "")
+    except Exception as e:
+        _log.warning("reset: save_env clear failed: %s", e)
+    for k in ("ICU_ATHLETE_ID", "ICU_API_KEY", "ICU_ACCESS_TOKEN"):
+        os.environ.pop(k, None)
+        try:
+            delattr(config, k)
+        except AttributeError:
+            pass
+    _log.info("EVENT=profile_reset profile=%s removed=%s", profile_id, removed)
+    return {"ok": True, "removed": removed}
+
+
+# ─── 2. GET /api/tid-weekly ──────────────────────────────────────────────────
+
+@app.get("/api/tid-weekly")
+def api_tid_weekly(weeks: int = Query(8)):
+    """BETA — intensity-distribution (TID) heatmap data.
+
+    Returns the actual polarized split (Z1+Z2 / Z3 / Z4+) for each of the
+    last `weeks` rolling 7-day windows, so the dashboard can draw a weekly
+    POL heatmap. Uses the existing _polarized_actual_from_rides() over
+    fetch_activities() — no new data source, pure presentation of what the
+    planner already computes per-ride.
+    """
+    from datetime import timedelta
+    try:
+        rides = fetch_activities(days=weeks * 7 + 7)
+    except Exception:
+        rides = []
+    out = []
+    today = date.today()
+    for w in range(weeks - 1, -1, -1):
+        win_end = today - timedelta(weeks=w)
+        pol = _polarized_actual_from_rides(rides, win_end, last_n_days=7)
+        z1z2 = pol.get("z1z2_pct") or pol.get("z1_z2_pct") or 0
+        z3 = pol.get("z3_pct") or 0
+        z4 = pol.get("z4plus_pct") or pol.get("z4_pct") or 0
+        out.append({
+            "week_start": (win_end - timedelta(days=win_end.weekday())).isoformat(),
+            "z1z2_pct": round(z1z2, 1),
+            "z3_pct": round(z3, 1),
+            "z4plus_pct": round(z4, 1),
+        })
+    return {"weeks": out}
+
+
+# ─── 3. GET /api/plan-block-model ────────────────────────────────────────────
+
+@app.get("/api/plan-block-model")
+def api_plan_block_model(total_weeks: int = Query(None)):
+    """BETA Fase 4.5 — suggerisce il modello di distribuzione per blocco.
+
+    Basato sulla meta-analisi Sports Med 2024: POL > THR/pyramidal per VO2peak
+    solo <12 settimane; oltre, pyramidal è equivalente e più sostenibile.
+    """
+    from training_planner import recommend_block_model
+    return {"total_weeks": total_weeks, "recommended_model": recommend_block_model(total_weeks)}
+
+
+# ─── 4. GET /api/daily-adapt ─────────────────────────────────────────────────
+
+@app.get("/api/daily-adapt")
+def api_daily_adapt():
+    """BETA Fase 5 — ricalibrazione giornaliera da HRV/sonno/DFA/TSB.
+
+    Legge i segnali del giorno e ritorna il fattore di aggiustamento del
+    carico + raccomandazione, basato su HRV-guided training (Casanova-Lizón
+    2025) + Hooper (1995) + DFA α1 (Rogers 2021).
+    """
+    from training_planner import daily_recalculate_adjustment, _hooper_index_today
+    from training import get_today_metrics
+    try:
+        m = get_today_metrics()
+    except Exception:
+        m = {}
+    hrv = (m.get("hrv") or {}).get("rmssd_ms") if isinstance(m.get("hrv"), dict) else None
+    dfa = (m.get("dfa") or {}).get("alpha1_last") if isinstance(m.get("dfa"), dict) else None
+    sleep = (m.get("sleep") or {}).get("score") if isinstance(m.get("sleep"), dict) else None
+    tsb = m.get("tsb")
+    hooper = _hooper_index_today()
+    return {
+        "hrv_ms": hrv, "dfa_alpha1": dfa, "sleep_score": sleep,
+        "tsb": tsb, "hooper": hooper,
+        "adjustment": daily_recalculate_adjustment(
+            hrv_ms=hrv, dfa_alpha1=dfa, hooper=hooper,
+            sleep_score=sleep, tsb=tsb),
+    }
+
+
+# ─── 5. GET /api/strength-plan ───────────────────────────────────────────────
+
+@app.get("/api/strength-plan")
+def api_strength_plan(phase: str = Query("base"), weeks: int = Query(4),
+                      one_rm_kg: float = Query(0.0)):
+    """BETA Fase 7a — piano di forza in palestra (Llanos-Lagos 2025).
+
+    phase: base|build|peak|taper|race_week. Genera sedute heavy compound
+    con set/rep/%1RM evidence-based, mantenute in-season.
+    one_rm_kg: 1RM Squat dell'atleta → carichi assoluti in kg (se 0, dal profilo).
+    """
+    from strength_mobility import build_strength_plan, strength_summary
+    from profile_manager import ProfileManager
+    if not one_rm_kg:
+        a = (ProfileManager.get()._athlete or {})
+        one_rm_kg = float(a.get("one_rm_kg") or 0.0)
+    return {"phase": phase, "weeks": weeks, "one_rm_kg": one_rm_kg,
+            "summary": strength_summary(phase),
+            "plan": build_strength_plan(phase, weeks, one_rm_kg=one_rm_kg)}
+
+
+# ─── 6. GET /api/mobility-plan ───────────────────────────────────────────────
+
+@app.get("/api/mobility-plan")
+def api_mobility_plan(days: int = Query(7)):
+    """BETA Fase 7a — routine mobilità quotidiana (Warneke 2025, 15 min)."""
+    from strength_mobility import build_mobility_plan
+    return {"days": days, "routine": build_mobility_plan(days)}
+
+
+# ─── 7. POST /api/plan/inject-strength ───────────────────────────────────────
+
+@app.post("/api/plan/inject-strength")
+async def api_inject_strength(request: Request):
+    """PCC — Inietta sessioni forza + mobilità nel piano settimanale.
+
+    Legge current_plan.json, aggiunge sedute strength (2×/sett base, 1× peak)
+    e mobility (quotidiana 15min) nei giorni non-rest. Salva il piano modificato.
+    """
+    from profile_manager import ProfileManager
+    import json as _json
+    body = {}
+    try:
+        raw = await request.body()
+        body = _json.loads(raw.decode("utf-8") or "{}")
+    except Exception:
+        body = {}
+    phase = body.get("phase", "base")
+    one_rm = float(body.get("one_rm_kg", 0))
+
+    # leggi piano salvato
+    plan_dir = Path.home() / ".cpsl" / "plans"
+    if not (plan_dir / "current_plan.json").exists():
+        # fallback: cerca nella profile dir
+            pm = ProfileManager.get()
+            plan_dir = Path.home() / ".cpsl" / "profiles" / (pm._active_id or "default") / "plans"
+    plan_path = plan_dir / "current_plan.json"
+    if not plan_path.exists():
+        raise HTTPException(404, "Nessun piano generato. Genera prima il piano.")
+    plan = _json.loads(plan_path.read_text(encoding="utf-8"))
+
+    from strength_mobility import build_strength_plan, STRENGTH_PROTOCOLS, MOBILITY_ROUTINE
+    proto = STRENGTH_PROTOCOLS.get(phase, STRENGTH_PROTOCOLS["base"])
+    sessions_per_week = proto["sessions_per_week"]
+    strength_plan = build_strength_plan(phase, len(plan.get("weeks", [])), one_rm_kg=one_rm)
+
+    injected = 0
+    for i, week in enumerate(plan.get("weeks", [])):
+        sessions = week.get("sessions", [])
+        # giorni già occupati
+        occupied_days = set()
+        for s in sessions:
+            if s.get("day"):
+                occupied_days.add(s["day"])
+
+        # giorni disponibili (non rest)
+        rest_days = plan.get("goal", {}).get("rest_days", [0])
+        all_dates = []
+        if week.get("start") and week.get("end"):
+            from datetime import datetime, timedelta
+            try:
+                d_start = datetime.fromisoformat(week["start"]).date()
+                d_end = datetime.fromisoformat(week["end"]).date()
+                d = d_start
+                while d <= d_end:
+                    if d.isoformat() not in occupied_days and d.weekday() not in rest_days:
+                        all_dates.append(d.isoformat())
+                    d += timedelta(days=1)
+            except Exception:
+                pass
+
+        # Inietta forza COME SESSIONE SUPPLEMENTARE sul primo giorno
+        # disponibile della settimana (stesso `day` del ciclismo, tipo diverso)
+        # — così appare in calendario affianco all'allenamento, non serve un
+        # giorno vuoto. Un giorno può avere ciclismo + forza + mobilità.
+        training_days = [s["day"] for s in sessions if s.get("day")
+                         and s.get("session_type") != "rest"]
+        training_days = list(dict.fromkeys(training_days))  # de-dupe, keep order
+        if i < len(strength_plan) and strength_plan[i].get("sessions") and training_days:
+            # Distribuisci le sedute forza su giorni DIVERSI (spaziatura ~48h),
+            # non tutte sul primo giorno (bug: sessioni multiple stesso giorno).
+            n_str = min(sessions_per_week, len(strength_plan[i]["sessions"]))
+            step = max(1, len(training_days) // max(1, n_str))
+            for k, sess in enumerate(strength_plan[i]["sessions"][:sessions_per_week]):
+                target_day = training_days[min(k * step, len(training_days) - 1)]
+                # evita duplicati: se quel giorno ha già una sessione strength identica
+                dup = any(s.get("session_type") == "strength"
+                          and s.get("day") == target_day
+                          and s.get("description", "").startswith(sess["exercise"])
+                          for s in sessions)
+                if dup:
+                    continue
+                sessions.append({
+                    "day": target_day,
+                    "session_type": "strength",
+                    "duration_min": 45,
+                    "tss_estimate": 30,
+                    "description": f"{sess['exercise']} {sess['sets']}×{sess['reps']} @ {sess['pct_1rm']}%" +
+                                   (f" ({sess['load_kg']} kg)" if sess.get("load_kg") else ""),
+                    "zwo_file": "",
+                    "zwo_name": "",
+                })
+                injected += 1
+
+        # inietta mobilità quotidiana (15 min) su OGNI giorno di allenamento
+        for td in training_days:
+            dup = any(s.get("session_type") == "mobility" and s.get("day") == td
+                      for s in sessions)
+            if dup:
+                continue
+            sessions.append({
+                "day": td,
+                "session_type": "mobility",
+                "duration_min": 15,
+                "tss_estimate": 5,
+                "description": "Mobilità quotidiana 15 min (Warneke 2025)",
+                "zwo_file": "",
+                "zwo_name": "",
+            })
+            injected += 1
+
+        week["sessions"] = sessions
+
+    plan_path.write_text(_json.dumps(plan, indent=2, ensure_ascii=False), encoding="utf-8")
+    return {"ok": True, "injected": injected, "phase": phase,
+            "weeks": len(plan.get("weeks", []))}
+
+
+# ─── 8. POST /api/plan/inject-multidiscipline ────────────────────────────────
+
+@app.post("/api/plan/inject-multidiscipline")
+async def api_inject_multidiscipline(request: Request):
+    """PCC — inietta forza/mobilità + discipline aggiuntive (running/MTB) nel piano.
+
+    Legge `disciplines` dal profilo atleta: se include 'strength'/'mobility'
+    inietta quelle sedute (come api_inject_strength); se include 'running' o
+    'mtb' campiona workout di quelle discipline dalla libreria e li inserisce
+    nei giorni corretti (non cercando giorni vuoti — affianco al ciclismo).
+    Cosi un atleta multidisciplinare vede nel piano anche corsa/MTB con
+    distribuzione evidence-based (Stöggl 2015 per running, impatti MTB).
+    """
+    import random
+    from profile_manager import ProfileManager
+    from strength_mobility import build_strength_plan, STRENGTH_PROTOCOLS
+    from pathlib import Path as _P
+    import json as _json
+    body = {}
+    try:
+        raw = await request.body()
+        body = _json.loads(raw.decode("utf-8") or "{}")
+    except Exception:
+        body = {}
+    phase = body.get("phase", "base")
+    one_rm = float(body.get("one_rm_kg", 0) or 0)
+
+    pm = ProfileManager.get()
+    a = pm._athlete or {}
+    if not one_rm:
+        one_rm = float(a.get("one_rm_kg") or 0)
+    disciplines = set(d.lower() for d in (a.get("disciplines") or []))
+    # Allow client to override via request body
+    do_strength = body.get("include_strength", True)
+    do_mobility = body.get("include_mobility", True)
+    do_running = "running" in disciplines
+    do_mtb = "mtb" in disciplines
+
+    plan_dir = _P.home() / ".cpsl" / "plans"
+    if not (plan_dir / "current_plan.json").exists():
+        plan_dir = _P.home() / ".cpsl" / "profiles" / (pm._active_id or "default") / "plans"
+    plan_path = plan_dir / "current_plan.json"
+    if not plan_path.exists():
+        raise HTTPException(404, "Nessun piano generato. Genera prima il piano.")
+    plan = _json.loads(plan_path.read_text(encoding="utf-8"))
+
+    injected = 0
+    lib_map = {"running": "running", "mtb": "mtb"}
+    lib_files = {}
+    for disc, folder in lib_map.items():
+        d = _P("workouts") / folder
+        if d.exists():
+            lib_files[disc] = [f.name for f in d.glob("*.zwo")][:40]
+        else:
+            # fallback: campiona dalla libreria generale filtrando per nome
+            base = _P("workouts")
+            if base.exists():
+                hits = [f.name for f in base.glob("*.zwo")
+                        if disc in f.name.lower()][:40]
+                if hits:
+                    lib_files[disc] = hits
+                # NIENTE fallback "tutti i .zwo": assegnava workout bici
+                # a running/MTB (duplicati endurance_clean_* nel piano).
+
+    for i, week in enumerate(plan.get("weeks", [])):
+        sessions = week.get("sessions", [])
+        training_days = [s["day"] for s in sessions if s.get("day")
+                         and s.get("session_type") != "rest"]
+        # de-dupe mantenendo l'ordine (un giorno con bici+forza+mobilità
+        # compariva N volte → target ripetuti → sessioni duplicate)
+        training_days = list(dict.fromkeys(training_days))
+        if not training_days:
+            continue
+        if do_strength:
+            proto = STRENGTH_PROTOCOLS.get(phase, STRENGTH_PROTOCOLS["base"])
+            sp = build_strength_plan(phase, 1, one_rm_kg=one_rm)
+            if sp and sp[0].get("sessions"):
+                n_str = min(proto["sessions_per_week"], len(sp[0]["sessions"]))
+                step = max(1, len(training_days) // max(1, n_str))
+                for k, sess in enumerate(sp[0]["sessions"][:proto["sessions_per_week"]]):
+                    td = training_days[min(k * step, len(training_days) - 1)]
+                    if any(s.get("session_type") == "strength" and s.get("day") == td
+                           and s.get("description", "").startswith(sess["exercise"])
+                           for s in sessions):
+                        continue
+                    sessions.append({
+                        "day": td, "session_type": "strength", "duration_min": 45,
+                        "tss_estimate": 30,
+                        "description": f"{sess['exercise']} {sess['sets']}×{sess['reps']} @ {sess['pct_1rm']}%" +
+                                       (f" ({sess['load_kg']} kg)" if sess.get("load_kg") else ""),
+                        "zwo_file": "", "zwo_name": "",
+                    })
+                    injected += 1
+        if do_mobility:
+            for td in training_days:
+                if any(s.get("session_type") == "mobility" and s.get("day") == td for s in sessions):
+                    continue
+                sessions.append({
+                    "day": td, "session_type": "mobility", "duration_min": 15,
+                    "tss_estimate": 5,
+                    "description": "Mobilità quotidiana 15 min (Warneke 2025)",
+                    "zwo_file": "", "zwo_name": "",
+                })
+                injected += 1
+        for disc in ("running", "mtb"):
+            if disc not in disciplines or disc not in lib_files:
+                continue
+            files = lib_files[disc]
+            if not files:
+                continue
+            n = 2 if disc == "running" else 1
+            picks = random.sample(files, min(n, len(files)))
+            for j, fn in enumerate(picks):
+                td = training_days[min(j, len(training_days) - 1)]
+                if any(s.get("session_type") == disc and s.get("day") == td for s in sessions):
+                    continue
+                sessions.append({
+                    "day": td, "session_type": disc, "duration_min": 40,
+                    "tss_estimate": 40,
+                    "description": f"{disc.capitalize()} (libreria: {fn})",
+                    "zwo_file": str(_P("workouts") / lib_map[disc] / fn),
+                    "zwo_name": fn,
+                })
+                injected += 1
+        week["sessions"] = sessions
+
+    plan_path.write_text(_json.dumps(plan, indent=2, ensure_ascii=False), encoding="utf-8")
+    return {"ok": True, "injected": injected, "phase": phase,
+            "disciplines": sorted(disciplines),
+            "weeks": len(plan.get("weeks", []))}
+
+
+# ─── 9. GET /api/nutrition-full ──────────────────────────────────────────────
+
+@app.get("/api/nutrition-full")
+def api_nutrition_full(goal_type: str = Query("maintain"),
+                       planned_tss_today: float = Query(0.0),
+                       prev_day_tss: float = Query(0.0)):
+    """PCC — piano nutrizionale COMPLETO e individualizzato.
+
+    Legge peso/età/sesso/altezza dal profilo atleta (cadendo a default se
+    assenti) e calcola TDEE, obiettivo (cut/maintain/gain), macro e
+    supplementi in dosi ASSOLUTE (mg/kg × peso). Con compensazione sul carico
+    di oggi + ieri (GSSI SSE 231)."""
+    from nutrition import full_nutrition_plan, supplement_doses
+    from profile_manager import ProfileManager
+    pm = ProfileManager.get()
+    a = pm._athlete or {}
+    bw = float(a.get("weight_kg") or 72.0)
+    age = int(a.get("age") or 30)
+    sex = str(a.get("sex") or "m")
+    height = float(a.get("height_cm") or 178.0)
+    plan = full_nutrition_plan(goal_type, bw, height, age, sex,
+                               planned_tss_today=planned_tss_today,
+                               prev_day_tss=prev_day_tss)
+    plan["bodyweight_kg"] = bw
+    plan["profile_used"] = {"weight_kg": bw, "age": age, "sex": sex, "height_cm": height}
+    plan["supplements"] = supplement_doses(bw)
+    return plan
+
+
+# ─── 10. GET /api/nutrition-auto ─────────────────────────────────────────────
+
+@app.get("/api/nutrition-auto")
+def api_nutrition_auto(goal_type: str = Query("maintain")):
+    """PCC — nutrizione AUTO: decide da solo il carico in base a piano + ICU.
+
+    Calcola il TSS previsto OGGI (dal piano), il TSS previsto + ESEGUITO
+    ieri (piano vs attività reale da intervals.icu), e adegua i carbohydrate
+    "fuel for the work required" (GSSI SSE 231). Se l'atleta NON ha svolto
+    l'allenamento previsto, il carico cala; se l'ha svolto o è più alto, sale.
+    Nessun select manuale: l'app ragiona sui dati reali.
+    """
+    from nutrition import day_macros, supplement_doses
+    from profile_manager import ProfileManager
+    from my_progress import load_plan_weeks, fetch_actual_tss_by_week, iso_week_monday
+    import datetime as _dt
+    pm = ProfileManager.get()
+    a = pm._athlete or {}
+    bw = float(a.get("weight_kg") or 72.0)
+    age = int(a.get("age") or 30)
+    sex = str(a.get("sex") or "m")
+    height = float(a.get("height_cm") or 178.0)
+
+    today = _dt.date.today()
+    yesterday = today - _dt.timedelta(days=1)
+    planned_today = 0.0
+    planned_yesterday = 0.0
+    actual_yesterday = 0.0
+    decision = "nessun piano disponibile"
+
+    try:
+        weeks = load_plan_weeks()
+        for w in weeks:
+            for s in w.get("sessions", []):
+                sd = s.get("day")
+                if not sd:
+                    continue
+                try:
+                    d = _dt.date.fromisoformat(sd[:10])
+                except Exception:
+                    continue
+                tss = float(s.get("tss_estimate") or 0)
+                if d == today:
+                    planned_today += tss
+                elif d == yesterday:
+                    planned_yesterday += tss
+        try:
+            key = a.get("icu_api_key") or pm._get_env("ICU_API_KEY")
+            aid = a.get("icu_athlete_id") or pm._get_env("ICU_ATHLETE_ID")
+            if key and aid:
+                oldest = (yesterday - _dt.timedelta(days=1)).isoformat()
+                newest = yesterday.isoformat()
+                actual_by_week = fetch_actual_tss_by_week(key, aid, oldest, newest)
+                wl = iso_week_monday(yesterday)
+                actual_yesterday = float(actual_by_week.get(wl, 0) or 0)
+        except Exception:
+            actual_yesterday = 0.0
+
+        if planned_today == 0 and planned_yesterday == 0:
+            decision = "recupero / nessun carico previsto -> carb base"
+        elif actual_yesterday == 0 and planned_yesterday > 0:
+            decision = "ieri NON svolto -> carb ridotti vs piano (niente eccesso a vuoto)"
+        elif actual_yesterday >= planned_yesterday * 0.85:
+            decision = "ieri svolto come da piano (o oltre) -> carb pieno oggi"
+        else:
+            decision = "ieri parzialmente svolto -> carb moderati oggi"
+    except Exception as e:
+        decision = f"fallback piano non leggibile: {e}"
+
+    effective_prev = actual_yesterday if actual_yesterday > 0 else (planned_yesterday * 0.5)
+    plan = day_macros("moderate", goal_type, bw, height, age, sex,
+                      planned_tss_today=planned_today, prev_day_tss=effective_prev)
+    # normalizza chiavi per la UI (stessa forma di /api/nutrition-full)
+    carb_g = float(plan.get("carb_g") or 0)
+    protein_g = float(plan.get("protein_g") or 0)
+    fat_g = float(plan.get("fat_g") or 0)
+    target_kcal = int(plan.get("target_kcal") or round(carb_g * 4 + protein_g * 4 + fat_g * 9))
+    macros = {
+        "carb_g": round(carb_g, 1),
+        "protein_g": round(protein_g, 1),
+        "fat_g": round(fat_g, 1),
+        "carb_g_per_kg": round(carb_g / bw, 1) if bw else 0,
+        "protein_g_per_kg": round(protein_g / bw, 1) if bw else 0,
+    }
+    carb_g_per_kg_day = round(carb_g / bw, 1) if bw else 0
+    plan["macros"] = macros
+    plan["target_kcal"] = target_kcal
+    plan["carb_g"] = round(carb_g, 1)
+    plan["protein_g"] = round(protein_g, 1)
+    plan["fat_g"] = round(fat_g, 1)
+    plan["carb_g_per_kg_day"] = carb_g_per_kg_day
+    plan["bodyweight_kg"] = bw
+    plan["profile_used"] = {"weight_kg": bw, "age": age, "sex": sex, "height_cm": height}
+    plan["auto"] = {
+        "planned_tss_today": round(planned_today, 1),
+        "planned_tss_yesterday": round(planned_yesterday, 1),
+        "actual_tss_yesterday": round(actual_yesterday, 1),
+        "decision": decision,
+        "carb_g_per_kg_day": carb_g_per_kg_day,
+    }
+    plan["supplements"] = supplement_doses(bw)
+    plan["sources"] = ["GSSI SSE 231 (fuel for the work required)", "Jeukendrup/UCI 2026",
+                       "Burke 2018", "Morton 2018"]
+    return plan
+
+
+# ─── 11. GET /api/diet ───────────────────────────────────────────────────────
+
+@app.get("/api/diet")
+def api_diet(day_type: str = Query("moderate"),
+             goal_type: str = Query("maintain"),
+             custom_calories: float = Query(None)):
+    """PCC — piano pasti giornaliero personalizzato (creatore di diete).
+
+    Restituisce pasti specifici, timing, cosa mangiare/cosa evitare.
+    custom_calories: se >0, override del nutrizionista (altrimenti calcolato)."""
+    from diet import build_daily_diet
+    from profile_manager import ProfileManager
+    pm = ProfileManager.get()
+    a = pm._athlete or {}
+    bw = float(a.get("weight_kg") or 72.0)
+    age = int(a.get("age") or 30)
+    sex = str(a.get("sex") or "m")
+    height = float(a.get("height_cm") or 178.0)
+    d = build_daily_diet(day_type, bw, goal_type, custom_calories=custom_calories,
+                         height_cm=height, age=age, sex=sex)
+    return {"day_type": day_type, "goal_type": goal_type,
+            "bodyweight_kg": bw, "calorie_source": "nutrizionista" if custom_calories else "calcolato",
+            "meals": [m.__dict__ for m in d.meals], "avoid": d.avoid,
+            "total_kcal": d.total_kcal, "total_carb": d.total_carb,
+            "total_protein": d.total_protein, "total_fat": d.total_fat}
+
+
+# ─── 12. GET /api/diet-weekly ────────────────────────────────────────────────
+
+@app.get("/api/diet-weekly")
+def api_diet_weekly(goal_type: str = Query("maintain"),
+                    custom_calories: float = Query(None)):
+    """PCC — piano alimentare SETTIMANALE (7 giorni) con variazione pasti."""
+    from diet import build_weekly_diet
+    from profile_manager import ProfileManager
+    pm = ProfileManager.get()
+    a = pm._athlete or {}
+    bw = float(a.get("weight_kg") or 72.0)
+    age = int(a.get("age") or 30)
+    sex = str(a.get("sex") or "m")
+    height = float(a.get("height_cm") or 178.0)
+    return build_weekly_diet(goal_type, bw, custom_calories=custom_calories,
+                             height_cm=height, age=age, sex=sex)
+
+
+# ─── 13. POST /api/diet-pdf-import ───────────────────────────────────────────
+
+@app.post("/api/diet-pdf-import")
+async def api_diet_pdf_import(request: Request):
+    """PCC — importa il PDF della dieta redatta dal nutrizionista.
+
+    Estrae il testo via PyPDF2 e lo PARSA in struttura giorni/pasti/alimenti
+    con grammi e macro reali (diet_parser). L'atleta vede la dieta del
+    professionista, sceglie le alternative, e confronta i macro con il
+    target PCC. I macro extra da sforzo restano calcolabili sopra i pasti.
+    """
+    try:
+        body = await request.body()
+        from diet_parser import parse_diet_pdf, day_macros_summary
+        struct = parse_diet_pdf(body)
+        struct["summary"] = day_macros_summary(struct)
+        # rimuovi raw_text pesante dall'output API (gia in struct se serve)
+        struct.pop("raw_text", None)
+        return {"ok": True, **struct}
+    except Exception as e:
+        return JSONResponse(status_code=400, content={"error": f"PDF non leggibile: {e}"})
+
+
+# ─── 14. POST /api/cpep-import ───────────────────────────────────────────────
+
+@app.post("/api/cpep-import")
+async def api_cpep_import(request: Request):
+    """PCC 5.x — import a CPET / INSCYD lab-test PDF as athlete context.
+
+    Best-effort regex extraction of VO2max, HRmax, VT1/VT2 power, peak
+    lactate, VLamax, FatMax, CP. Stored as CONTEXT (gold-standard anchor)
+    alongside the field-derived metabolic_decoder estimates — not a
+    replacement. Mirrors /api/diet-pdf-import (PyPDF2 raw bytes).
+    """
+    try:
+        body = await request.body()
+        from cpep_import import parse_cpep_pdf, save_cpep_record
+        rec = parse_cpep_pdf(body)
+        if rec.get("_error"):
+            return JSONResponse(status_code=400, content={"error": rec["_error"]})
+        saved = save_cpep_record(rec)
+        out = {k: v for k, v in rec.items() if not k.startswith("_")}
+        out["saved"] = saved
+        return {"ok": True, **out}
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse(status_code=400, content={"error": f"PDF non leggibile: {e}"})
+
+
+# ─── 15. GET /api/cpep-latest ────────────────────────────────────────────────
+
+@app.get("/api/cpep-latest")
+def api_cpep_latest():
+    try:
+        from cpep_import import load_latest_cpep
+        return load_latest_cpep() or {"found": []}
+    except Exception as e:  # noqa: BLE001
+        return {"error": str(e), "found": []}
+
+
+# ─── 16. POST /api/pedal-import ──────────────────────────────────────────────
+
+@app.post("/api/pedal-import")
+async def api_pedal_import(request: Request):
+    try:
+        body = await request.body()
+        from pedal_asymmetry import parse_pedal_payload, save_record
+        rec = parse_pedal_payload(body)
+        saved = save_record(rec)
+        out = {k: v for k, v in rec.items()}
+        out["saved"] = saved
+        return {"ok": True, **out}
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse(status_code=400, content={"error": f"Dati pedala non validi: {e}"})
+
+
+# ─── 17. GET /api/pedal-latest ───────────────────────────────────────────────
+
+@app.get("/api/pedal-latest")
+def api_pedal_latest():
+    try:
+        from pedal_asymmetry import load_latest
+        return load_latest() or {}
+    except Exception as e:  # noqa: BLE001
+        return {"error": str(e)}
+
+
+# ─── 18. GET /api/pedal-history ──────────────────────────────────────────────
+
+@app.get("/api/pedal-history")
+def api_pedal_history():
+    try:
+        from pedal_asymmetry import load_history
+        return load_history()
+    except Exception as e:  # noqa: BLE001
+        return {"error": str(e), "history": []}
+
+
+# ─── 19. GET /api/field-test/protocols ───────────────────────────────────────
+
+@app.get("/api/field-test/protocols")
+def api_field_test_protocols():
+    from field_test_protocols import list_protocols
+    return {"protocols": list_protocols()}
+
+
+# ─── 20. POST /api/field-test/estimate ───────────────────────────────────────
+
+@app.post("/api/field-test/estimate")
+async def api_field_test_estimate(request: Request):
+    try:
+        body = await request.json()
+        from field_test_protocols import estimate_ftp, save_test
+        protocol = body.get("protocol")
+        values = body.get("values", {})
+        est = estimate_ftp(protocol, values)
+        if not est.get("valid"):
+            return JSONResponse(status_code=400, content={"error": est.get("error", "test non valido")})
+        saved = save_test(protocol, values, est["ftp_w"])
+        return {"ok": True, "ftp_w": est["ftp_w"], "factor": est["factor"],
+                "note": est["note"], "saved": saved}
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse(status_code=400, content={"error": str(e)})
+
+
+# ─── 21. GET /api/field-test/history ─────────────────────────────────────────
+
+@app.get("/api/field-test/history")
+def api_field_test_history():
+    try:
+        from field_test_protocols import load_tests
+        return {"tests": load_tests()}
+    except Exception as e:  # noqa: BLE001
+        return {"tests": [], "error": str(e)}
+
+
+# ─── 22. GET /api/export/bundle ──────────────────────────────────────────────
+
+@app.get("/api/export/bundle")
+def api_export_bundle():
+    try:
+        from data_export import build_bundle
+        data, fname = build_bundle()
+        from fastapi.responses import Response
+        return Response(content=data, media_type="application/zip",
+                        headers={"Content-Disposition": f'attachment; filename="{fname}"'})
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse(status_code=400, content={"error": str(e)})
+
+
+# ─── 23. GET /api/calendar.ics ───────────────────────────────────────────────
+
+@app.get("/api/calendar.ics")
+def api_calendar_ics():
+    try:
+        from calendar_ics import build_ics
+        ics = build_ics()
+        from fastapi.responses import Response
+        return Response(content=ics, media_type="text/calendar; charset=utf-8",
+                        headers={"Content-Disposition": 'inline; filename="pcc_plan.ics"'})
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse(status_code=400, content={"error": str(e)})
+
+
+# ─── 24. GET /api/injury/blocks ──────────────────────────────────────────────
+
+@app.get("/api/injury/blocks")
+def api_injury_blocks():
+    from injury_manager import load_blocks, active_blocks
+    return {"blocks": load_blocks(), "active_today": len(active_blocks()) > 0}
+
+
+# ─── 25. POST /api/injury/blocks ─────────────────────────────────────────────
+
+@app.post("/api/injury/blocks")
+async def api_injury_blocks_add(request: Request):
+    try:
+        body = await request.json()
+        if not body.get("start") or not body.get("end"):
+            return JSONResponse(status_code=400, content={"error": "start e end richiesti"})
+        from injury_manager import save_block
+        rec = save_block(body)
+        return {"ok": True, **rec}
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse(status_code=400, content={"error": str(e)})
+
+
+# ─── 26. DELETE /api/injury/blocks/{block_id} ────────────────────────────────
+
+@app.delete("/api/injury/blocks/{block_id}")
+def api_injury_blocks_del(block_id: str):
+    from injury_manager import delete_block
+    return {"ok": delete_block(block_id)}
+
+
+# ─── 27. GET /api/plan/adjusted ──────────────────────────────────────────────
+
+@app.get("/api/plan/adjusted")
+def api_plan_adjusted():
+    """VISTA: current_plan.json con i blocchi infortunio/malattia applicati.
+    Giorni bloccati -> rest, TSS 0. Single source of truth (legge lo stesso
+    current_plan.json del motore)."""
+    from injury_manager import apply_blocks_to_plan
+    json_path = _plan_dir() / "current_plan.json"
+    if not json_path.exists():
+        return {"weeks": [], "sessions": [], "blocked_dates": []}
+    try:
+        with open(json_path, encoding="utf-8") as f:
+            plan = json.load(f)
+    except Exception:
+        return {"weeks": [], "sessions": [], "blocked_dates": []}
+    return apply_blocks_to_plan(plan)
+
+
+# ─── Helper functions used by BIA routes (4496-4543) ─────────────────────────
+# These are NOT routes but are required by routes 28, 30, 31 below.
+# Include them if they don't already exist in CPSL's app.py.
+
+# ═══ BIA — Body Impedance Analysis: import + storico + sync Intervals.icu ═══
+# import json as _json   # <-- ensure this alias exists at module level
+
+def _bia_history_path():
+    """File storico BIA nel profile attivo (bianco/neutro, coerente con athlete.json)."""
+    try:
+        from pathlib import Path as _P
+        from profile_manager import ProfileManager
+        pm = ProfileManager.get()
+        aid = getattr(pm, "_active_id", None) or "default"
+        d = _P.home() / ".cpsl" / "profiles" / aid
+        return d / "bia_history.json"
+    except Exception:
+        return None
+
+
+def _bia_load_history():
+    p = _bia_history_path()
+    if p and p.exists():
+        try:
+            return _json.loads(p.read_text(encoding="utf-8"))
+        except Exception:
+            return []
+    return []
+
+
+def _bia_save_history(hist):
+    p = _bia_history_path()
+    if p is None:
+        return False
+    try:
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(_json.dumps(hist, indent=2, ensure_ascii=False), encoding="utf-8")
+        return True
+    except Exception:
+        return False
+
+def _icu_wellness_auth():
+    """Ritorna l'header Authorization esatto di training.py (Bearer o Basic base64),
+    o None se ICU non e' configurato. Usa _auth_header() (che raise se mancano
+    le credenziali) per rilevare lo stato in modo coerente col resto dell'app.
+    """
+    try:
+        import training as _training
+        return _training._auth_header()
+    except Exception:
+        return None
+
+
+# ─── 28. POST /api/bia-import ────────────────────────────────────────────────
+
+@app.post("/api/bia-import")
+async def api_bia_import(request: Request):
+    """PCC — importa un report BIA (PDF testuale, PDF scansionato o JSON).
+
+    - PDF testuale: estrazione automatica dei campi.
+    - PDF scansionato: ritorna scanned=True + campi vuoti (il backend non ha OCR);
+      l'UI chiede all'atleta di incollare i valori.
+    - JSON: {date, weight_kg, fat_mass_kg, ...} letto direttamente.
+    Salva la misurazione nello storico BIA del profilo.
+    """
+    import io
+    try:
+        ctype = request.headers.get("content-type", "")
+        body = await request.body()
+        scanned = False
+        # JSON esplicito
+        if "application/json" in ctype or body.lstrip().startswith(b"{"):
+            data = _json.loads(body.decode("utf-8") or "{}")
+            from bia_parser import BIAReading, to_icu_wellness, parse_bia_text
+            # testo incollato: fai il parse regex invece di leggerlo come campi strutturati
+            if data.get("raw_text"):
+                res = parse_bia_text(data["raw_text"])
+                r = BIAReading(**res["reading"])
+                r.source = "pdf"
+                if not r.date:
+                    r.date = __import__("datetime").date.today().isoformat()
+            else:
+                r = BIAReading(**{k: v for k, v in data.items()
+                                  if k in BIAReading.__dataclass_fields__})
+                r.source = "manual"
+                if not r.date:
+                    r.date = __import__("datetime").date.today().isoformat()
+                # JSON strutturato: costruisci res coerente col branch PDF
+                res = {"scanned": False, "unreliable": False,
+                       "reading": r.to_dict(), "found_fields": sorted(r.validated_fields().keys()),
+                       "rejected_fields": [], "note": None}
+        else:
+            # multipart: file PDF
+            from bia_parser import parse_bia_pdf, BIAReading, to_icu_wellness
+            form = await request.form()
+            f = form.get("file")
+            if not f:
+                return JSONResponse(status_code=400, content={"error": "Nessun file PDF o JSON inviato"})
+            pdf_bytes = f.file.read() if hasattr(f, "file") else f.read()
+            res = parse_bia_pdf(pdf_bytes)
+            scanned = res.get("scanned", False)
+            r = BIAReading(**res["reading"])
+            if not r.date:
+                r.date = __import__("datetime").date.today().isoformat()
+        # salva nello storico (solo campi validi entro range fisiologico)
+        validated = r.validated_fields()
+        # Se il PDF e' inaffidabile (valori fuori range), non salvare misurazioni
+        # impossibili: l'UI mostra l'avviso e chiede all'atleta di inserire/confermare.
+        unreliable = res.get("unreliable", False)
+        if validated and not unreliable:
+            hist = _bia_load_history()
+            entry = r.to_dict()
+            hist = [h for h in hist if h.get("date") != r.date]
+            hist.append(entry)
+            hist.sort(key=lambda x: x.get("date", ""))
+            saved = _bia_save_history(hist)
+            count = len(hist)
+        else:
+            saved = False
+            count = len(_bia_load_history())
+        icu = to_icu_wellness(r, r.date) if (validated and not unreliable) else None
+        resp = {"ok": True, "scanned": scanned,
+                "reading": r.to_dict(), "found_fields": sorted(validated.keys()),
+                "restored_fields": res.get("restored_fields", []),
+                "rejected_fields": res.get("rejected_fields", []),
+                "icu_payload": icu, "history_saved": saved,
+                "history_count": count, "unreliable": unreliable}
+        if scanned:
+            resp["pages"] = res.get("pages", [])
+            resp["note"] = res.get("note", "PDF scansionato: testo non estraibile.")
+        if unreliable:
+            resp["note"] = res.get("note", "Valori non affidabili (fuori range). Inserisci manualmente.")
+        return resp
+    except Exception as e:
+        return JSONResponse(status_code=400, content={"error": f"BIA import fallito: {e}"})
+
+
+# ─── 29. GET /api/sync-targets ───────────────────────────────────────────────
+
+@app.get("/api/sync-targets")
+def api_sync_targets():
+    """PCC — elenco delle app di destinazione dati (pluggable sync layer).
+
+    Ritorna tutte le destinazioni registrate in sync_targets.REGISTRY con
+    il loro stato di connessione, cosi' la UI puo' mostrare 'App collegate'
+    e il layer e' estensibile ad altre app oltre Intervals.icu.
+    """
+    try:
+        from sync_targets import list_targets
+        return {"ok": True, "targets": list_targets()}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+# ─── 30. GET /api/bia-history ────────────────────────────────────────────────
+
+@app.get("/api/bia-history")
+def api_bia_history():
+    """PCC — storico misurazioni BIA del profilo attivo."""
+    hist = _bia_load_history()
+    return {"ok": True, "history": hist, "count": len(hist)}
+
+
+# ─── 31. POST /api/bia-sync-icu ─────────────────────────────────────────────
+
+@app.post("/api/bia-sync-icu")
+async def api_bia_sync_icu(request: Request):
+    """PCC — sincronizza le misurazioni BIA su Intervals.icu (/wellness).
+
+    Invia peso, bodyFat%, hydration%, muscleMass, bmi, boneMass, protein,
+    visceralFat, metabolicAge per ogni misurazione dello storico.
+    Richiede Intervals.icu configurato (Settings → Connessione ICU).
+    """
+    import httpx
+    body = {}
+    try:
+        raw = await request.body()
+        body = _json.loads(raw.decode("utf-8") or "{}")
+    except Exception:
+        body = {}
+    aid = None
+    try:
+        from profile_manager import ProfileManager
+        _pm = ProfileManager.get()
+        aid = _pm.icu_athlete_id
+    except Exception:
+        pass
+    auth_header = _icu_wellness_auth()
+    if not aid or not auth_header:
+        return {"ok": False, "error": "Intervals.icu non configurato. Vai in Impostazioni → Connessione ICU."}
+    hist = _bia_load_history()
+    if not hist:
+        return {"ok": False, "error": "Nessuna misurazione BIA da sincronizzare."}
+    # filtra per data se richiesto
+    only_date = body.get("date")
+    to_sync = [h for h in hist if (not only_date or h.get("date") == only_date)]
+    bulk = []
+    for h in to_sync:
+        from bia_parser import BIAReading, to_icu_wellness
+        r = BIAReading(**{k: v for k, v in h.items() if k in BIAReading.__dataclass_fields__})
+        icu = to_icu_wellness(r, r.date)
+        if icu["payload"]:
+            item = {"id": icu["date"] or r.date}
+            item.update(icu["payload"])
+            bulk.append(item)
+    if not bulk:
+        return {"ok": False, "error": "Nessun campo BIA mappabile su ICU nelle misurazioni selezionate."}
+    # Endpoint ufficiale ICU: PUT /wellness-bulk con array di {id, ...campi}
+    url = f"https://intervals.icu/api/v1/athlete/{aid}/wellness-bulk"
+    try:
+        resp = httpx.put(url, headers=auth_header, json=bulk, timeout=20)
+        if resp.status_code in (200, 201):
+            return {"ok": True, "synced": len(bulk), "results": bulk}
+        return {"ok": False, "error": f"ICU ha risposto {resp.status_code}: {resp.text[:200]}",
+                "results": bulk}
+    except Exception as e:
+        return {"ok": False, "error": f"Errore di rete ICU: {e}", "results": bulk}
+
+
+# ─── 32. GET /api/export-plan-html ───────────────────────────────────────────
+
+@app.get("/api/export-plan-html")
+def api_export_plan_html(athlete: str = Query("Atleta"), goal: str = Query(""),
+                         phase: str = Query("base")):
+    """BETA Fase 7c — compone il piano integrato (ciclismo+forza+mobilità+nutrizione)
+    in un HTML autonomo stampabile → PDF dal browser. Usato da DIY e Coach."""
+    from plan_export import build_plan_html
+    from strength_mobility import build_strength_plan, strength_summary, build_mobility_plan
+    from nutrition import compute_nutrition, supplement_list, race_fueling
+    try:
+        sp = build_strength_plan(phase, 4)
+        ss = strength_summary(phase)
+        mp = build_mobility_plan(7)
+        nut = compute_nutrition("high_intensity", 72, 120)
+        sup = supplement_list()
+        rf = race_fueling(3.0, 72)
+    except Exception as e:
+        sp, ss, mp, nut, sup, rf = [], {}, [], {}, [], {}
+    html = build_plan_html(
+        athlete_name=athlete, goal_name=goal,
+        strength_plan=sp, strength_summary=ss, mobility_plan=mp,
+        nutrition_day=nut, supplements=sup, race_fueling=rf,
+    )
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse(html)
+
+
+# ─── 33. GET /api/my-calendar ────────────────────────────────────────────────
+
+@app.get("/api/my-calendar")
+def api_my_calendar():
+    """BETA Fase 7e (DIY) — il mio calendario: aderenza personale pianificato
+    vs eseguito. Legge il piano di PCC (tss_target) e le attività reali
+    del profilo self da intervals.icu (se le credenziali ci sono)."""
+    import datetime as _dt
+    from my_progress import compute_my_adherence, fetch_actual_tss_by_week, load_plan_weeks
+    from profile_manager import ProfileManager
+    plan_weeks = load_plan_weeks()
+    if not plan_weeks:
+        return {"rows": [], "note": "Nessun piano generato ancora."}
+    # range date dal piano
+    starts = [w["start"] for w in plan_weeks if w.get("start")]
+    oldest = min(starts) if starts else _dt.date.today().isoformat()
+    newest = (_dt.date.fromisoformat(max(starts)) + _dt.timedelta(days=7)).isoformat() if starts else _dt.date.today().isoformat()
+    actual = {}
+    note = ""
+    try:
+        pm = ProfileManager.get()
+        key = getattr(pm, "icu_api_key", None) or getattr(pm, "_env", {}).get("ICU_API_KEY") if hasattr(pm, "icu_api_key") else None
+        aid = getattr(pm, "icu_athlete_id", None) if hasattr(pm, "icu_athlete_id") else None
+        # fallback su config
+        if not key:
+            try:
+                from config import ICU_API_KEY, ICU_ATHLETE_ID
+                key, aid = ICU_API_KEY, ICU_ATHLETE_ID
+            except Exception:
+                key, aid = None, None
+        if key and aid:
+            actual = fetch_actual_tss_by_week(key, aid, oldest, newest)
+        else:
+            note = "Credenziali intervals.icu non configurate: mostro solo il piano."
+    except Exception as e:
+        note = f"Lettura attività ICU non disponibile: {e}"
+    rows = compute_my_adherence(plan_weeks, actual)
+    return {"rows": rows, "note": note, "oldest": oldest, "newest": newest}
+
+
+# ─── 34. POST /api/my-push-plan ─────────────────────────────────────────────
+
+@app.post("/api/my-push-plan")
+def api_my_push_plan():
+    """BETA Fase 7c/7e (DIY) — pusha il piano integrato sul proprio calendario
+    intervals.icu (self). Invia un EVENTO per ogni seduta del piano con
+    dettagli specifici: ciclismo, forza, mobilità, running, MTB, nutrizione."""
+    from my_progress import load_plan_weeks
+    from profile_manager import ProfileManager
+    import httpx
+    plan_weeks = load_plan_weeks()
+    if not plan_weeks:
+        return {"error": "Nessun piano da pushare", "pushed": 0, "errors": []}
+    pm = ProfileManager.get()
+    key = getattr(pm, "icu_api_key", None) if hasattr(pm, "icu_api_key") else None
+    aid = getattr(pm, "icu_athlete_id", None) if hasattr(pm, "icu_athlete_id") else None
+    if not key:
+        try:
+            from config import ICU_API_KEY, ICU_ATHLETE_ID
+            key, aid = ICU_API_KEY, ICU_ATHLETE_ID
+        except Exception:
+            key, aid = None, None
+    if not key or not aid:
+        return {"error": "Credenziali intervals.icu non configurate", "pushed": 0, "errors": []}
+    pushed = 0
+    errors = []
+    for wk in plan_weeks:
+        sessions = wk.get("sessions", [])
+        for sess in sessions:
+            day = sess.get("day")
+            if not day:
+                continue
+            sess_type = sess.get("session_type", "cycling")
+            desc_parts = []
+            if sess_type == "cycling":
+                tss = sess.get("tss_estimate", 0)
+                dur = sess.get("duration_min", 0)
+                desc = sess.get("description", "")
+                desc_parts.append(f"🚴 {desc} ({dur}min, {tss} TSS)")
+            elif sess_type == "strength":
+                desc_parts.append(f"💪 Forza: {sess.get('description', '')}")
+            elif sess_type == "mobility":
+                desc_parts.append(f"🤸 Mobilità: {sess.get('description', '')}")
+            elif sess_type == "running":
+                desc_parts.append(f"🏃 Corsa: {sess.get('description', '')}")
+            elif sess_type == "mtb":
+                desc_parts.append(f"🚵 MTB: {sess.get('description', '')}")
+            else:
+                desc_parts.append(sess.get("description", "Seduta"))
+            # Add nutrition hint if present
+            if "carbs_per_hour" in sess or "nutrition" in sess:
+                nut = sess.get("nutrition", {})
+                if "carbs_per_hour" in nut:
+                    desc_parts.append(f"🍌 {nut['carbs_per_hour']}g CHO/h")
+            payload = {
+                "date": day,
+                "title": f"Sett. {wk.get('week', '?')} — {sess_type.capitalize()}",
+                "description": " · ".join(desc_parts),
+                "type": "workout"
+            }
+            try:
+                r = httpx.post(
+                    f"https://intervals.icu/api/v1/athlete/{aid}/events",
+                    auth=("API_KEY", key), json=payload, timeout=15)
+                if r.status_code in (200, 201):
+                    pushed += 1
+                else:
+                    errors.append(f"{day} {sess_type}: HTTP {r.status_code}")
+            except Exception as e:
+                errors.append(f"{day} {sess_type}: {e}")
+    return {"pushed": pushed, "errors": errors, "athlete": aid}
+
+
+# ─── 35. GET /api/cp-models ─────────────────────────────────────────────────
+
+@app.get("/api/cp-models")
+def api_cp_models(window_days: int = Query(90, ge=7, le=3650)):
+    try:
+        from power_curve import aggregate_power_curve
+        from cp_models import compute_cp_models, cp_models_to_dict
+        from profile_manager import ProfileManager
+        curve = aggregate_power_curve(None, window_days=window_days)
+        best_efforts = {int(p["duration_s"]): int(p["watts"])
+                         for p in curve.get("rider_curve", []) if "duration_s" in p and "watts" in p}
+        bw = float(curve.get("weight_kg") or (ProfileManager.get()._athlete or {}).get("weight_kg") or 72.0)
+        out = cp_models_to_dict(compute_cp_models(best_efforts, bw))
+        out["window_days"] = window_days
+        out["n_rides"] = curve.get("n_rides")
+        return out
+    except Exception as e:  # noqa: BLE001
+        return {"error": str(e), "method": "fit su power-duration"}
+
+
+# ─── 36. GET /api/metabolic-profile ──────────────────────────────────────────
+
+@app.get("/api/metabolic-profile")
+def api_metabolic_profile(window_days: int = Query(90, ge=7, le=3650)):
+    try:
+        from power_curve import aggregate_power_curve
+        from metabolic_decoder import decode_metabolic_profile, profile_to_dict
+        from profile_manager import ProfileManager
+        curve = aggregate_power_curve(None, window_days=window_days)
+        best_efforts = {int(p["duration_s"]): int(p["watts"])
+                         for p in curve.get("rider_curve", []) if "duration_s" in p and "watts" in p}
+        bw = float(curve.get("weight_kg") or (ProfileManager.get()._athlete or {}).get("weight_kg") or 72.0)
+        prof = decode_metabolic_profile(
+            best_efforts, bw,
+            cp_w=curve.get("cp_w"), w_prime_j=curve.get("wprime_j"),
+            ftp_w=curve.get("current_ftp"),
+        )
+        out = profile_to_dict(prof)
+        out["window_days"] = window_days
+        out["n_rides"] = curve.get("n_rides")
+        out["best_efforts_used"] = best_efforts
+
+        # (A) Classificazione atleta stile INSCYD: tipo + consiglio
+        _v = out.get("vo2max_ml_kg_min")
+        _vl = out.get("vlamax_mmol_l_s")
+        _fm = out.get("fatmax_pct_ftp")
+        _wkg = round(out.get("ftp_w", 0) / max(bw, 1), 2) if out.get("ftp_w") else None
+        _type = "Non classificabile (mancano dati di potenza — completa il test di valutazione)"
+        _focus = "Completa il test di valutazione FTP per ottenere il profilo metabolico."
+        _score = {"vo2max": 0, "vlamax": 0, "fatmax": 0, "wkg": 0, "ctl": 0}
+
+        if _v and _wkg:
+            if _v > 50 and _wkg > 4.0:
+                _type = "Scalatore / Elite"
+                _focus = "Eccellente VO2max e rapporto potenza/peso. Lavora su soglia e potenza sostenuta."
+            elif _v > 45 and (_vl is not None and _vl < 0.4):
+                _type = "Scalatore / Aerobico"
+                _focus = "Alto VO2max, bassa glicolisi. Punta su Z2 prolungato e soglia per migliorare FatMax."
+            elif _vl is not None and _vl > 0.6 and _wkg < 3.5:
+                _type = "Sprinter / Classics"
+                _focus = "Alta potenza anaerobica. Lavora su VO2max e Z2 per ridurre VLamax e migliorare resistenza."
+            elif _vl is not None and _vl > 0.4 and _v > 45:
+                _type = "All-rounder"
+                _focus = "Profilo bilanciato. Identifica il punto debole tra VO2max e VLamax per specializzarti."
+            elif _v > 40 and _wkg > 3.0:
+                _type = "Cronoman / Resistance"
+                _focus = "Buona base aerobica. Lavora su soglia (+ sweet spot) e economia di pedalata."
+            else:
+                _type = "Intermedio"
+                _focus = "Base solida in costruzione. Continua con Z2 polarizzato + intervalli mirati."
+        elif _wkg:
+            if _wkg > 4.0:
+                _type = "Avanzato"
+                _focus = "Buon rapporto potenza/peso. Completare test FTP con power data per affinare il profilo."
+            elif _wkg > 3.0:
+                _type = "Intermedio"
+                _focus = "Base moderata. Completa il test di valutazione per ottenere il profilo metabolico completo."
+            else:
+                _type = "Amatoriale / Base"
+                _focus = "Inizio percorso. Completa il test di valutazione e segui il piano polarizzato per costruire la base."
+
+        # Normalizza score 0-100 per il radar
+        if _v:
+            _score["vo2max"] = min(100, max(0, int((_v - 25) / 45 * 100)))
+        if _vl is not None:
+            _score["vlamax"] = min(100, max(0, int((0.8 - _vl) / 0.7 * 100))) if _vl > 0.15 else 90
+        if _fm:
+            _score["fatmax"] = min(100, max(0, int(_fm * 2)))
+        if _wkg:
+            _score["wkg"] = min(100, max(0, int((_wkg - 1) / 5 * 100)))
+        _score["ctl"] = min(100, max(0, int((curve.get("current_ctl") or 0))))
+
+        out["classification"] = {
+            "type": _type,
+            "focus": _focus,
+            "wkg": _wkg,
+            "score": _score,
+        }
+        return out
+    except Exception as e:
+        return {"error": str(e), "method": "field power-duration (non lab)"}
+
+
+# ─── 37. GET /api/athlete/recommendations ────────────────────────────────────
+
+@app.get("/api/athlete/recommendations")
+def api_athlete_recommendations(window_days: int = Query(90, ge=7, le=3650)):
+    """Raccomandazioni intelligenti basate sul profilo metabolico."""
+    try:
+        from power_curve import aggregate_power_curve
+        from metabolic_decoder import decode_metabolic_profile
+        from profile_manager import ProfileManager
+        curve = aggregate_power_curve(None, window_days=window_days)
+        best_efforts = {int(p["duration_s"]): int(p["watts"]) for p in curve.get("rider_curve", []) if "duration_s" in p and "watts" in p}
+        bw = float(curve.get("weight_kg") or (ProfileManager.get()._athlete or {}).get("weight_kg") or 72.0)
+        prof = decode_metabolic_profile(best_efforts, bw, cp_w=curve.get("cp_w"), w_prime_j=curve.get("wprime_j"), ftp_w=curve.get("current_ftp"))
+        ftp = curve.get("current_ftp") or 0
+        wkg = round(ftp / max(bw, 1), 2) if ftp else 0
+        vo2max = prof.vo2max_ml_kg_min
+        fatmax = prof.fatmax_w
+        ctl = curve.get("current_ctl") or 0
+        n_rides = curve.get("n_rides") or 0
+        recs = []
+        if not best_efforts or not vo2max:
+            recs.append({"priority":1,"icon":"test","title":"FTP Test","desc":"Completa un FTP Test dalla home.","action":"gotoTab('profile')"})
+        elif not fatmax:
+            recs.append({"priority":2,"icon":"vo2","title":"Test VO2max","desc":"Hai FTP, fai test incrementale.","action":None})
+        if wkg > 0:
+            if wkg < 2.5:
+                recs.append({"priority":3,"icon":"base","title":"Base aerobica","desc":"W/kg basso. Focus Z2.","action":None})
+            elif wkg < 3.5 and not recs:
+                recs.append({"priority":3,"icon":"polarized","title":"Polarizzato","desc":"W/kg intermedio. Z2 + Z4-Z5.","action":None})
+            elif wkg >= 3.5:
+                recs.append({"priority":4,"icon":"threshold","title":"Soglia","desc":"Buon W/kg. Sweet spot.","action":None})
+        if ctl <= 0 and n_rides > 0:
+            recs.append({"priority":5,"icon":"consistency","title":"Consistenza","desc":"CTL basso. Allena regolare.","action":None})
+        if wkg >= 3.0:
+            recs.append({"priority":6,"icon":"nutrition","title":"Nutrizione","desc":"Vedi piano alimentazione.","action":"gotoTab('nutrition')"})
+        recs.sort(key=lambda r: r["priority"])
+        return {"ok": True, "recommendations": recs, "n_rides": n_rides, "wkg": wkg}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
+# ─── 38. POST /api/plan/daily-sync ───────────────────────────────────────────
+
+@app.post("/api/plan/daily-sync")
+async def api_plan_daily_sync(request: Request):
+    """Fase prodotto — auto-aggiornamento quotidiano del piano.
+
+    Esegue in sequenza (tutto gia' esistente):
+      1) reforecast  — ricalcola il piano sui dati reali (carico/riposo/HRV se
+         presenti in ICU o wellness);
+      2) auto_adjust — applica TSB+HRV via Hooper (riposo/HRV bassa -> oggi
+         piu' facile o riposo);
+      3) auto_recalc — se >7 giorni dall'ultimo ricalcolo.
+    Confronta il piano prima/dopo e ritorna un DIFF leggibile + lo salva.
+    Il frontend lo chiama all'avvio e mostra una notifica se ci sono cambiamenti.
+    """
+    json_path = _plan_dir() / "current_plan.json"
+    if not json_path.exists():
+        return {"ok": True, "ran": False, "reason": "no_plan", "changes": []}
+
+    def _snapshot():
+        try:
+            with open(json_path, encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return {}
+
+    before = _snapshot()
+
+    # 1) reforecast (ricalcolo su dati reali)
+    try:
+        await api_plan_reforecast()
+    except Exception as e:
+        logging.getLogger(__name__).warning("daily-sync reforecast failed: %s", e)
+
+    # 2) auto_adjust (HRV/TSB -> Hooper). Costruisce una Request fittizia
+    # minimale compatibile con _get_json_body (usa .json()).
+    class _FakeReq:
+        def __init__(self, payload):
+            self._payload = payload
+            self.url = type("U", (), {"path": "/api/plan/daily-sync"})()
+        async def json(self):
+            return self._payload
+        async def body(self):
+            import json as _json
+            return _json.dumps(self._payload).encode()
+    try:
+        await api_plan_auto_adjust(_FakeReq({"scope": "today", "dry_run": False}))
+    except Exception as e:
+        logging.getLogger(__name__).warning("daily-sync auto_adjust failed: %s", e)
+
+    # 3) auto_recalc se >7gg (e' sync, ma lo chiamiamo comunque)
+    try:
+        api_plan_auto_recalc()
+    except Exception as e:
+        logging.getLogger(__name__).warning("daily-sync auto_recalc failed: %s", e)
+
+    after = _snapshot()
+
+    # DIFF sessione-per-sessione (per giorno)
+    def _index(plan):
+        idx = {}
+        for w in plan.get("weeks", []):
+            for s in w.get("sessions", []):
+                d = s.get("day") or s.get("date")
+                if d:
+                    idx[d] = s
+        return idx
+
+    bi = _index(before)
+    ai = _index(after)
+    changes = []
+    all_days = sorted(set(bi) | set(ai))
+    for d in all_days:
+        b = bi.get(d); a = ai.get(d)
+        bt = (b or {}).get("session_type") or (b or {}).get("type") or "—"
+        at = (a or {}).get("session_type") or (a or {}).get("type") or "—"
+        bts = (b or {}).get("tss") or 0
+        ats = (a or {}).get("tss") or 0
+        if bt != at or bts != ats:
+            changes.append({
+                "date": d,
+                "from": bt, "to": at,
+                "tss_from": bts, "tss_to": ats,
+            })
+    return {
+        "ok": True,
+        "ran": True,
+        "changes": changes,
+        "changed_count": len(changes),
+        "hrv_source": "icu_or_wellness",
+        "note": ("Piano aggiornato in automatico in base a carico/riposo/HRV."
+                 if changes else "Nessun cambiamento oggi (dati HRV/riposo mancanti o piano gia' ottimale)."),
+    }
+
+
+# ─── 39. POST /api/workouts/import ──────────────────────────────────────────
+
+@app.post("/api/workouts/import")
+def api_workout_import(request: Request):
+    """PCC — importa un file ZWO personalizzato nella libreria locale.
+
+    Accetta: { filename: str, content: str (XML ZWO) }
+    Salva nella cartella workouts/ e lo rende disponibile nella libreria.
+    """
+    import re as _re
+    body = {}
+    try:
+        body = json.loads(request.body().read().decode("utf-8") or "{}")
+    except Exception:
+        body = {}
+    filename = body.get("filename", "").strip()
+    content = body.get("content", "")
+    if not filename or not content:
+        raise HTTPException(400, "filename e content sono obbligatori")
+    if not filename.endswith(".zwo"):
+        filename += ".zwo"
+    # sanitizza filename
+    filename = _re.sub(r'[^a-zA-Z0-9_\-.]', '_', filename)
+    workouts_dir = Path("workouts")
+    workouts_dir.mkdir(exist_ok=True)
+    target = workouts_dir / filename
+    if target.exists():
+        raise HTTPException(409, f"{filename} esiste già")
+    target.write_text(content, encoding="utf-8")
+    return {"ok": True, "filename": filename, "size": len(content)}
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # HTML
 # ═══════════════════════════════════════════════════════════════════════════════

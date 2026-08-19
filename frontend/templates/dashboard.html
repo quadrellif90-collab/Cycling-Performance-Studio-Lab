@@ -1577,6 +1577,11 @@ window.addEventListener('unhandledrejection', function(e) {
   <div class="tab" data-tab="analysis">Analysis</div>
   <div class="tab" data-tab="dfa">DFA α1</div>
   <div class="tab" data-tab="settings">Settings</div>
+<div class="tab" data-tab="hrv">HRV</div>
+<div class="tab" data-tab="nutrition">Alimentazione</div>
+<div class="tab" data-tab="bia">Composizione</div>
+<div class="tab" data-tab="profile">Profilo</div>
+<div class="tab" data-tab="whatsnew">Novità</div>
 </div>
 
 <!-- ═══ HOME ═══════════════════════════════════════════════════════════════ -->
@@ -1757,6 +1762,184 @@ window.addEventListener('unhandledrejection', function(e) {
   </div>
 </div>
 
+
+<!-- ===================================================================== -->
+<!-- PCC Home Tab Additions — Extracted from PCC dashboard.html            -->
+<!-- Sub-sections that exist in PCC Home but are missing from CPSL Home     -->
+<!-- ===================================================================== -->
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- 1. ASSESSMENT BANNER (lines 1837-1858)                                -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div id="assessment-banner" style="display:none;margin:8px 0 12px;padding:14px 16px;border-radius:10px;background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.4);">
+  <div style="margin-bottom:8px;">
+    <b style="color:var(--accent);">🧪 Piano preliminare — scegli un test di valutazione</b>
+    <div id="assessment-banner-msg" style="font-size:13px;color:var(--text2);margin-top:4px;"></div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+    <button onclick="chooseAssessmentTest('ramp')" style="background:rgba(59,130,246,0.2);border:1px solid rgba(59,130,246,0.5);color:var(--text);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;">
+      ⚡ Ramp Test<br><span style="font-size:11px;color:var(--text2);">10-20 W/min step fino esaurimento</span>
+    </button>
+    <button onclick="chooseAssessmentTest('20min')" style="background:rgba(59,130,246,0.2);border:1px solid rgba(59,130,246,0.5);color:var(--text);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;">
+      🎯 FTP 20 min (Coggan)<br><span style="font-size:11px;color:var(--text2);">Gold standard: 20' TT × 0.95</span>
+    </button>
+    <button onclick="chooseAssessmentTest('8min')" style="background:rgba(59,130,246,0.2);border:1px solid rgba(59,130,246,0.5);color:var(--text);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;">
+      🏋️ Test 2×8 min<br><span style="font-size:11px;color:var(--text2);">Meno faticoso del 20'</span>
+    </button>
+  </div>
+  <div style="margin-top:10px;font-size:12px;">
+    <a href="#" onclick="skipAssessment();return false;" style="color:var(--text3);text-decoration:underline;">Salta valutazione e genera il piano comunque</a>
+    <span style="color:var(--text3);margin:0 6px;">·</span>
+    <a href="#" onclick="dismissAssessmentBanner();return false;" style="color:var(--text3);">Chiudi</a>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- 2. ONBOARDING BANNER + STEPS (lines 1859-1867)                       -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div id="onboarding-banner" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+  <span style="font-weight:700;">Completa il setup per sbloccare tutti i calcoli</span>
+  <span id="onboarding-progress" style="font-size:12px;color:var(--text2);"></span>
+  <span style="flex:1;"></span>
+  <button class="btn btn-sm" onclick="onboardingGotoFirst()">Inizia</button>
+  <button class="btn btn-sm" style="margin-left:4px;" onclick="dismissOnboarding()">Piu tardi</button>
+</div>
+<div id="onboarding-steps" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- 3. TID HEATMAP (lines 2094-2099)                                      -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- BETA: heatmap TID settimanale (POL 80/20) -->
+<div class="card" data-card="tid-heatmap" style="margin-top:12px;" id="tid-heatmap-card">
+  <h3 data-tip="Distribuzione intensità settimanale (TID). Ogni riga = una settimana di allenamento: verde = facile (Z1-Z2, ~80%), giallo = soglia moderata (Z3, da evitare), rosso = duro (Z4+). Obiettivo polarizzato 80/0/20 (Stöggl & Sperlich 2014).">Distribuzione intensità settimanale <button class="btn btn-sm" style="font-size:10px;padding:2px 6px;" onclick="loadTidHeatmap()">Aggiorna</button></h3>
+  <div id="tid-heatmap" style="display:flex;flex-direction:column;gap:4px;"></div>
+  <div style="font-size:10px;color:var(--text3);margin-top:6px;">Verde = facile (Z1-Z2) · Giallo = Z3 (soglia) · Rosso = duro (Z4+)</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- 4. NUTRITION HOME CARD (lines 2101-2117)                              -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- BETA Fase 7b: Nutrizione & Integrazione -->
+<!-- PCC: Nutrizione (compressa con <details>, decide da sola il carico) -->
+<details class="card" style="margin-top:12px;" id="nutrition-card" open>
+  <summary style="cursor:pointer;font-weight:600;font-size:13px;list-style:none;">
+    🍎 Nutrizione <span id="nutri-summary-badge" style="font-size:10px;color:var(--text3);font-weight:400;"></span>
+  </summary>
+  <div style="display:flex;gap:8px;margin:8px 0;flex-wrap:wrap;align-items:center;">
+    <label style="font-size:11px;color:var(--text2);">Obiettivo:</label>
+    <select id="nutri-goal" style="font-size:11px;padding:3px 6px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;" onchange="loadNutrition()">
+      <option value="maintain">Mantenimento / forma</option>
+      <option value="cut">Dimagrimento</option>
+      <option value="gain">Aumento massa</option>
+    </select>
+    <button class="btn btn-primary" style="font-size:11px;padding:3px 10px;" onclick="loadNutritionAuto()" title="L app decide da sola il carico in base a piano e ICU (ieri svolto/non svolto)">Auto (da piano/ICU)</button>
+  </div>
+  <div id="nutrition-plan" style="font-size:12px;color:var(--text2);">Caricamento…</div>
+</details>
+
+<!-- PCC: Integrazione (card separata, compressa) -->
+<details class="card" style="margin-top:12px;" id="supplement-card" open>
+  <summary style="cursor:pointer;font-weight:600;font-size:13px;list-style:none;">
+    💊 Integrazione <span style="font-size:10px;color:var(--text3);font-weight:400;">(Gruppo A, dosi su peso)</span>
+  </summary>
+  <div id="supplement-plan" style="font-size:12px;color:var(--text2);margin-top:6px;">Caricamento…</div>
+</details>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- 5. DAILY ADAPTATION CARD (lines 2127-2130)                           -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="card" data-card="daily-adapt" style="margin-top:12px;" id="daily-adapt-card">
+  <h3 data-tip="Adattamento giornaliero (BETA): combina HRV (rMSSD), DFA a1, sonno e TSB del giorno in un fattore di carico 0.80-1.10. HRV-guided training (Casanova-Lizon 2025), Hooper 1995, DFA a1 (Rogers 2021).">Adattamento giornaliero</h3>
+  <div id="daily-adapt" style="font-size:12px;color:var(--text2);">Calcolo…</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- 6. STRENGTH & MOBILITY CARD (lines 2132-2153)                        -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- BETA Fase 7a: Forza e Mobilita -->
+<div class="card" data-card="strength" style="margin-top:12px;" id="strength-card">
+  <h3 data-tip="Forza in palestra (Llanos-Lagos 2025, meta-analisi 17 studi/262 ciclisti: la forza pesante migliora efficienza di pedalata + TT). Mobilità quotidiana 15 min (Warneke 2025) riduce infortuni.">Forza & Mobilità</h3>
+  <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center;">
+    <select id="strength-phase" style="font-size:11px;padding:3px 6px;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;">
+      <option value="base">Base</option><option value="build">Build</option>
+      <option value="peak">Peak</option><option value="taper">Taper</option>
+    </select>
+    <label style="font-size:11px;display:flex;align-items:center;gap:4px;cursor:pointer;">
+      <input type="checkbox" id="card-strength" checked onchange="syncCardFlags()"> Forza
+    </label>
+    <label style="font-size:11px;display:flex;align-items:center;gap:4px;cursor:pointer;">
+      <input type="checkbox" id="card-mobility" checked onchange="syncCardFlags()"> Mobilità
+    </label>
+    <button class="btn" style="font-size:11px;padding:3px 10px;" onclick="loadStrength()">Genera piano</button>
+    <button class="btn btn-primary" style="font-size:11px;padding:3px 10px;" onclick="busyButton(this, injectMultidiscipline, 'Inietto…')" title="Inserisce forza+mobilità + running/MTB (se nei discipline) nel piano, affine al ciclismo">⚡ Inietta multi</button>
+    <a class="btn" style="font-size:11px;padding:3px 10px;" href="/api/export-plan-html?athlete=Atleta&phase=base" target="_blank" rel="noopener">⤓ Esporta piano (PDF/HTML)</a>
+  </div>
+  <div id="strength-summary" style="font-size:12px;color:var(--text2);margin-bottom:8px;"></div>
+  <div id="strength-weeks" style="display:flex;flex-direction:column;gap:6px;"></div>
+  <div id="mobility-routine" style="font-size:11px;color:var(--text3);margin-top:8px;"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- 7. MY CALENDAR / ADHERENCE CARD (lines 2155-2163)                    -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- BETA Fase 7e (DIY): Il mio calendario / aderenza personale -->
+<div class="card" style="margin-top:12px;" id="my-cal-card">
+  <h3 data-tip="Il tuo calendario: per ogni settimana del piano mostra TSS pianificato vs eseguito (da intervals.icu) e l'aderenza %.">Il mio calendario</h3>
+  <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+    <button class="btn" style="font-size:11px;padding:3px 10px;" onclick="loadMyCalendar()">Aggiorna</button>
+    <button class="btn btn-primary" style="font-size:11px;padding:3px 10px;" onclick="busyButton(this, myPushPlan, 'Invio a intervals.icu…')">⤴ Push piano su intervals.icu</button>
+  </div>
+  <div id="my-calendar" style="font-size:11px;color:var(--text2);">Genera un piano per vedere l'aderenza…</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- 8. KEYBOARD SHORTCUTS PANEL (lines 24242-24255)                      -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div id="shortcut-help" style="display:none;position:fixed;right:18px;bottom:18px;width:300px;max-width:90vw;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.35);padding:16px;z-index:90;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+    <strong style="font-size:14px;">Scorciatoie da tastiera</strong>
+    <button onclick="toggleShortcutHelp()" style="background:none;border:none;color:var(--text2);font-size:18px;cursor:pointer;">×</button>
+  </div>
+  <div style="font-size:13px;line-height:1.9;">
+    <div><kbd style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:1px 7px;font-family:monospace;">G</kbd> &nbsp; Genera piano</div>
+    <div><kbd style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:1px 7px;font-family:monospace;">I</kbd> &nbsp; Importa FIT</div>
+    <div><kbd style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:1px 7px;font-family:monospace;">T</kbd> &nbsp; Cambia tema</div>
+    <div><kbd style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:1px 7px;font-family:monospace;">P</kbd> &nbsp; Push su Intervals.icu</div>
+    <div><kbd style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:1px 7px;font-family:monospace;">?</kbd> &nbsp; Questo pannello</div>
+    <div><kbd style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:1px 7px;font-family:monospace;">Esc</kbd> &nbsp; Chiudi / annulla</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- 9. HRV HOME CARD (lines 2208-2236)                                    -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- v5.5.0 — Huawei Health / HRV card (task #20). -->
+<div class="card" id="card-hrv" style="grid-column: span 4;">
+  <h3>❤️ Huawei Health / HRV</h3>
+  <div id="hrv-empty" style="font-size:12px;color:var(--text2);">
+    Nessun dato HRV importato.
+    <button class="btn" style="margin-top:8px;font-size:11px;padding:6px 10px;"
+            onclick="openHuaweiImport()">📥 Importa export Huawei</button>
+  </div>
+  <div id="hrv-content" style="display:none;">
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px;">
+      <div><div style="font-size:11px;color:var(--text3);">RMSSD oggi</div>
+           <div id="hrv-rmssd" style="font-size:24px;font-weight:700;color:var(--accent);">—</div></div>
+      <div><div style="font-size:11px;color:var(--text3);">Baseline 7d</div>
+           <div id="hrv-base7" style="font-size:20px;font-weight:600;">—</div></div>
+      <div><div style="font-size:11px;color:var(--text3);">Baseline 30d</div>
+           <div id="hrv-base30" style="font-size:20px;font-weight:600;">—</div></div>
+      <div><div style="font-size:11px;color:var(--text3);">Deviazione</div>
+           <div id="hrv-dev" style="font-size:20px;font-weight:600;">—</div></div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);">
+      Qualità: <span id="hrv-quality">—</span> ·
+      Campioni: <span id="hrv-samples">—</span> ·
+      Sorgente: <span id="hrv-source">—</span>
+    </div>
+    <canvas id="hrv-chart" height="80" style="margin-top:10px;width:100%;"></canvas>
+  </div>
+</div>
 <div class="section" id="sec-picker">
 
   <!-- ═══ WORKOUT PICKER ═════════════════════════════════════════════════ -->
@@ -3339,6 +3522,742 @@ window.addEventListener('unhandledrejection', function(e) {
 </div>
 </div>
 
+<!-- ===================================================================== -->
+<!-- PCC HRV Section — Extracted from PCC dashboard.html lines 3783-3854   -->
+<!-- Section id="sec-hrv"                                                  -->
+<!-- ===================================================================== -->
+<div class="section" id="sec-hrv">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
+    <h2 style="margin:0;">HRV & Huawei Health</h2>
+    <span id="hrv-source-badge" class="badge" style="font-size:11px;color:var(--text2);"></span>
+  </div>
+  <p style="color:var(--text2);font-size:12px;max-width:780px;margin-bottom:12px;">
+    Elaborazione HRV locale da export Huawei Health: intervalli RR/NN →
+    pulizia artefatti → RMSSD/SDNN calcolati localmente → baseline 7/14/30g.
+    I dati grezzi restano solo nel database locale; verso Intervals.icu
+    vengono inviate solo le metriche aggregate (rmssd/sdnn).
+    <b>Indicatore di training/recovery, non diagnosi medica.</b>
+  </p>
+
+  <!-- KPI cards -->
+  <div class="grid g3" style="margin:8px 0 12px;">
+    <div class="card" id="hrv-card-today">
+      <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;">RMSSD oggi</div>
+      <div id="hrv-today-rmssd" style="font-size:28px;font-weight:800;line-height:1.1;">—</div>
+      <div id="hrv-today-meta" style="font-size:11px;color:var(--text3);"></div>
+    </div>
+    <div class="card" id="hrv-card-baseline">
+      <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;">Baseline 7g / 30g</div>
+      <div id="hrv-baseline" style="font-size:20px;font-weight:700;line-height:1.3;">—</div>
+      <div id="hrv-deviation" style="font-size:12px;"></div>
+    </div>
+    <div class="card" id="hrv-card-quality">
+      <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;">Qualità & dettaglio</div>
+      <div id="hrv-quality" style="font-size:18px;font-weight:700;">—</div>
+      <div id="hrv-detail" style="font-size:11px;color:var(--text3);"></div>
+    </div>
+  </div>
+
+  <!-- Grafico RMSSD giornaliero + rolling 7d + baseline -->
+  <div class="card" style="margin-bottom:12px;">
+    <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">
+      RMSSD giornaliero · media mobile 7g · baseline
+    </div>
+    <canvas id="hrvChart" height="100" style="max-height:120px;"></canvas>
+  </div>
+
+  <!-- Tabella metriche avanzate (local-only) -->
+  <div class="card">
+    <div style="font-size:12px;color:var(--text2);margin-bottom:6px;">
+      Metriche calcolate (archivio locale — non tutte sincronizzate con Intervals)
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <thead>
+        <tr style="color:var(--text3);text-align:left;">
+          <th style="padding:3px 6px;">Metrica</th>
+          <th style="padding:3px 6px;">Valore</th>
+          <th style="padding:3px 6px;">Unità</th>
+          <th style="padding:3px 6px;">Sync ICU</th>
+        </tr>
+      </thead>
+      <tbody id="hrv-metrics-body">
+        <tr><td colspan="4" style="padding:6px;color:var(--text3);">Caricamento…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Import Huawei -->
+  <div class="card" style="margin-top:18px;">
+    <div style="font-size:13px;color:var(--text2);margin-bottom:8px;">Import export Huawei</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <input id="hrv-import-path" type="text" placeholder="C:/percorso/export_huawei.zip"
+             style="flex:1;min-width:220px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);">
+      <button id="hrv-import-btn" class="btn" onclick="hrvImport()">Importa e calcola</button>
+      <button class="btn btn-ghost" onclick="hrvExport()">Esporta CSV</button>
+    </div>
+    <div id="hrv-import-status" style="font-size:12px;color:var(--text3);margin-top:6px;"></div>
+  </div>
+</div>
+<!-- ===================================================================== -->
+<!-- PCC Nutrition Section — Extracted from PCC dashboard.html lines 3858-3925 -->
+<!-- Section id="sec-nutrition"                                            -->
+<!-- ===================================================================== -->
+<div class="section" id="sec-nutrition">
+  <!-- PCC 5.x — Metabolic decoder (INSCYD-style lab->training view). Backed by
+       /api/metabolic-profile; single source of truth = power-duration curve. -->
+  <div class="card" style="margin-bottom:12px;">
+    <h3>Profilo metabolico <span style="font-size:10px;font-weight:400;color:var(--text3);">— stima da power-duration (non lab)</span></h3>
+    <div id="metabolic-profile" style="font-size:13px;color:var(--text2);">Caricamento…</div>
+    <div id="metabolic-assumptions" style="font-size:10px;color:var(--text3);margin-top:8px;"></div>
+  </div>
+
+  <!-- PCC 5.x — CPET / INSCYD lab-test PDF import (context anchor). Backed by
+       /api/cpep-import + /api/cpep-latest; stored as gold-standard context. -->
+  <div class="card" style="margin-bottom:12px;">
+    <h3>Test lab (CPET / INSCYD) <span style="font-size:10px;font-weight:400;color:var(--text3);">— import PDF come contesto</span></h3>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <input type="file" id="cpep-file" accept=".pdf" style="font-size:11px;max-width:220px;" />
+      <button class="btn" style="font-size:11px;padding:4px 10px;" onclick="importCpep()">Importa</button>
+      <span id="cpep-status" style="font-size:11px;color:var(--text2);"></span>
+    </div>
+    <div id="cpep-latest" style="font-size:12px;color:var(--text2);margin-top:8px;"></div>
+  </div>
+
+  <!-- Sorgente dieta -->
+  <div class="card" style="margin-bottom:12px;">
+    <h3>Alimentazione — sorgente e import</h3>
+    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center;">
+      <label style="font-size:11px;color:var(--text2);">Sorgente:</label>
+      <select id="nutri-source-tab" style="font-size:11px;padding:3px 6px;" onchange="onNutriSourceChange()">
+        <option value="app">App PCC (calcolata)</option>
+        <option value="nutritionist">Nutrizionista (PDF)</option>
+        <option value="none">Nessuna</option>
+        <option value="macro">Solo macro</option>
+        <option value="micro">Macro + micro</option>
+        <option value="extra">Solo extra da sforzo</option>
+      </select>
+      <label class="btn" style="font-size:11px;padding:3px 10px;cursor:pointer;">
+        ⤓ Importa PDF nutrizionista<input type="file" id="nutri-pdf-tab" accept="application/pdf" style="display:none;" onchange="importNutriPDF()">
+      </label>
+      <span id="nutri-pdf-meta" style="font-size:10px;color:var(--text3);"></span>
+    </div>
+    <div id="nutri-target" style="font-size:11px;color:var(--text2);"></div>
+  </div>
+
+  <!-- Confronto macro dieta vs target PCC -->
+  <div class="grid g2" id="nutri-compare" style="margin-bottom:12px;"></div>
+
+  <!-- Piano settimanale (App PCC o scelta alternative da PDF) -->
+  <div class="card">
+    <h3 id="nutri-plan-title">Piano alimentare settimanale</h3>
+    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center;">
+      <label style="font-size:11px;color:var(--text2);">Obiettivo:</label>
+      <select id="nutri-goal-tab" style="font-size:11px;padding:3px 6px;" onchange="loadNutriPlan()">
+        <option value="maintain">Mantenimento / forma</option>
+        <option value="cut">Dimagrimento</option>
+        <option value="gain">Aumento massa</option>
+      </select>
+      <label style="font-size:11px;color:var(--text2);">Calorie (0=calc):</label>
+      <input type="number" id="nutri-cal-tab" style="width:60px;font-size:11px;padding:3px;" placeholder="0">
+      <button class="btn" style="font-size:11px;padding:3px 10px;" onclick="loadNutriPlan()">Carica</button>
+    </div>
+    <div id="nutri-plan" style="font-size:11px;color:var(--text2);">Caricamento…</div>
+  </div>
+
+  <!-- Integrazione / supplementi (Gruppo A) -->
+  <div class="card" style="margin-top:12px;">
+    <h3>Integrazione &amp; timing (Gruppo A, dosi su peso)</h3>
+    <div id="nutri-supplements" style="font-size:11px;color:var(--text2);">Caricamento…</div>
+  </div>
+</div>
+<!-- ===================================================================== -->
+<!-- PCC BIA Section — Extracted from PCC dashboard.html lines 3928-3968   -->
+<!-- Section id="sec-bia"                                                  -->
+<!-- ===================================================================== -->
+<div class="section" id="sec-bia">
+  <div class="card" style="margin-bottom:12px;">
+    <h3>Composizione corporea (BIA)</h3>
+    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center;">
+      <label class="btn" style="font-size:11px;padding:3px 10px;cursor:pointer;">
+        ⤓ Importa PDF BIA<input type="file" id="bia-pdf" accept="application/pdf" style="display:none;" onchange="importBIA()">
+      </label>
+      <span style="font-size:10px;color:var(--text3);">oppure incolla i valori (JSON) o usa l'import manuale qui sotto</span>
+    </div>
+    <div id="bia-import-msg" style="font-size:10px;color:var(--red);margin-bottom:6px;"></div>
+    <div class="grid g3" style="font-size:11px;">
+      <div class="form-group"><label>Data</label><input type="date" id="bia-date"></div>
+      <div class="form-group"><label>Peso (kg)</label><input type="number" step="0.1" id="bia-weight"></div>
+      <div class="form-group"><label>Altezza (cm)</label><input type="number" step="0.1" id="bia-height"></div>
+      <div class="form-group"><label>Massa grassa (kg)</label><input type="number" step="0.1" id="bia-fat"></div>
+      <div class="form-group"><label>Massa magra (kg)</label><input type="number" step="0.1" id="bia-ffm"></div>
+      <div class="form-group"><label>Acqua totale (L)</label><input type="number" step="0.1" id="bia-tbw"></div>
+      <div class="form-group"><label>SMM (kg)</label><input type="number" step="0.1" id="bia-smm"></div>
+      <div class="form-group"><label>BCM (kg)</label><input type="number" step="0.1" id="bia-bcm"></div>
+      <div class="form-group"><label>Angolo di fase (°)</label><input type="number" step="0.1" id="bia-pha"></div>
+      <div class="form-group"><label>BMI</label><input type="number" step="0.1" id="bia-bmi"></div>
+    </div>
+    <button class="btn" style="font-size:11px;padding:4px 12px;margin-top:6px;" onclick="saveBIAmanual()">Salva misurazione</button>
+    <button class="btn" style="font-size:11px;padding:4px 12px;margin-top:6px;background:var(--accent);color:#fff;" onclick="syncBIAicu()">⇧ Sync Intervals.icu</button>
+    <span id="bia-sync-msg" style="font-size:10px;color:var(--text3);margin-left:6px;"></span>
+  </div>
+  <div class="card">
+    <h3>Storico misurazioni</h3>
+    <div id="bia-history" style="font-size:11px;color:var(--text2);">Caricamento…</div>
+  </div>
+  <div class="card" style="margin-top:12px;">
+    <h3>Cosa va su Intervals.icu</h3>
+    <div style="font-size:11px;color:var(--text2);">
+      Ogni misurazione BIA importata qui viene sincronizzata su Intervals.icu
+      (<code>/wellness</code>): <b>peso, % massa grassa, idratazione%, massa muscolare (SMM),
+      BMI</b> (più massa ossea/proteine/grasso viscerale/età metabolica se presenti).
+      Serve Intervals.icu collegato (Impostazioni → Connessione ICU).
+      La dieta del nutrizionista resta locale (ICU non gestisce piani alimentari).
+    </div>
+  </div>
+</div>
+<!-- ===================================================================== -->
+<!-- PCC Profile Section — Extracted from PCC dashboard.html lines 24258-24304 -->
+<!-- Section id="sec-profile"                                              -->
+<!-- ===================================================================== -->
+<div class="section" id="sec-profile">
+  <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px;">
+    <div style="flex:1;min-width:280px;">
+      <div class="card" style="padding:14px;">
+        <h3 style="margin:0 0 8px;">Profilo metabolico</h3>
+        <div id="profile-type-badge" style="font-size:18px;font-weight:700;color:var(--accent);margin-bottom:6px;">—</div>
+        <div id="profile-focus" style="font-size:13px;color:var(--text2);margin-bottom:12px;"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
+          <div><span style="color:var(--text3);">VO₂max</span><br><b id="p-vo2max">—</b></div>
+          <div><span style="color:var(--text3);">VLamax</span><br><b id="p-vlamax">—</b></div>
+          <div><span style="color:var(--text3);">FatMax</span><br><b id="p-fatmax">—</b></div>
+          <div><span style="color:var(--text3);">W/kg</span><br><b id="p-wkg">—</b></div>
+          <div><span style="color:var(--text3);">FTP</span><br><b id="p-ftp">—</b></div>
+          <div><span style="color:var(--text3);">CTL</span><br><b id="p-ctl">—</b></div>
+        </div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:280px;">
+      <div class="card" style="padding:14px;">
+        <h3 style="margin:0 0 8px;">Radar qualita</h3>
+        <canvas id="profile-radar" width="260" height="260" style="max-width:260px;max-height:260px;margin:0 auto;"></canvas>
+      </div>
+    </div>
+  </div>
+  <!-- Badge Metabolico -->
+  <div style="flex:0 0 200px;min-width:200px;">
+    <div class="card" style="padding:14px;text-align:center;">
+      <div id="metab-badge-icon" style="font-size:40px;margin-bottom:6px;">&#x1F310;</div>
+      <div id="metab-badge-title" style="font-weight:700;font-size:15px;color:var(--accent);">&#x2014;</div>
+      <div id="metab-badge-sub" style="font-size:11px;color:var(--text2);margin-top:4px;"></div>
+      <div id="metab-badge-bar-wrap" style="margin-top:10px;background:var(--surface2);border-radius:10px;height:6px;overflow:hidden;">
+        <div id="metab-badge-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#3b82f6,#10b981);border-radius:10px;transition:width 1s ease;"></div>
+      </div>
+      <div id="metab-badge-pct" style="font-size:11px;color:var(--text3);margin-top:4px;"></div>
+    </div>
+  </div>
+  <div class="card" style="padding:14px;">
+    <h3 style="margin:0 0 8px;">Cronologia metriche</h3>
+    <div id="profile-history" style="font-size:12px;color:var(--text3);">Dati di potenza necessari per la cronologia. Completa il test di valutazione.</div>
+  </div>
+</div>
+
+<!-- Prossimi passi (recommendations) — sits outside sec-profile but related -->
+<div id="recs-card" class="card" style="margin-bottom:12px;display:none;padding:14px;">
+  <h3 style="margin:0 0 8px;font-size:14px;">&#x2B50; Prossimi passi</h3>
+  <div id="recs-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+</div>
+<!-- ===================================================================== -->
+<!-- PCC What's New Section — Extracted from PCC dashboard.html lines 24236-24240 -->
+<!-- Section id="sec-whatsnew"                                             -->
+<!-- ===================================================================== -->
+<div class="section" id="sec-whatsnew">
+  <h2 style="margin:0 0 4px;">Novita di PCC 5.2</h2>
+  <div style="font-size:13px;color:var(--text2);margin-bottom:14px;">12 nuove funzioni + interfaccia Design System Pro. Ogni funzione e una vista sul motore unico di pianificazione.</div>
+  <div id="whatsnew-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;"></div>
+</div>
+
+
+
+
+
+
+﻿<!-- ===================================================================== -->
+<!-- PCC Onboarding Wizard -- Extracted from PCC dashboard.html            -->
+<!-- Full-screen 5-step wizard modal HTML + JS                             -->
+<!-- ===================================================================== -->
+
+<!-- ==================== ONBOARDING BANNER (Home tab) ==================== -->
+<!-- Lines 1859-1867 -->
+<div id="onboarding-banner" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+  <span style="font-weight:700;">Completa il setup per sbloccare tutti i calcoli</span>
+  <span id="onboarding-progress" style="font-size:12px;color:var(--text2);"></span>
+  <span style="flex:1;"></span>
+  <button class="btn btn-sm" onclick="onboardingGotoFirst()">Inizia</button>
+  <button class="btn btn-sm" style="margin-left:4px;" onclick="dismissOnboarding()">Piu tardi</button>
+</div>
+<div id="onboarding-steps" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;"></div>
+
+<!-- ==================== ONBOARDING WIZARD OVERLAY ==================== -->
+<!-- Lines 24306-24467 -->
+<div id="onboarding-wizard-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:3000;align-items:center;justify-content:center;" onclick="if(event.target===this)closeOnboardingWizard()">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:0;max-width:520px;width:90vw;max-height:90vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,0.5);">
+    <!-- Header with progress -->
+    <div style="padding:20px 24px 16px;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <div style="flex:1;">
+          <div style="font-size:18px;font-weight:700;color:var(--text);" id="ob-title">Profilo Base</div>
+          <div style="font-size:12px;color:var(--text2);" id="ob-subtitle">Passo 1 di 5</div>
+        </div>
+        <button onclick="closeOnboardingWizard()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;line-height:1;padding:4px;">x</button>
+      </div>
+      <!-- Progress bar -->
+      <div style="height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;">
+        <div id="ob-progress-bar" style="height:100%;width:20%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width 0.3s ease;"></div>
+      </div>
+    </div>
+
+    <!-- Step Panels -->
+    <div style="padding:24px;">
+      <!-- STEP 1: Profilo Base -->
+      <div class="ob-step active" id="ob-step-1" data-step="1">
+        <h3 style="margin:0 0 8px;font-size:15px;">Profilo Base</h3>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:20px;">Le tue misure base per calcolare zone, W/kg e stime metaboliche.</p>
+        <div class="form-row" style="display:flex;gap:12px;margin-bottom:14px;">
+          <div class="form-group" style="flex:1;display:flex;flex-direction:column;gap:4px;">
+            <label style="font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;">Peso (kg)</label>
+            <input type="number" id="ob-weight" min="30" max="200" step="0.1" placeholder="70" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:14px;">
+          </div>
+          <div class="form-group" style="flex:1;display:flex;flex-direction:column;gap:4px;">
+            <label style="font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;">Altezza (cm)</label>
+            <input type="number" id="ob-height" min="140" max="220" step="1" placeholder="175" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:14px;">
+          </div>
+        </div>
+        <div class="form-row" style="display:flex;gap:12px;margin-bottom:14px;">
+          <div class="form-group" style="flex:1;display:flex;flex-direction:column;gap:4px;">
+            <label style="font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;">Eta (anni)</label>
+            <input type="number" id="ob-age" min="10" max="100" step="1" placeholder="30" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:14px;">
+          </div>
+          <div class="form-group" style="flex:1;display:flex;flex-direction:column;gap:4px;">
+            <label style="font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;">Sesso</label>
+            <select id="ob-sex" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:14px;">
+              <option value="">Preferisco non dirlo</option>
+              <option value="M">Uomo</option>
+              <option value="F">Donna</option>
+              <option value="O">Altro</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: Metriche Chiave -->
+      <div class="ob-step" id="ob-step-2" data-step="2" style="display:none;">
+        <h3 style="margin:0 0 8px;font-size:15px;">Metriche Chiave</h3>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:20px;">FTP e LTHR definiscono le tue zone. Se non li conosci, potrai fare un test dopo.</p>
+        <div class="form-row" style="margin-bottom:14px;">
+          <label style="display:block;font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">FTP (W) - Potenza soglia funzionale</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="number" id="ob-ftp" min="50" max="600" step="1" placeholder="250" style="flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:14px;">
+            <label style="font-size:12px;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:4px;">
+              <input type="checkbox" id="ob-ftp-unknown" onchange="toggleFtpUnknown(this)"> Non lo so
+            </label>
+          </div>
+        </div>
+        <div class="form-row" style="display:flex;gap:12px;margin-bottom:14px;">
+          <div class="form-group" style="flex:1;display:flex;flex-direction:column;gap:4px;">
+            <label style="font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;">LTHR (bpm)</label>
+            <input type="number" id="ob-lthr" min="100" max="220" step="1" placeholder="175" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:14px;">
+          </div>
+          <div class="form-group" style="flex:1;display:flex;flex-direction:column;gap:4px;">
+            <label style="font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;">FCmax (bpm)</label>
+            <input type="number" id="ob-maxhr" min="140" max="220" step="1" placeholder="196" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:14px;">
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3: Obiettivi -->
+      <div class="ob-step" id="ob-step-3" data-step="3" style="display:none;">
+        <h3 style="margin:0 0 8px;font-size:15px;">Obiettivi</h3>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:20px;">Cosa vuoi ottenere? Il piano si adatta al tuo obiettivo.</p>
+        <div class="form-row" style="margin-bottom:14px;">
+          <label style="display:block;font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Tipo piano</label>
+          <select id="ob-goal-type" onchange="onGoalTypeChange()" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:14px;">
+            <option value="event">Preparazione evento (data fissata)</option>
+            <option value="general">Forma generale</option>
+            <option value="ftp">Migliora FTP (focus soglia)</option>
+            <option value="vo2max">Migliora VO2max (focus intervalli)</option>
+            <option value="ctl">Costruisci CTL (forma)</option>
+          </select>
+        </div>
+        <div id="ob-event-fields" style="display:none;margin-bottom:14px;">
+          <div class="form-row" style="display:flex;gap:12px;margin-bottom:14px;">
+            <div class="form-group" style="flex:1;display:flex;flex-direction:column;gap:4px;">
+              <label style="font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;">Data evento</label>
+              <input type="date" id="ob-event-date" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:14px;">
+            </div>
+            <div class="form-group" style="flex:1;display:flex;flex-direction:column;gap:4px;">
+              <label style="font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;">Nome evento</label>
+              <input type="text" id="ob-event-name" placeholder="es. Granfondo Stelvio" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:14px;">
+            </div>
+          </div>
+          <div class="form-row" style="display:flex;gap:12px;margin-bottom:14px;">
+            <div class="form-group" style="flex:1;display:flex;flex-direction:column;gap:4px;">
+              <label style="font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;">Distanza (km)</label>
+              <input type="number" id="ob-event-km" min="20" max="500" step="1" placeholder="150" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:14px;">
+            </div>
+            <div class="form-group" style="flex:1;display:flex;flex-direction:column;gap:4px;">
+              <label style="font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;">Dislivello (m)</label>
+              <input type="number" id="ob-event-climb" min="0" max="10000" step="10" placeholder="4300" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:14px;">
+            </div>
+          </div>
+        </div>
+        <div class="form-row" style="margin-bottom:14px;">
+          <label style="display:block;font-size:11px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Settimane piano</label>
+          <input type="number" id="ob-plan-weeks" min="4" max="52" value="12" style="width:100px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:14px;">
+        </div>
+      </div>
+
+      <!-- STEP 4: Disponibilita -->
+      <div class="ob-step" id="ob-step-4" data-step="4" style="display:none;">
+        <h3 style="margin:0 0 8px;font-size:15px;">Disponibilita</h3>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:20px;">Quante ore puoi allenarti ogni giorno?</p>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:20px;" id="ob-hours-grid"></div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;" id="ob-rest-grid"></div>
+      </div>
+
+      <!-- STEP 5: Connetti Intervals.icu -->
+      <div class="ob-step" id="ob-step-5" data-step="5" style="display:none;">
+        <h3 style="margin:0 0 8px;font-size:15px;">Connetti Intervals.icu</h3>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:20px;">Collega il tuo account per sync automatico, CTL reale e push piano.</p>
+        <div style="background:rgba(59,130,246,0.1);border:1px solid #3b82f6;border-radius:10px;padding:16px;margin-bottom:16px;">
+          <div style="font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+            <span style="font-size:20px;">link</span> Collega intervals.icu
+          </div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.5;">
+            <b>Cosa ottieni:</b>
+            <ul style="margin:8px 0 0 18px;line-height:1.8;font-size:12px;color:var(--text2);">
+              <li>Sync automatico attivita recenti (ultimi 30 giorni)</li>
+              <li>CTL/ATL/TSB calcolati dalle tue vere uscite</li>
+              <li>Push piano su calendario intervals.icu (Garmin/Wahoo sync)</li>
+              <li>HRV, sonno, RHR se hai Garmin/Oura/Whoop connessi</li>
+            </ul>
+          </div>
+          <button class="btn btn-primary" onclick="connectIcuFromWizard()" style="width:100%;padding:12px;font-size:14px;font-weight:600;">Connetti intervals.icu (OAuth)</button>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);margin-top:16px;">
+          <input type="checkbox" id="ob-import-recent" checked style="width:16px;height:16px;accent-color:var(--accent);"> Importa attivita recenti (30gg) per CTL storico
+        </label>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:16px;border-top:1px solid var(--border);">
+      <button class="btn btn-secondary" id="ob-prev" onclick="prevOnboardingStep()" style="display:none;padding:10px 20px;font-size:13px;">Indietro</button>
+      <div style="flex:1;"></div>
+      <button class="btn btn-primary" id="ob-next" onclick="nextOnboardingStep()" style="padding:10px 24px;font-size:13px;font-weight:600;">Avanti</button>
+      <button class="btn btn-success" id="ob-finish" onclick="finishOnboarding()" style="display:none;padding:10px 24px;font-size:13px;font-weight:600;">Completa setup</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ONBOARDING WIZARD CSS ==================== -->
+<style>
+.ob-step { animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.ob-step input[type="range"] { width: 100%; accent-color: var(--accent); }
+.ob-hour-btn { padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; font-size: 11px; transition: all 0.15s; }
+.ob-hour-btn:hover { border-color: var(--accent); }
+.ob-hour-btn.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+.ob-rest-btn { padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; font-size: 11px; transition: all 0.15s; }
+.ob-rest-btn.rest { background: var(--surface2); color: var(--text3); border-color: var(--surface2); }
+.ob-rest-btn.rest.selected { background: var(--yellow); color: #000; border-color: var(--yellow); }
+</style>
+
+<!-- ==================== ONBOARDING WIZARD JAVASCRIPT ==================== -->
+<!-- Lines 4939-5252 -->
+<script>
+// v5.2 onboarding banner
+async function loadOnboarding(){
+  try{
+    var r=await fetch('/api/onboarding/status'); if(!r.ok) return;
+    var d=await r.json(); window.__onboarding=d;
+    var banner=document.getElementById('onboarding-banner');
+    var steps=document.getElementById('onboarding-steps');
+    var prog=document.getElementById('onboarding-progress');
+    var fr=document.getElementById('first-run-checklist');
+    var frSteps=document.getElementById('first-run-steps');
+    if(banner && steps){
+      if(localStorage.getItem('onboarding-dismissed')){ banner.style.display='none'; }
+      else{
+        var nDone=(d.done||[]).length, nTot=nDone+(d.gaps||[]).length;
+        if(prog) prog.textContent='('+nDone+'/'+nTot+' completati)';
+        steps.innerHTML=(d.gaps||[]).map(function(g){
+          return '<span style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:12px;cursor:pointer;" onclick="onboardingGoto(\''+g.goto+'\')">'+esc(g.label)+'</span>';
+        }).join('') || '<span style="font-size:12px;color:var(--green);">Setup completo!</span>';
+        banner.style.display=(d.gaps && d.gaps.length)?'block':'none';
+      }
+    }
+    if(fr && frSteps){
+      if(d.first_run || (d.gaps && d.gaps.length)){
+        var items=[['profile','Completa il profilo','settings'],['activities','Importa la prima uscita (FIT)','import'],['plan','Genera il primo piano','plan'],['icu','Collega Intervals.icu','settings']];
+        var doneIds={}; (d.done||[]).forEach(function(x){ doneIds[x.id]=1; });
+        frSteps.innerHTML=items.map(function(it){
+          var ok=doneIds[it[0]];
+          return '<div onclick="onboardingGoto(\''+it[2]+'\')" style="border:1px solid '+(ok?'var(--green)':'var(--border)')+';border-radius:10px;padding:12px;cursor:pointer;background:'+(ok?'rgba(34,197,94,0.08)':'var(--surface2)')+';"><div style="font-size:20px;">'+(ok?'OK':'-')+'</div><div style="font-size:13px;font-weight:600;margin-top:6px;">'+esc(it[1])+'</div><div style="font-size:11px;color:var(--text3);margin-top:4px;">'+(ok?'Fatto':'Da fare')+'</div></div>';
+        }).join('');
+        fr.style.display='block';
+      } else { fr.style.display='none'; }
+    }
+  }catch(_){}
+}
+function onboardingGoto(goto){
+  localStorage.setItem('onboarding-dismissed','1');
+  var map={settings:'settings',import:'home',plan:'plan',home:'home',icu_sync:'home'};
+  gotoTab(map[goto]||'home');
+  if(goto==='import'){ setTimeout(function(){ try{ openImportFitPicker(); }catch(_){}} ,400); }
+  else if(goto==='icu_sync'){ setTimeout(function(){ try{ onboardingSyncIcu(); }catch(_){}} ,400); }
+}
+async function onboardingSyncIcu(){
+  showToast('Sincronizzazione attivita da Intervals.icu...', 4000);
+  try{
+    const r=await fetch('/api/sync',{method:'POST'});
+    const j=await r.json();
+    const n=(j&&(j.imported||j.synced||j.added))||0;
+    showToast('Sincronizzate '+n+' attivita da Intervals.icu.', 5000);
+  }catch(e){ showToast('Sync ICU fallito: '+e.message, 5000); }
+  try{ if(typeof loadOnboarding==='function') loadOnboarding(); }catch(_){}
+  try{ if(typeof loadProDashboard==='function') loadProDashboard(); }catch(_){}
+}
+function onboardingGotoFirst(){ var d=window.__onboarding; var f=d&&d.gaps&&d.gaps[0]; onboardingGoto(f?f.goto:'settings'); }
+function dismissOnboarding(){ localStorage.setItem('onboarding-dismissed','1'); var b=document.getElementById('onboarding-banner'); if(b) b.style.display='none'; }
+
+// ONBOARDING WIZARD JS (Phase 3)
+let _onboardingState = { step: 1, data: {} };
+const OB_DAYS = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
+
+function openOnboardingWizard() {
+  const overlay = document.getElementById('onboarding-wizard-overlay');
+  if (overlay) { overlay.style.display = 'flex'; resetOnboardingWizard(); }
+}
+
+function closeOnboardingWizard() {
+  const overlay = document.getElementById('onboarding-wizard-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function resetOnboardingWizard() {
+  _onboardingState = { step: 1, data: {} };
+  document.querySelectorAll('.ob-step').forEach(s => s.style.display = 'none');
+  document.getElementById('ob-step-1').style.display = 'block';
+  updateOnboardingUI();
+}
+
+function updateOnboardingUI() {
+  const step = _onboardingState.step;
+  document.getElementById('ob-progress-bar').style.width = (step * 20) + '%';
+  const titles = ['Profilo Base', 'Metriche Chiave', 'Obiettivi', 'Disponibilita', 'Connetti Intervals.icu'];
+  document.getElementById('ob-title').textContent = titles[step - 1];
+  document.getElementById('ob-subtitle').textContent = 'Passo ' + step + ' di 5';
+  document.querySelectorAll('.ob-step').forEach(s => s.style.display = 'none');
+  document.getElementById('ob-step-' + step).style.display = 'block';
+  document.getElementById('ob-prev').style.display = step > 1 ? 'inline-block' : 'none';
+  document.getElementById('ob-next').style.display = step < 5 ? 'inline-block' : 'none';
+  document.getElementById('ob-finish').style.display = step === 5 ? 'inline-block' : 'none';
+  if (step === 4) populateAvailabilityGrids();
+}
+
+function nextOnboardingStep() {
+  if (!validateOnboardingStep(_onboardingState.step)) return;
+  collectOnboardingStep(_onboardingState.step);
+  _onboardingState.step++;
+  updateOnboardingUI();
+}
+
+function prevOnboardingStep() {
+  collectOnboardingStep(_onboardingState.step);
+  _onboardingState.step--;
+  updateOnboardingUI();
+}
+
+function validateOnboardingStep(step) {
+  if (step === 1) {
+    const w = parseFloat(document.getElementById('ob-weight').value);
+    const h = parseFloat(document.getElementById('ob-height').value);
+    const a = parseFloat(document.getElementById('ob-age').value);
+    if (!w || !h || !a) { showToast('Completa tutti i campi del profilo base', 3000, 'warning'); return false; }
+  }
+  if (step === 2) {
+    const ftpUnknown = document.getElementById('ob-ftp-unknown').checked;
+    if (!ftpUnknown) {
+      const ftp = parseFloat(document.getElementById('ob-ftp').value);
+      if (!ftp) { showToast('Inserisci FTP o spunta Non lo so', 3000, 'warning'); return false; }
+    }
+    const lthr = parseFloat(document.getElementById('ob-lthr').value);
+    const maxhr = parseFloat(document.getElementById('ob-maxhr').value);
+    if (lthr && maxhr && lthr >= maxhr) { showToast('LTHR deve essere sotto FCmax', 3000, 'warning'); return false; }
+  }
+  if (step === 3) {
+    const goalType = document.getElementById('ob-goal-type').value;
+    if (goalType === 'event') {
+      const date = document.getElementById('ob-event-date').value;
+      const name = document.getElementById('ob-event-name').value;
+      if (!date || !name) { showToast('Compila data e nome evento', 3000, 'warning'); return false; }
+    }
+    const weeks = parseInt(document.getElementById('ob-plan-weeks').value);
+    if (!weeks || weeks < 4 || weeks > 52) { showToast('Settimane piano: 4-52', 3000, 'warning'); return false; }
+  }
+  if (step === 4) {
+    const hours = Array.from(document.querySelectorAll('.ob-hour-btn.selected')).map(b => parseFloat(b.dataset.hours));
+    if (hours.every(h => h === 0)) { showToast('Seleziona almeno un giorno con ore > 0', 3000, 'warning'); return false; }
+  }
+  return true;
+}
+
+function collectOnboardingStep(step) {
+  if (step === 1) {
+    _onboardingState.data.weight = parseFloat(document.getElementById('ob-weight').value);
+    _onboardingState.data.height_cm = parseFloat(document.getElementById('ob-height').value);
+    _onboardingState.data.age = parseFloat(document.getElementById('ob-age').value);
+    _onboardingState.data.sex = document.getElementById('ob-sex').value || null;
+  }
+  if (step === 2) {
+    const ftpUnknown = document.getElementById('ob-ftp-unknown').checked;
+    if (!ftpUnknown) _onboardingState.data.ftp = parseFloat(document.getElementById('ob-ftp').value);
+    else _onboardingState.data.ftp = null;
+    _onboardingState.data.lthr = parseFloat(document.getElementById('ob-lthr').value) || null;
+    _onboardingState.data.max_hr = parseFloat(document.getElementById('ob-maxhr').value) || null;
+    _onboardingState.data.ftp_unknown = ftpUnknown;
+  }
+  if (step === 3) {
+    _onboardingState.data.goal_type = document.getElementById('ob-goal-type').value;
+    if (_onboardingState.data.goal_type === 'event') {
+      _onboardingState.data.event_date = document.getElementById('ob-event-date').value;
+      _onboardingState.data.event_name = document.getElementById('ob-event-name').value;
+      _onboardingState.data.event_km = parseFloat(document.getElementById('ob-event-km').value) || 0;
+      _onboardingState.data.event_climb = parseFloat(document.getElementById('ob-event-climb').value) || 0;
+    }
+    _onboardingState.data.plan_weeks = parseInt(document.getElementById('ob-plan-weeks').value);
+  }
+  if (step === 4) {
+    const hours = {}; const rest = {};
+    OB_DAYS.forEach((d, i) => {
+      const hBtn = document.querySelector('.ob-hour-btn[data-day="' + i + '"].selected');
+      const rBtn = document.querySelector('.ob-rest-btn[data-day="' + i + '"].selected');
+      hours[d] = hBtn ? parseFloat(hBtn.dataset.hours) : 0;
+      rest[d] = !!rBtn;
+    });
+    _onboardingState.data.weekly_hours = hours;
+    _onboardingState.data.rest_days = rest;
+  }
+  if (step === 5) {
+    _onboardingState.data.import_recent = document.getElementById('ob-import-recent').checked;
+    _onboardingState.data.icu_connected = !!window._icuOAuthJustCompleted;
+  }
+}
+
+function populateAvailabilityGrids() {
+  const hoursGrid = document.getElementById('ob-hours-grid');
+  const restGrid = document.getElementById('ob-rest-grid');
+  if (!hoursGrid || !restGrid) return;
+  const existingHours = _onboardingState.data.weekly_hours || {};
+  const existingRest = _onboardingState.data.rest_days || {};
+  const defaults = [0, 1.5, 1, 1, 0, 3, 2];
+  hoursGrid.innerHTML = OB_DAYS.map((d, i) => {
+    const val = existingHours[d] !== undefined ? existingHours[d] : defaults[i];
+    const btns = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4].map(h =>
+      '<button class="ob-hour-btn' + (h === val ? ' selected' : '') + '" data-day="' + i + '" data-hours="' + h + '" onclick="selectHourBtn(this)">' + h + 'h</button>'
+    ).join('');
+    return '<div><div style="font-size:10px;color:var(--text3);text-align:center;margin-bottom:4px;">' + d + '</div><div style="display:flex;flex-direction:column;gap:2px;">' + btns + '</div></div>';
+  }).join('');
+  restGrid.innerHTML = OB_DAYS.map((d, i) => {
+    const isRest = existingRest[d] !== undefined ? existingRest[d] : (i === 0);
+    return '<button class="ob-rest-btn' + (i === 0 ? ' rest' : '') + (isRest ? ' selected' : '') + '" data-day="' + i + '" onclick="toggleRestBtn(this)">' + d + '</button>';
+  }).join('');
+}
+
+function selectHourBtn(btn) {
+  const day = btn.dataset.day;
+  document.querySelectorAll('.ob-hour-btn[data-day="' + day + '"]').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function toggleRestBtn(btn) {
+  const day = btn.dataset.day;
+  btn.classList.toggle('selected');
+  if (btn.classList.contains('selected')) {
+    document.querySelectorAll('.ob-hour-btn[data-day="' + day + '"].selected').forEach(b => b.classList.remove('selected'));
+  }
+}
+
+function onGoalTypeChange() {
+  const type = document.getElementById('ob-goal-type').value;
+  document.getElementById('ob-event-fields').style.display = type === 'event' ? 'block' : 'none';
+}
+
+function toggleFtpUnknown(cb) {
+  const ftpInput = document.getElementById('ob-ftp');
+  ftpInput.disabled = cb.checked;
+  ftpInput.style.opacity = cb.checked ? '0.5' : '1';
+  if (cb.checked) ftpInput.value = '';
+}
+
+function connectIcuFromWizard() {
+  closeOnboardingWizard();
+  window.location = '/oauth/icu/start';
+  sessionStorage.setItem('icuOAuthFromWizard', '1');
+}
+
+function checkIcuOAuthReturn() {
+  if (sessionStorage.getItem('icuOAuthFromWizard') === '1') {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('icu') === 'connected') {
+      window._icuOAuthJustCompleted = true;
+      showToast('intervals.icu connesso', 4000, 'success');
+      if (localStorage.getItem('onboardingWizardActive') === '1') {
+        setTimeout(() => openOnboardingWizard(), 500);
+        setTimeout(() => { _onboardingState.step = 5; updateOnboardingUI(); }, 600);
+      }
+    }
+    sessionStorage.removeItem('icuOAuthFromWizard');
+  }
+}
+
+async function finishOnboarding() {
+  if (!validateOnboardingStep(5)) return;
+  collectOnboardingStep(5);
+  const btn = document.getElementById('ob-finish');
+  btn.disabled = true;
+  btn.textContent = 'Salvataggio...';
+  try {
+    const res = await fetch('/api/onboarding/complete', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(_onboardingState.data)
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.detail || 'Errore salvataggio');
+    showToast('Setup completato! Generazione piano in corso...', 4000, 'success');
+    closeOnboardingWizard();
+    if (typeof generatePlan === 'function') setTimeout(() => generatePlan(), 500);
+    if (typeof loadHome === 'function') setTimeout(() => loadHome(), 1000);
+    localStorage.setItem('onboarding-dismissed', '1');
+    localStorage.removeItem('onboardingWizardActive');
+  } catch (e) {
+    showToast('Errore: ' + e.message, 5000, 'error');
+    btn.disabled = false;
+    btn.textContent = 'Completa setup';
+  }
+}
+
+// Patch onboardingGotoFirst to open the new wizard
+const _origOnboardingGotoFirst = onboardingGotoFirst;
+function onboardingGotoFirst() {
+  localStorage.setItem('onboardingWizardActive', '1');
+  openOnboardingWizard();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(checkIcuOAuthReturn, 200);
+});
+</script>
 <!-- Modal -->
 <div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
   <div class="modal" id="modal-body">
@@ -3690,7 +4609,12 @@ document.querySelectorAll('.tab[data-tab]').forEach(t => {
                        icuPushRefreshButton();
                      }, settings:()=>{loadSettings();loadIcuConnection();icuCalSyncRefresh();}, library:loadWorkouts,
                      analysis:()=>{ if (typeof loadAnalysisTab === 'function') loadAnalysisTab(); },
-                     dfa:()=>{ if (typeof loadDfaTab === 'function') loadDfaTab(); }};
+                      dfa:()=>{ if (typeof loadDfaTab === 'function') loadDfaTab(); },
+                      hrv:()=>{ if (typeof loadHrvTab === 'function') loadHrvTab(); },
+                      nutrition:()=>{ if (typeof loadNutriTab === 'function') loadNutriTab(); },
+                      bia:()=>{ if (typeof loadBIATab === 'function') loadBIATab(); },
+                      profile:()=>{ if (typeof loadProfileTab === 'function') loadProfileTab(); },
+                      whatsnew:()=>{ if (typeof loadWhatsNew === 'function') loadWhatsNew(); }};
     if (loaders[tab]) loaders[tab]();
   });
 });
@@ -20955,6 +21879,887 @@ document.addEventListener('DOMContentLoaded', function() {
   footer.innerHTML = '<a href="#" onclick="event.preventDefault();openDiagnosticsModal();" style="color:var(--text3);text-decoration:none;">Diagnostics</a>';
   container.appendChild(footer);
 });
+
+// =====================================================================
+// PCC JavaScript Functions — Extracted from PCC dashboard.html
+// All functions related to the 5 missing tabs + home additions
+// =====================================================================
+
+// ─────────────────────────────────────────────────────────────────────
+// HRV TAB FUNCTIONS (lines 24115-24234)
+// ─────────────────────────────────────────────────────────────────────
+let _hrvChart = null;
+
+async function loadHrvTab() {
+  try {
+    const res = await fetch('/api/huawei/hrv/summary');
+    const d = await res.json();
+    if (!d.ok || !d.has_data) {
+      document.getElementById('hrv-today-rmssd').textContent = '—';
+      document.getElementById('hrv-baseline').textContent = '—';
+      document.getElementById('hrv-quality').textContent = '—';
+      document.getElementById('hrv-metrics-body').innerHTML =
+        '<tr><td colspan="4" style="padding:8px;color:var(--text3);">'
+        + (d.message || 'Nessun dato HRV. Usa "Importa e calcola" con un export Huawei.') + '</td></tr>';
+      return;
+    }
+    const L = d.latest;
+    document.getElementById('hrv-today-rmssd').textContent =
+      (L.rmssd_ms != null ? L.rmssd_ms.toFixed(1) : '—') + ' ms';
+    document.getElementById('hrv-today-meta').textContent =
+      'SDNN ' + (L.sdnn_ms != null ? L.sdnn_ms.toFixed(1) : '—') + ' ms · ' + (L.date || '');
+    document.getElementById('hrv-source-badge').textContent =
+      (L.source || '') + ' · ' + (L.calculation_method || '');
+
+    const b7 = d.baselines['7d'], b30 = d.baselines['30d'];
+    document.getElementById('hrv-baseline').textContent =
+      (b7.mean_rmssd != null ? b7.mean_rmssd.toFixed(1) : '—') + ' / '
+      + (b30.mean_rmssd != null ? b30.mean_rmssd.toFixed(1) : '—') + ' ms';
+    const dev = d.deviation && d.deviation.vs_7d;
+    const devEl = document.getElementById('hrv-deviation');
+    if (dev && dev.deviation_pct != null) {
+      const up = dev.deviation_pct >= 0;
+      devEl.style.color = up ? 'var(--green)' : '#f97316';
+      devEl.textContent = (up ? '▲ +' : '▼ ') + dev.deviation_pct + '% vs 7g';
+    } else { devEl.textContent = ''; }
+
+    document.getElementById('hrv-quality').textContent =
+      (L.quality_category || '—') + ' (' + (L.quality_score != null ? L.quality_score.toFixed(2) : '—') + ')';
+    document.getElementById('hrv-detail').textContent =
+      'n=' + (L.sample_count != null ? L.sample_count : '—') + ' · '
+      + (L.duration_seconds != null ? Math.round(L.duration_seconds) : '—') + 's · '
+      + 'HR ' + (L.mean_hr != null ? L.mean_hr.toFixed(0) : '—');
+
+    renderHrvMetricsTable(L);
+    renderHrvChart(d.trend_7d);
+  } catch (e) {
+    console.error('loadHrvTab', e);
+  }
+}
+
+function renderHrvMetricsTable(L) {
+  const rows = [
+    ['RMSSD', L.rmssd_ms, 'ms', 'Sì'],
+    ['SDNN', L.sdnn_ms, 'ms', 'Sì'],
+    ['Mean HR', L.mean_hr, 'bpm', 'No'],
+    ['pNN50', L.pnn50_pct, '%', 'No'],
+    ['SDANN', L.sdann_ms, 'ms', 'No'],
+    ['HRV triangular', L.hrv_triangular_index, 'index', 'No'],
+    ['LF', L.lf_ms2, 'ms²', 'No'],
+    ['HF', L.hf_ms2, 'ms²', 'No'],
+    ['LF/HF', L.lf_hf_ratio, 'ratio', 'No'],
+  ];
+  const body = document.getElementById('hrv-metrics-body');
+  body.innerHTML = rows.map(r => {
+    const val = (r[1] == null) ? '<span style="color:var(--text3)">n/d</span>' : r[1];
+    const synced = r[3] === 'Sì'
+      ? '<span style="color:var(--green)">Sì</span>'
+      : '<span style="color:var(--text3)">locale</span>';
+    return '<tr><td style="padding:4px 8px;">' + r[0] + '</td>'
+      + '<td style="padding:4px 8px;font-weight:600;">' + val + '</td>'
+      + '<td style="padding:4px 8px;color:var(--text3);">' + r[2] + '</td>'
+      + '<td style="padding:4px 8px;">' + synced + '</td></tr>';
+  }).join('');
+}
+
+function renderHrvChart(trend) {
+  const canvas = document.getElementById('hrvChart');
+  if (!canvas || typeof Chart === 'undefined') return;
+  const labels = (trend || []).map(t => t.date);
+  const data = (trend || []).map(t => t.rolling_7d);
+  if (_hrvChart) _hrvChart.destroy();
+  _hrvChart = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: { labels, datasets: [{
+      label: 'RMSSD rolling 7g', data,
+      borderColor: 'rgba(220,38,38,0.9)', backgroundColor: 'rgba(220,38,38,0.12)',
+      fill: true, tension: 0.3, pointRadius: 2,
+    }]},
+    options: { responsive: true, maintainAspectRatio: false,
+      scales: { y: { title: { display: true, text: 'ms' } } },
+      plugins: { legend: { display: false } } }
+  });
+}
+
+async function hrvImport() {
+  const path = document.getElementById('hrv-import-path').value.trim();
+  const status = document.getElementById('hrv-import-status');
+  if (!path) { status.textContent = 'Inserisci il percorso dell\'export.'; return; }
+  status.textContent = 'Import in corso…';
+  try {
+    const res = await fetch('/api/huawei/import', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ path, source: 'huawei_health', sync_to_icu: false })
+    });
+    const d = await res.json();
+    if (d.ok) {
+      status.textContent = 'Import OK — RR=' + d.rr_count
+        + (d.daily_hrv ? ' · RMSSD=' + (d.daily_hrv.rmssd_ms||0).toFixed(1) + 'ms' : '');
+      loadHrvTab();
+    } else {
+      status.textContent = 'Errore: ' + (d.error || JSON.stringify(d));
+    }
+  } catch (e) { status.textContent = 'Errore: ' + e.message; }
+}
+
+function hrvExport() {
+  window.open('/api/huawei/hrv/export?format=csv', '_blank');
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// NUTRITION TAB FUNCTIONS (lines 9295-9750)
+// ─────────────────────────────────────────────────────────────────────
+
+// PCC 5.x — Metabolic decoder view (INSCYD-style). Backed by /api/metabolic-profile.
+async function loadMetabolicProfile() {
+  const host = document.getElementById('metabolic-profile');
+  const assum = document.getElementById('metabolic-assumptions');
+  if (!host) return;
+  try {
+    const res = await fetch('/api/metabolic-profile');
+    if (!res.ok) { host.textContent = 'Profilo metabolico non disponibile.'; return; }
+    const d = await res.json();
+    if (d.error) { host.textContent = 'Dati ancora insufficienti per la stima. Continua ad allenarti!'; return; }
+    const vo2 = d.vo2max_ml_kg_min, vla = d.vlamax_mmol_l_s, fat = d.fatmax_w;
+    if (vo2 == null && vla == null && fat == null) {
+      host.innerHTML = '<span style="color:var(--text3);">Nessun dato di potenza nel profilo — carica alcune attività (.fit) per stimare il profilo metabolico.</span>';
+      return;
+    }
+    host.innerHTML = `
+      <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px;">
+        <div><b style="font-size:18px;color:var(--accent);">${vo2 != null ? vo2 : '—'}</b> <span style="font-size:10px;color:var(--text3);">VO₂max ml/kg/min</span></div>
+        <div><b style="font-size:18px;color:var(--accent);">${vla != null ? vla : '—'}</b> <span style="font-size:10px;color:var(--text3);">VLamax mmol/L/s</span></div>
+        <div><b style="font-size:18px;color:var(--accent);">${fat != null ? fat + ' W' : '—'}</b> <span style="font-size:10px;color:var(--text3);">FatMax (~${d.fatmax_pct_ftp || 58}% FTP)</span></div>
+      </div>
+      <div style="font-size:11px;color:var(--text2);">
+        CP <b>${d.cp_w ?? '—'}</b> W · W′ <b>${(d.w_prime_j != null) ? Math.round(d.w_prime_j/1000) + ' kJ' : '—'}</b> · FTP <b>${d.ftp_w ?? '—'}</b> W
+        ${d.n_rides != null ? '· ' + d.n_rides + ' attività (90g)' : ''}
+      </div>`;
+    if (assum && Array.isArray(d.assumptions)) {
+      assum.innerHTML = '⚠️ ' + d.assumptions.slice(0, 2).map(a => esc(a)).join(' · ');
+    }
+  } catch (e) { host.textContent = 'Errore profilo metabolico.'; }
+}
+
+// PCC 5.x — CPET / INSCYD lab-test import (context anchor for metabolic_decoder).
+async function importCpep() {
+  const inp = document.getElementById('cpep-file');
+  const st = document.getElementById('cpep-status');
+  if (!inp || !inp.files || !inp.files.length) { if (st) st.textContent = 'Scegli un PDF.'; return; }
+  const fd = new FormData();
+  fd.append('file', inp.files[0]);
+  const buf = await inp.files[0].arrayBuffer();
+  try {
+    const res = await fetch('/api/cpep-import', { method: 'POST', body: buf });
+    const d = await res.json();
+    if (!res.ok) { if (st) st.textContent = 'Errore: ' + (d.error || res.status); return; }
+    if (st) st.textContent = 'Importato: ' + (d.found || []).length + ' valori estratti.';
+    loadCpepLatest();
+  } catch (e) { if (st) st.textContent = 'Errore import.'; }
+}
+
+async function loadCpepLatest() {
+  const host = document.getElementById('cpep-latest');
+  if (!host) return;
+  try {
+    const res = await fetch('/api/cpep-latest');
+    if (!res.ok) { host.textContent = ''; return; }
+    const d = await res.json();
+    const found = d.found || [];
+    if (!found.length) { host.innerHTML = '<span style="color:var(--text3);">Nessun test lab importato. Il profilo metabolico usa stime da power-duration.</span>'; return; }
+    const label = {
+      vo2max_ml_kg_min: 'VO₂max', hr_max: 'HRmax', vt1_power_w: 'VT1',
+      vt2_power_w: 'VT2', lactate_max_mmol: 'Lattato max', vlamax_mmol_l_s: 'VLamax',
+      fatmax_w: 'FatMax', cp_w: 'CP',
+    };
+    const rows = found.map(k => `<span style="margin-right:10px;"><b>${label[k] || k}</b>: ${d[k]}</span>`).join('');
+    host.innerHTML = `<div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Contesto da test lab (gold-standard):</div>${rows}`;
+  } catch (e) { host.textContent = ''; }
+}
+
+function onNutriSourceChange() {
+  const src = ($('nutri-source-tab') || {}).value || 'app';
+  const showGoal = (src === 'app' || src === 'macro' || src === 'micro' || src === 'extra');
+  const gw = document.getElementById('nutri-goal-wrap');
+  const calw = document.getElementById('nutri-cal-wrap');
+  if ($('nutri-goal-tab')) $('nutri-goal-tab').style.display = showGoal ? '' : 'none';
+  if ($('nutri-cal-tab')) $('nutri-cal-tab').style.display = showGoal ? '' : 'none';
+  loadNutriPlan();
+}
+
+async function loadNutriPlan() {
+  const host = document.getElementById('nutri-plan');
+  if (!host) return;
+  const src = ($('nutri-source-tab') || {}).value || 'app';
+  if (src === 'none') { host.innerHTML = '<i>Nessun piano alimentare (gestisci da solo).</i>'; return; }
+  if (src === 'nutritionist') {
+    if (window.__nutriPdf) { renderNutriPdf(host, window.__nutriPdf); }
+    else { host.innerHTML = '<i>Importa il PDF del nutrizionista (bottone ⤓).</i>'; }
+    return;
+  }
+  try {
+    const goal = ($('nutri-goal-tab') || {}).value || 'maintain';
+    const cal = ($('nutri-cal-tab') || {}).value ? parseFloat($('nutri-cal-tab').value) : 0;
+    const url = `/api/diet-weekly?goal_type=${encodeURIComponent(goal)}` + (cal ? `&custom_calories=${cal}` : '');
+    const res = await fetch(url);
+    if (!res.ok) return;
+    const j = await res.json();
+    if (src === 'macro' || src === 'micro' || src === 'extra') {
+      let html = `<div style="font-size:10px;color:var(--text3);margin-bottom:6px;">${src==='extra'?'Solo carboidrati extra da sforzo (aggiungi ai pasti)':'Macro '+(src==='micro'?'+ micro':'giornalieri')} · ${j.bodyweight_kg} kg</div>`;
+      for (const d of (j.days||[])) {
+        const extra = (src==='extra') ? ` +${Math.round(d.total_carb*0.15)}g carb` : '';
+        html += `<div style="font-size:10px;padding:2px 0;border-bottom:1px solid var(--border);"><b>${esc(d.day)}</b> <span style="color:var(--text3);">${esc(d.day_type)}</span> <span style="color:var(--accent);">${d.total_kcal} kcal</span> · C ${d.total_carb}g P ${d.total_protein}g F ${d.total_fat}g${extra}</div>`;
+      }
+      host.innerHTML = html; return;
+    }
+    let html = `<div style="font-size:10px;color:var(--text3);margin-bottom:6px;">${esc(j.calorie_source)} · ${j.bodyweight_kg} kg</div>`;
+    for (const d of (j.days||[])) {
+      html += `<div style="background:var(--surface2);border-radius:6px;padding:6px 8px;margin-bottom:6px;"><div style="font-weight:600;">${esc(d.day)} <span style="color:var(--text3);font-size:10px;">· ${esc(d.day_type)}</span> <span style="color:var(--accent);font-size:10px;">${d.total_kcal} kcal</span></div>`;
+      for (const m of (d.meals||[])) {
+        const grams = Object.entries(m.food_grams||{}).map(([k,v])=>`${esc(k)} ${v}g`).join(', ');
+        html += `<div style="margin:3px 0;font-size:10px;"><span style="font-weight:600;">${esc(m.name)}</span> <span style="color:var(--text3);">${esc(m.timing)}</span><div style="color:var(--text2);">${esc((m.foods||[]).join(', '))}${grams?' — <b>'+grams+'</b>':''}</div><div style="color:var(--text3);">C ${Math.round(m.carb_g)}g · P ${Math.round(m.protein_g)}g · F ${Math.round(m.fat_g)}g</div></div>`;
+        if (m.note) html += `<div style="color:var(--text3);font-style:italic;">${esc(m.note)}</div>`;
+      }
+      if (d.avoid && d.avoid.length) html += `<div style="font-size:10px;color:var(--red);margin-top:2px;">❌ Evita: ${esc(d.avoid.join(', '))}</div>`;
+      html += `</div>`;
+    }
+    host.innerHTML = html;
+  } catch (e) { host.textContent = 'Piano non disponibile'; }
+}
+
+async function importNutriPDF() {
+  const inp = document.getElementById('nutri-pdf-tab');
+  if (!inp || !inp.files || !inp.files[0]) return;
+  const meta = document.getElementById('nutri-pdf-meta');
+  meta.textContent = 'Estrazione…';
+  try {
+    const fd = new FormData();
+    fd.append('file', inp.files[0]);
+    const res = await fetch('/api/diet-pdf-import', { method: 'POST', body: fd });
+    if (!res.ok) { meta.textContent = 'PDF non leggibile'; return; }
+    const j = await res.json();
+    window.__nutriPdf = j;
+    if ($('nutri-source-tab')) $('nutri-source-tab').value = 'nutritionist';
+    meta.textContent = `${j.day_count} giorni · ${j.pages} pagine` + (j.unknown_foods && j.unknown_foods.length ? ` · ⚠ ${j.unknown_foods.length} alimenti sconosciuti` : '');
+    loadNutriPlan();
+    renderNutriCompare();
+  } catch (e) { meta.textContent = 'Errore'; }
+}
+
+function renderNutriPdf(host, j) {
+  let html = `<div style="font-size:10px;color:var(--text3);margin-bottom:6px;">Dieta nutrizionista · ${j.day_count} giorni · clicca un'alternativa per selezionarla</div>`;
+  for (const d of (j.summary||[])) {
+    html += `<div style="background:var(--surface2);border-radius:6px;padding:6px 8px;margin-bottom:6px;"><div style="font-weight:600;">${esc(d.day)} <span style="color:var(--accent);font-size:10px;">${d.kcal} kcal</span> · C${d.carb_g}g P${d.protein_g}g G${d.fat_g}g</div>`;
+    for (const m of (d.meals||[])) {
+      html += `<div style="margin:3px 0;font-size:10px;"><b>${esc(m.name)}</b></div>`;
+      for (const it of (m.items||[])) {
+        const sel = it.is_alt ? 'color:var(--text3);cursor:pointer;' : 'font-weight:600;';
+        const tag = it.is_alt ? ' ○' : '';
+        html += `<div style="${sel}" onclick="toggleAlt(this)">${esc(it.name)} ${it.grams}g${tag} <span style="color:var(--text3);">${it.kcal} kcal</span></div>`;
+      }
+    }
+    html += `</div>`;
+  }
+  host.innerHTML = html;
+}
+
+function toggleAlt(el) { el.style.textDecoration = el.style.textDecoration ? '' : 'line-through'; }
+
+async function renderNutriCompare() {
+  const box = document.getElementById('nutri-compare');
+  if (!box) return;
+  const goal = ($('nutri-goal-tab') || {}).value || 'maintain';
+  try {
+    const [pcc, full] = await Promise.all([
+      fetch(`/api/nutrition-full?goal_type=${goal}`).then(r=>r.json()),
+      fetch(`/api/diet-weekly?goal_type=${goal}`).then(r=>r.json()),
+    ]);
+    const pccK = pcc.target_kcal, dietK = (window.__nutriPdf && window.__nutriPdf.summary) ? Math.round(window.__nutriPdf.summary.reduce((a,b)=>a+b.kcal,0)/window.__nutriPdf.summary.length) : 0;
+    box.innerHTML = `
+      <div class="card"><h3>Target PCC</h3>
+        <div style="font-size:12px;">🔥 <b>${pccK}</b> kcal · C ${pcc.macros.carb_g}g · P ${pcc.macros.protein_g}g · G ${pcc.macros.fat_g}g</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:4px;">Carico richiesto (GSSI SSE 231): range carb ${pcc.load_compensation.carb_g_per_kg_range[0]}-${pcc.load_compensation.carb_g_per_kg_range[1]} g/kg</div>
+      </div>
+      <div class="card"><h3>Dieta nutrizionista</h3>
+        <div style="font-size:12px;">🔥 <b>${dietK}</b> kcal/giorno (media)</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:4px;">Confronta con il target: ${dietK>pccK?'+':''}${dietK-pccK} kcal/giorno</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:4px;">Integrazione Gruppo A (Jeukendrup/UCI 2026) sempre applicabile sopra i pasti.</div>
+      </div>`;
+    const sup = document.getElementById('nutri-supplements');
+    if (sup) {
+      const s = (pcc.supplements||[]).map(x=>`<div style="display:flex;justify-content:space-between;font-size:10px;padding:2px 0;border-bottom:1px solid var(--border);"><span>${esc(x.name)} <b style="color:var(--green);">${esc(x.evidence)}</b></span><span style="color:var(--accent);font-weight:700;">${esc(x.dose||'')}</span></div>`).join('');
+      sup.innerHTML = `<div style="font-size:10px;color:var(--text3);">Dosi su ${pcc.bodyweight_kg} kg</div>` + (s||'<i>nessuno</i>');
+    }
+  } catch (e) { box.innerHTML = ''; }
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// BIA TAB FUNCTIONS (lines 9753-9901)
+// ─────────────────────────────────────────────────────────────────────
+
+async function importBIA() {
+  const inp = document.getElementById('bia-pdf');
+  const msg = document.getElementById('bia-import-msg');
+  if (!inp || !inp.files || !inp.files[0]) return;
+  msg.textContent = 'Estrazione PDF…';
+  msg.style.color = 'var(--red)';
+  try {
+    const fd = new FormData();
+    fd.append('file', inp.files[0]);
+    const res = await fetch('/api/bia-import', { method: 'POST', body: fd });
+    const j = await res.json();
+    if (!res.ok) { msg.textContent = 'Errore: ' + (j.error || 'PDF non leggibile'); return; }
+    if (j.scanned) {
+      msg.style.color = 'var(--text2)';
+      msg.textContent = (j.note || 'PDF scansionato: testo non estraibile automaticamente. Controlla l\'immagine qui sotto e inserisci i valori nel form (oppure incolla il testo).');
+      showBIAscan(j);
+      return;
+    }
+    if (j.unreliable) {
+      msg.style.color = 'var(--red)';
+      msg.textContent = (j.note || 'Valori non affidabili (fuori range fisiologico). Inserisci manualmente o incolla il testo del report.') +
+        (j.rejected_fields && j.rejected_fields.length ? ' Scartati: ' + j.rejected_fields.join(', ') + '.' : '');
+      prefillBIAform(j.reading);
+      loadBIAHistory();
+      return;
+    }
+    msg.style.color = 'var(--green)';
+    msg.textContent = `Importati ${j.found_fields.length} campi (${j.reading.date}). Ora puoi fare Sync ICU.`;
+    prefillBIAform(j.reading);
+    loadBIAHistory();
+  } catch (e) { msg.textContent = 'Errore import'; }
+}
+
+function showBIAscan(j) {
+  let host = document.getElementById('bia-scan');
+  if (!host) {
+    host = document.createElement('div');
+    host.id = 'bia-scan';
+    host.style.cssText = 'margin-top:8px;border-top:1px solid var(--border);padding-top:8px;';
+    const after = document.getElementById('bia-import-msg');
+    after.parentNode.insertBefore(host, after.nextSibling);
+  }
+  const pages = (j.pages || []).map((src,i) =>
+    `<img src="${src}" style="max-width:100%;border:1px solid var(--border);border-radius:6px;margin:4px 0;display:block;cursor:zoom-in;" onclick="window.open(this.src)" title="Clicca per ingrandire">`
+  ).join('');
+  host.innerHTML = `
+    <div style="font-size:11px;color:var(--text2);margin-bottom:6px;">
+      <b>PDF scansionato — leggi i valori e inseriscili nel form qui sotto:</b>
+    </div>
+    ${pages}
+    <div style="margin-top:6px;">
+      <label class="btn" style="font-size:11px;padding:3px 10px;cursor:pointer;">
+        📋 Incolla testo PDF (OCR esterno / copia valori)
+        <textarea id="bia-paste" placeholder="Incolla qui il testo del report (es. Peso 71.4 kg, BMI 25.3, Massa grassa 14.6 kg…)" style="display:block;width:100%;height:60px;margin-top:4px;font-size:11px;"></textarea>
+      </label>
+      <button class="btn" style="font-size:11px;padding:4px 12px;margin-top:6px;background:var(--accent);color:#fff;" onclick="parseBIApaste()">Estrai valori dal testo</button>
+    </div>`;
+}
+
+async function parseBIApaste() {
+  const ta = document.getElementById('bia-paste');
+  const msg = document.getElementById('bia-import-msg');
+  if (!ta || !ta.value.trim()) { msg.textContent = 'Incolla prima il testo.'; return; }
+  msg.textContent = 'Estrazione…';
+  try {
+    const res = await fetch('/api/bia-import', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ raw_text: ta.value })
+    });
+    const j = await res.json();
+    if (!res.ok || !j.ok) { msg.textContent = 'Errore: ' + (j.error||'testo non leggibile'); return; }
+    msg.style.color = 'var(--green)';
+    msg.textContent = `Estratti ${j.found_fields.length} campi. Conferma con "Salva misurazione".`;
+    prefillBIAform(j.reading);
+    loadBIAHistory();
+  } catch (e) { msg.textContent = 'Errore parsing'; }
+}
+
+function prefillBIAform(r) {
+  if (!r) return;
+  const set = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.value = v; };
+  set('bia-date', r.date);
+  set('bia-weight', r.weight_kg);
+  set('bia-height', r.height_cm);
+  set('bia-fat', r.fat_mass_kg);
+  set('bia-ffm', r.fat_free_mass_kg);
+  set('bia-tbw', r.tbw_l);
+  set('bia-smm', r.smm_kg);
+  set('bia-bcm', r.bcm_kg);
+  set('bia-pha', r.phase_angle);
+  set('bia-bmi', r.bmi);
+}
+
+async function saveBIAmanual() {
+  const g = id => (document.getElementById(id).value || '');
+  const data = { date: g('bia-date') || new Date().toISOString().slice(0,10) };
+  const map = { 'bia-weight':'weight_kg','bia-height':'height_cm','bia-fat':'fat_mass_kg',
+    'bia-ffm':'fat_free_mass_kg','bia-tbw':'tbw_l','bia-smm':'smm_kg','bia-bcm':'bcm_kg',
+    'bia-pha':'phase_angle','bia-bmi':'bmi' };
+  for (const [el,key] of Object.entries(map)) {
+    const v = parseFloat(g(el));
+    if (!isNaN(v)) data[key] = v;
+  }
+  const msg = document.getElementById('bia-import-msg');
+  try {
+    const res = await fetch('/api/bia-import', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
+    const j = await res.json();
+    if (!res.ok) { msg.textContent = 'Errore: ' + (j.error||''); return; }
+    msg.style.color = 'var(--green)';
+    msg.textContent = `Salvato (${j.history_count} misurazioni). Ora puoi fare Sync ICU.`;
+    loadBIAHistory();
+  } catch (e) { msg.textContent = 'Errore salvataggio'; }
+}
+
+async function loadBIAHistory() {
+  const host = document.getElementById('bia-history');
+  if (!host) return;
+  try {
+    const res = await fetch('/api/bia-history');
+    const j = await res.json();
+    if (!j.history.length) { host.innerHTML = '<i>Nessuna misurazione. Importa un PDF BIA o inserisci i valori.</i>'; return; }
+    let html = '';
+    for (const h of j.history) {
+      const f = [];
+      if (h.weight_kg) f.push(`<b>${h.weight_kg} kg</b>`);
+      if (h.fat_mass_pct!=null) f.push(`grassa ${h.fat_mass_pct}%`);
+      if (h.fat_mass_kg) f.push(`(${h.fat_mass_kg} kg)`);
+      if (h.smm_kg) f.push(`SMM ${h.smm_kg} kg`);
+      if (h.bmi) f.push(`BMI ${h.bmi}`);
+      if (h.phase_angle!=null) f.push(`PhA ${h.phase_angle}°`);
+      html += `<div style="padding:3px 0;border-bottom:1px solid var(--border);"><b>${h.date}</b> — ${f.join(' · ') || 'dati grezzi'}</div>`;
+    }
+    host.innerHTML = html;
+  } catch (e) { host.textContent = 'Storico non disponibile'; }
+}
+
+async function syncBIAicu() {
+  const msg = document.getElementById('bia-sync-msg');
+  msg.textContent = 'Sync in corso…';
+  try {
+    const res = await fetch('/api/bia-sync-icu', { method:'POST', headers:{'Content-Type':'application/json'}, body: '{}' });
+    const j = await res.json();
+    if (!j.ok) { msg.textContent = '⚠ ' + (j.error||'errore'); msg.style.color='var(--red)'; return; }
+    msg.style.color = 'var(--green)';
+    msg.textContent = `⇧ ${j.synced} misurazione/i sincronizzata/e su Intervals.icu`;
+  } catch (e) { msg.textContent = 'Errore sync'; }
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// PROFILE TAB FUNCTIONS (lines 5322-5435)
+// ─────────────────────────────────────────────────────────────────────
+let _profileChart = null;
+async function loadProfileTab() {
+  try {
+    const res = await fetch('/api/metabolic-profile?window_days=90');
+    if (!res.ok) return;
+    const d = await res.json();
+    const c = d.classification || {};
+    document.getElementById('profile-type-badge').textContent = c.type || '\u2014';
+    document.getElementById('profile-focus').textContent = c.focus || 'Completa il test.';
+    const set = (id, val, unit) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val != null ? val + (unit || '') : '\u2014';
+    };
+    set('p-vo2max', d.vo2max_ml_kg_min != null ? Math.round(d.vo2max_ml_kg_min) : null, ' ml/kg/min');
+    set('p-vlamax', d.vlamax_mmol_l_s != null ? d.vlamax_mmol_l_s.toFixed(2) : null, ' mmol/l/s');
+    set('p-fatmax', d.fatmax_w != null ? Math.round(d.fatmax_w) : null, ' W');
+    set('p-wkg', c.wkg != null ? c.wkg.toFixed(2) : null, ' W/kg');
+    set('p-ftp', d.ftp_w || null, ' W');
+    set('p-ctl', d.ctl_snapshot && d.ctl_snapshot.current_ctl != null ? Math.round(d.ctl_snapshot.current_ctl) : null);
+    
+    const icons = {"scalatore":"\u26F0","sprinter":"\u26A1","cronoman":"\u23F1","all.ounder":"\u267B","elite":"\u2606","avanzato":"\u2605","intermedio":"\u2696"};
+    let icon = "\u2699";
+    for(const[k,v] of Object.entries(icons)){if((c.type||'').toLowerCase().includes(k)){icon=v;break;}}
+    const bi = document.getElementById('metab-badge-icon');
+    if(bi)bi.textContent=icon;
+    const bt = document.getElementById('metab-badge-title');
+    if(bt)bt.textContent=c.type||'\u2014';
+    const bs = document.getElementById('metab-badge-sub');
+    if(bs)bs.textContent=c.focus||'';
+    const sa = Object.values(c.score||{});
+    const avg = sa.length?Math.round(sa.reduce(function(a,b){return a+b},0)/sa.length):0;
+    const bar = document.getElementById('metab-badge-bar');
+    const pct = document.getElementById('metab-badge-pct');
+    if(bar){bar.style.width=avg+'%';}
+    if(pct)pct.textContent=avg>0?avg+'% complessivo':'Completa il test';
+    const canvas = document.getElementById('profile-radar');
+    if (!canvas || typeof Chart === 'undefined') return;
+    if (window._proRadar) { try { window._proRadar.destroy(); } catch(_) {} }
+    const score = c.score || {};
+    const type = (c.type || '').toLowerCase();
+    const idealProfiles = {
+      scalatore:{vo2max:85,vlamax:50,fatmax:80,wkg:85,ctl:75},
+      sprinter:{vo2max:50,vlamax:85,fatmax:30,wkg:75,ctl:60},
+      cronoman:{vo2max:80,vlamax:45,fatmax:70,wkg:80,ctl:80},
+    };
+    let ideal = null;
+    for (const [k,v] of Object.entries(idealProfiles)) { if (type.includes(k)) { ideal=v; break; } }
+    window._proRadar = new Chart(canvas, {
+      type: 'radar',
+      data: {
+        labels: ['VO\u2082max','VLamax','FatMax','W/kg','CTL'],
+        datasets: [{
+          label: 'Tu',
+          data: [score.vo2max||0, score.vlamax||0, score.fatmax||0, score.wkg||0, score.ctl||0],
+          backgroundColor: 'rgba(59,130,246,0.25)',
+          borderColor: '#3b82f6', borderWidth: 2, pointBackgroundColor: '#3b82f6', pointRadius: 4,
+        }]
+      },
+      options: {
+        responsive: false,
+        plugins: { legend: { display: true, position: 'bottom', labels: { color: 'var(--text2)', font: {size:10}, boxWidth:12, padding:8 } } },
+        scales: { r: { min:0, max:100, ticks: {stepSize:20, color:'var(--text3)', backdropColor:'transparent'}, pointLabels: {color:'var(--text)', font:{size:11}}, grid: {color:'rgba(255,255,255,0.08)'}, angleLines: {color:'rgba(255,255,255,0.08)'} } },
+        animation: { duration: 1200, easing: 'easeOutQuart' },
+      }
+    });
+    setTimeout(() => {
+      if (!ideal || !window._proRadar) return;
+      window._proRadar.data.datasets.push({
+        label: 'Ideale ('+(c.type||'')+')',
+        data: [ideal.vo2max, ideal.vlamax, ideal.fatmax, ideal.wkg, ideal.ctl],
+        backgroundColor: 'rgba(251,191,36,0.1)', borderColor: '#fbbf24', borderWidth: 1, borderDash: [5,5],
+        pointBackgroundColor: '#fbbf24', pointRadius: 3,
+      });
+      window._proRadar.update();
+    }, 1500);
+    _loadProfileProgress(); try{loadRecommendations();}catch(_){}
+  } catch(e) {}
+}
+let _proProgChart = null;
+async function _loadProfileProgress() {
+  const container = document.getElementById('profile-history');
+  if (!container) return;
+  try {
+    const wr = await fetch('/api/wellness?days=365');
+    if (!wr.ok) return;
+    const w = await wr.json();
+    const labels=[], ctlData=[], tsbData=[];
+    if (w.weekly_ctl && Array.isArray(w.weekly_ctl)) {
+      for (const wk of w.weekly_ctl.slice(-52)) {
+        labels.push(wk.week_label||''); ctlData.push(wk.ctl!=null?Math.round(wk.ctl):null); tsbData.push(wk.tsb!=null?Math.round(wk.tsb):null);
+      }
+    }
+    if (labels.length < 3) { container.innerHTML = '<div style="font-size:12px;color:var(--text3);">Ancora pochi dati. Continua ad allenarti! 💪</div>'; return; }
+    container.innerHTML = '<canvas id="pro-progress-canvas" width="600" height="180"></canvas>';
+    const cv = document.getElementById('pro-progress-canvas');
+    if (!cv || typeof Chart === 'undefined') return;
+    if (_proProgChart) { try { _proProgChart.destroy(); } catch(_) {} }
+    _proProgChart = new Chart(cv, {
+      type: 'line',
+      data: {
+        labels, datasets: [
+          {label: 'CTL', data: ctlData, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.3, pointRadius: 2},
+          {label: 'TSB', data: tsbData, borderColor: '#10b981', borderDash: [4,4], tension: 0.3, pointRadius: 0},
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: true, position: 'top', labels: {color:'var(--text2)', font:{size:10}, boxWidth:12} } },
+        scales: { x: { ticks: {color:'var(--text3)', font:{size:9}, maxTicksLimit:8}, grid:{display:false} },
+                 y: { ticks: {color:'var(--text3)', font:{size:9}}, grid:{color:'rgba(255,255,255,0.05)'} } },
+        animation: { duration: 800 },
+      }
+    });
+  } catch(e) { container.innerHTML = '<div style="font-size:12px;color:var(--text3);">Errore.</div>'; }
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// WHATS NEW FUNCTIONS (lines 5297-5317)
+// ─────────────────────────────────────────────────────────────────────
+var WHATSNEW_ITEMS=[
+ ['#1','Semaforo fatica','Segnale di fatica composito nel readiness.','home'],
+ ['#2','FTP continuo','Stima FTP ad ogni uscita.','analysis'],
+ ['#3','Decoder metabolico','VO2max / VLamax / FatMax da power-duration + peso.','analysis'],
+ ['#4','Modelli CP multipli','Monod 2-param + Morton 3-param + Progression Levels.','analysis'],
+ ['#5','Classificazione & RPE','Tipo sessione da IF + RPE atleta + replan.','home'],
+ ['#6','Import lab test','Parser CPET / INSCYD da PDF.','settings'],
+ ['#7','Grafici personalizzati','Metriche derivate da formula sicura.','analysis'],
+ ['#8','Asimmetrie pedalata','L-R / torque effectiveness / pedal smoothness.','analysis'],
+ ['A','Field-test FTP','Stima FTP da 20min / ramp / 4x8min / 4x4min.','analysis'],
+ ['B','Export bundle','ZIP portabile: profilo + metriche + backup.','settings'],
+ ['C','Calendario .ics','Feed webcal per Google / Outlook / Apple.','plan'],
+ ['D','Infortunio -> auto-riposo','Blocco infortunio/malattia che rimodula il piano.','plan']
+];
+function loadWhatsNew(){
+  var grid=document.getElementById('whatsnew-grid'); if(!grid) return;
+  try{ fetch('/api/version').then(function(r){return r.json();}).then(function(v){ var h=document.querySelector('#sec-whatsnew h2'); if(h && v && v.version){ h.textContent='Novita di PCC '+v.version; } }).catch(function(){}); }catch(_){ }
+  grid.innerHTML=WHATSNEW_ITEMS.map(function(it){
+    return '<div onclick="gotoTab(\''+it[3]+'\')" style="border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;background:var(--surface2);"><div style="display:flex;align-items:center;gap:8px;"><span style="font-weight:800;color:var(--accent);font-size:13px;">'+it[0]+'</span><span style="font-weight:700;font-size:14px;">'+esc(it[1])+'</span></div><div style="font-size:12px;color:var(--text2);margin-top:6px;line-height:1.45;">'+esc(it[2])+'</div></div>';
+  }).join('');
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// HOME ADDITIONS: TID HEATMAP (lines 9221-9255)
+// ─────────────────────────────────────────────────────────────────────
+async function loadTidHeatmap() {
+  if (window._tidLoading) return;
+  window._tidLoading = true;
+  const host = document.getElementById('tid-heatmap');
+  if (!host) { window._tidLoading = false; return; }
+  try {
+    const res = await fetch('/api/tid-weekly?weeks=8');
+    if (!res.ok) return;
+    const j = await res.json();
+    const weeks = (j.weeks || []).slice().reverse();
+    if (!weeks.length) {
+      host.innerHTML = '<div style="font-size:12px;color:var(--text3);">Nessun dato di allenamento ancora importato.</div>';
+      return;
+    }
+    host.innerHTML = weeks.map(w => {
+      const z1 = w.z1z2_pct || 0, z3 = w.z3_pct || 0, z4 = w.z4plus_pct || 0;
+      const tot = (z1 + z3 + z4) || 1;
+      const p1 = (z1 / tot * 100), p3 = (z3 / tot * 100), p4 = (z4 / tot * 100);
+      return `<div style="display:flex;align-items:center;gap:8px;font-size:11px;">
+        <div style="width:64px;color:var(--text3);white-space:nowrap;">${w.week_start.slice(5)}</div>
+        <div style="flex:1;height:16px;border-radius:4px;overflow:hidden;display:flex;background:var(--border);">
+          <div style="width:${p1}%;background:#22c55e;" title="Z1-Z2 ${z1}%"></div>
+          <div style="width:${p3}%;background:#eab308;" title="Z3 ${z3}%"></div>
+          <div style="width:${p4}%;background:#ef4444;" title="Z4+ ${z4}%"></div>
+        </div>
+        <div style="width:42px;text-align:right;color:var(--text3);">${Math.round(z4)}%</div>
+      </div>`;
+    }).join('');
+  } catch (e) { /* non bloccare il resto della UI */ }
+  finally { window._tidLoading = false; }
+  loadDailyAdapt();
+  loadNutrition();
+  loadMyCalendar();
+  loadDiet();
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// HOME ADDITIONS: DAILY ADAPTATION (lines 10057-10079)
+// ─────────────────────────────────────────────────────────────────────
+async function loadDailyAdapt() {
+  const host = document.getElementById('daily-adapt');
+  if (!host) return;
+  try {
+    const res = await fetch('/api/daily-adapt');
+    if (!res.ok) return;
+    const j = await res.json();
+    const a = j.adjustment || {};
+    const f = a.factor != null ? a.factor : 1.0;
+    const col = f <= 0.90 ? 'var(--red)' : f >= 1.05 ? 'var(--green)' : 'var(--text2)';
+    const sig = (a.signals || []).length ? ' (' + a.signals.join(', ') + ')' : '';
+    const tip = f < 0.95 ? 'Riduci intensità / volume oggi' :
+                f > 1.05 ? 'Hai margine per spingere oggi' :
+                'Stato stabile — prosegui con il piano';
+    host.innerHTML = `<div style="display:flex;align-items:baseline;gap:10px;">
+        <span style="font-size:20px;font-weight:800;color:${col};">×${f}</span>
+        <span>${esc(a.recommendation || tip)}${sig ? '<span style="color:var(--text3);"> — ' + esc(sig) + '</span>' : ''}</span>
+      </div>
+      <div style="font-size:10px;color:var(--text3);margin-top:4px;">HRV ${j.hrv_ms != null ? j.hrv_ms + ' ms' : '—'} · DFA α1 ${j.dfa_alpha1 != null ? j.dfa_alpha1 : '—'} · Sonno ${j.sleep_score != null ? j.sleep_score : '—'} · TSB ${j.tsb != null ? j.tsb : '—'} · Hooper ${j.hooper != null ? j.hooper : '—'}</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px;">💡 ${esc(tip)}</div>`;
+  } catch (e) { /* non bloccare il resto */ }
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// HOME ADDITIONS: STRENGTH & MOBILITY (lines 10003-10056)
+// ─────────────────────────────────────────────────────────────────────
+async function loadStrength() {
+  const phase = (document.getElementById('strength-phase') || {}).value || 'base';
+  const wantStrength = document.getElementById('card-strength')?.checked !== false;
+  const wantMobility = document.getElementById('card-mobility')?.checked !== false;
+  const sumEl = document.getElementById('strength-summary');
+  const weeksEl = document.getElementById('strength-weeks');
+  const mobEl = document.getElementById('mobility-routine');
+  if (!sumEl || !weeksEl) return;
+  try {
+    let oneRm = 0;
+    try { const p = await (await fetch('/api/profile')).json(); oneRm = (p.profile && p.profile.one_rm_kg) || 0; } catch (_) {}
+    const promises = [];
+    if (wantStrength) {
+      promises.push(fetch(`/api/strength-plan?phase=${phase}&weeks=4${oneRm ? '&one_rm_kg=' + oneRm : ''}`).then(r => r.ok ? r.json() : null));
+    } else {
+      promises.push(Promise.resolve(null));
+    }
+    if (wantMobility) {
+      promises.push(fetch('/api/mobility-plan?days=7').then(r => r.ok ? r.json() : null));
+    } else {
+      promises.push(Promise.resolve(null));
+    }
+    const [sp, mp] = await Promise.all(promises);
+    if (sp && sp.summary) {
+      const s = sp.summary;
+      sumEl.innerHTML = `<b>${esc(s.phase)}</b>: ${s.sessions_per_week}×/sett, ${s.sets}×${s.reps} al ${s.pct_1rm}% 1RM` +
+        (oneRm ? ` <b style="color:var(--accent);">(≈${Math.round(oneRm * s.pct_1rm / 100)} kg)</b>` : '') +
+        (s.exercises.length ? ` — ${s.exercises.map(esc).join(', ')}` : '') +
+        `<br><span style="font-size:10px;color:var(--text3);">${esc(s.source)}</span>`;
+    } else {
+      sumEl.innerHTML = '<span style="color:var(--text3);">Forza disabilitata</span>';
+    }
+    if (sp && sp.plan) {
+      weeksEl.innerHTML = sp.plan.map(wk => {
+        if (!wk.sessions.length) return `<div style="font-size:11px;color:var(--text3);">Sett. ${wk.week}: scarico / nessuna seduta</div>`;
+        const rows = wk.sessions.map(s =>
+          `<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;border-bottom:1px solid var(--border);">
+             <span>${esc(s.exercise)}</span><span style="color:var(--text3);">${s.sets}×${s.reps} @ ${s.pct_1rm}%${s.load_kg ? ` · <b style="color:var(--accent);">${s.load_kg} kg</b>` : ''}</span>
+           </div>`).join('');
+        return `<div style="background:var(--surface2);border-radius:6px;padding:6px 8px;"><div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:2px;">Settimana ${wk.week}</div>${rows}</div>`;
+      }).join('');
+    } else {
+      weeksEl.innerHTML = '<span style="color:var(--text3);">Forza disabilitata</span>';
+    }
+    if (mp && mp.routine && wantMobility) {
+      const names = mp.routine[0].sequence.map(x => x.exercise).join(' · ');
+      mobEl.innerHTML = `Mobilità quotidiana (${mp.routine[0].minutes} min): ${esc(names)} <span style="color:var(--text3);">(Warneke 2025)</span>`;
+    } else {
+      mobEl.innerHTML = '<span style="color:var(--text3);">Mobilità disabilitata</span>';
+    }
+  } catch (e) { /* non bloccare */ }
+}
+
+function syncCardFlags() {
+  const map = { 'card-strength': 'po-strength', 'card-mobility': 'po-mobility' };
+  for (const [fromId, toId] of Object.entries(map)) {
+    const from = document.getElementById(fromId);
+    const to = document.getElementById(toId);
+    if (from && to) to.checked = from.checked;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// HOME ADDITIONS: MY CALENDAR / ADHERENCE (lines 9944-10001)
+// ─────────────────────────────────────────────────────────────────────
+async function loadMyCalendar() {
+  if (window._myCalLoading) return;
+  window._myCalLoading = true;
+  const host = document.getElementById('my-calendar');
+  if (!host) { window._myCalLoading = false; return; }
+  try {
+    const j = await (await fetch('/api/my-calendar')).json();
+    const rows = j.rows || [];
+    if (!rows.length) { host.textContent = j.note || 'Genera un piano per vedere l\u0027aderenza...'; return; }
+    const maxTss = Math.max(...rows.map(r => Math.max(r.planned_tss || 1, r.actual_tss || 1)));
+    const flagColor = {green:'#2d9d5f', amber:'#d99100', red:'#d9534f'};
+    const body = rows.map(r => {
+      const pW = Math.round(100 * (r.planned_tss || 0) / maxTss);
+      const aW = Math.round(100 * (r.actual_tss || 0) / maxTss);
+      const icuBtn = `<button class="btn" style="font-size:10px;padding:2px 8px;" onclick="openIcuCalendar()">↗ Vedi su intervals.icu</button>`;
+      return `<div style="margin:6px 0;">
+        <div style="font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          ${esc(r.week_label)} <span style="color:${flagColor[r.flag]||'var(--text2)'};">● ${r.flag}</span>
+          <span style="color:var(--text3);font-size:10px;"> · ${esc(r.phase)} · aderenza ${Math.round(r.tss_ratio*100)}%</span>
+          ${icuBtn}
+        </div>
+        <div style="background:var(--surface2);border-radius:4px;height:10px;margin:2px 0;position:relative;">
+          <div style="background:#3b82f6;height:10px;border-radius:4px;width:${pW}%;opacity:.5;"></div>
+          <div style="background:#2d9d5f;height:10px;border-radius:4px;width:${aW}%;position:relative;top:-10px;"></div>
+        </div>
+        <div style="font-size:10px;color:var(--text3);">Pianif ${Math.round(r.planned_tss)} TSS · Eseguito ${Math.round(r.actual_tss)} TSS (Δ${r.delta_tss>=0?'+':''}${r.delta_tss})</div>
+      </div>`;
+    }).join('');
+    host.innerHTML = `<div style="font-size:10px;color:var(--text3);margin-bottom:4px;">■ pianificato &nbsp; ■ eseguito</div>` + body + (j.note? `<div style="font-size:10px;color:var(--text3);margin-top:6px;">${esc(j.note)}</div>`:'');
+  } catch (e) { host.textContent = 'Calendario non disponibile'; }
+  finally { window._myCalLoading = false; }
+}
+async function myPushPlan() {
+  const host = document.getElementById('my-calendar');
+  if (!host) return;
+  host.textContent = 'Push in corso…';
+  try {
+    const res = await fetch('/api/my-push-plan', {method:'POST'});
+    const j = await res.json();
+    if (j.error) { host.textContent = 'Errore: ' + j.error; return; }
+    host.textContent = `Pushati ${j.pushed} eventi sul tuo calendario intervals.icu` + (j.errors&&j.errors.length? ` (errori: ${j.errors.join(', ')})`:'');
+  } catch (e) { host.textContent = 'Push fallito: ' + e.message; }
+}
+
+function openIcuCalendar() {
+  fetch('/api/profile').then(r => r.json()).then(p => {
+    const aid = (p.profile && (p.profile.icu_athlete_id || p.profile.icu_id)) || '';
+    if (aid) {
+      window.open(`https://intervals.icu/athlete/${aid}/calendar`, '_blank', 'noopener,noreferrer');
+    } else {
+      showToast('ID atleta intervals.icu non configurato in Impostazioni', 4000, 'warning');
+    }
+  }).catch(() => {
+    window.open('https://intervals.icu', '_blank', 'noopener,noreferrer');
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// HOME ADDITIONS: KEYBOARD SHORTCUTS (lines 4841-4852)
+// ─────────────────────────────────────────────────────────────────────
+function toggleShortcutHelp(){ var p=document.getElementById('shortcut-help'); if(p) p.style.display = (p.style.display==='block'?'none':'block'); }
+
+function _isTyping(e){ var t=e.target; if(!t) return false; var tag=t.tagName; return tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT'||t.isContentEditable; }
+document.addEventListener('keydown', function(e){
+  if(_isTyping(e) || e.ctrlKey || e.metaKey || e.altKey) return;
+  var k=e.key.toLowerCase();
+  if(k==='?'){ e.preventDefault(); toggleShortcutHelp(); return; }
+  if(k==='g'){ e.preventDefault(); var b=document.getElementById('btn-generate-plan'); if(b) b.click(); }
+  else if(k==='i'){ e.preventDefault(); openImportFitPicker(); }
+  else if(k==='t'){ e.preventDefault(); if(typeof toggleTheme==='function') toggleTheme(); }
+  else if(k==='p'){ e.preventDefault(); var bp=document.querySelector('[onclick="busyButton(this, myPushPlan, \'Invio a intervals.icu…\')"]'); if(bp) bp.click(); }
+});
+
+// ─────────────────────────────────────────────────────────────────────
+// HOME ADDITIONS: ASSESSMENT BANNER (lines 3156-3220)
+// ─────────────────────────────────────────────────────────────────────
+window.dismissAssessmentBanner = function() {
+  const b = document.getElementById('assessment-banner');
+  if (b) b.style.display = 'none';
+  try { sessionStorage.setItem('assessment-dismissed', '1'); } catch (_) {}
+};
+
+window.chooseAssessmentTest = async function(kind) {
+  const g = window._planData && window._planData.goal;
+  if (!g) { showToast('Nessun piano trovato. Vai su Piano > Genera per crearne uno.', 3000); return; }
+  const body = {
+    goal_type: g.type || g.goal_type || 'event',
+    event_date: g.event_date || g.target_date || '',
+    event_name: g.event_name || '',
+    event_km: g.event_km || 0,
+    event_climb_m: g.event_climb_m || 0,
+    hours_per_week: g.hours_per_week || 8,
+    start_date: g.start_date || '',
+    assessment_test: kind,
+    skip_assessment: false,
+  };
+  try {
+    const res = await fetch('/api/plan/generate', {
+      method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)
+    });
+    const d = await res.json();
+    if (res.ok && d.plan_json) {
+      await renderPlanJSON(d.plan_json);
+      dismissAssessmentBanner();
+      showToast('Piano rigenerato con test ' + kind + ' ✅', 5000, 'success');
+    } else {
+      showToast('Errore: ' + (d.detail || d.error || 'generazione fallita'), 5000);
+    }
+  } catch(e) { showToast('Connessione al server assente. Verifica e riprova.', 4000); }
+};
+
+window.skipAssessment = async function() {
+  const g = window._planData && window._planData.goal;
+  if (!g) { showToast('Nessun piano trovato. Vai su Piano > Genera per crearne uno.', 3000); return; }
+  const body = {
+    goal_type: g.type || g.goal_type || 'event',
+    event_date: g.event_date || g.target_date || '',
+    event_name: g.event_name || '',
+    event_km: g.event_km || 0,
+    event_climb_m: g.event_climb_m || 0,
+    hours_per_week: g.hours_per_week || 8,
+    start_date: g.start_date || '',
+    skip_assessment: true,
+  };
+  try {
+    const res = await fetch('/api/plan/generate', {
+      method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)
+    });
+    const d = await res.json();
+    if (res.ok && d.plan_json) {
+      await renderPlanJSON(d.plan_json);
+      dismissAssessmentBanner();
+      showToast('Piano generato senza valutazione ✅', 5000, 'success');
+    } else {
+      showToast('Errore: ' + (d.detail || d.error || 'generazione fallita'), 5000);
+    }
+  } catch(e) { showToast('Connessione al server assente. Verifica e riprova.', 4000); }
+};
 </script>
 </body>
 </html>
