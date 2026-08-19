@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Swim Technique Drill - Catch &amp; Pull</name>
+  <description>Technique-focused swim session. Drill sets with catch-up, fingertip drag, fist drill. Total ~40min.</description>
+  <category>Swim Technique</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="480" PowerLow="0.6000" PowerHigh="0.5000"/>
+    <SteadyState Duration="120" Power="0.7000"/>
+    <Interval Duration="30" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="120" Power="0.7000"/>
+    <Interval Duration="30" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="120" Power="0.7000"/>
+    <Interval Duration="30" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="120" Power="0.7000"/>
+    <Interval Duration="30" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="120" Power="0.7500"/>
+    <Interval Duration="30" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="120" Power="0.7500"/>
+    <Cooldown Duration="480" PowerLow="0.5000" PowerHigh="0.6000"/>
+  </workout>
+</workout_file>

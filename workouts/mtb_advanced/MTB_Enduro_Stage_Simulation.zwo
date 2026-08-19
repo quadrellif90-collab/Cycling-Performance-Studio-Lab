@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>MTB Enduro Stage Simulation</name>
+  <description>Simulate enduro stages. Mixed intensity with technical sections. Total ~50min.</description>
+  <category>MTB Enduro</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="480" PowerLow="0.6500" PowerHigh="0.5000"/>
+    <SteadyState Duration="300" Power="0.9000"/>
+    <Interval Duration="120" PowerLow="0.5500" PowerHigh="0.5500"/>
+    <SteadyState Duration="300" Power="0.9500"/>
+    <Interval Duration="120" PowerLow="0.5500" PowerHigh="0.5500"/>
+    <SteadyState Duration="300" Power="0.9000"/>
+    <Interval Duration="120" PowerLow="0.5500" PowerHigh="0.5500"/>
+    <SteadyState Duration="300" Power="0.9500"/>
+    <Cooldown Duration="480" PowerLow="0.5000" PowerHigh="0.7000"/>
+  </workout>
+</workout_file>

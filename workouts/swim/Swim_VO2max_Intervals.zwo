@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Swim VO2max Intervals</name>
+  <description>High-intensity swim intervals. 8x100m at race pace with 20s rest. Total ~35min.</description>
+  <category>Swim Intervals</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="480" PowerLow="0.6500" PowerHigh="0.5000"/>
+    <SteadyState Duration="100" Power="0.9500"/>
+    <Interval Duration="20" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="100" Power="0.9500"/>
+    <Interval Duration="20" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="100" Power="0.9500"/>
+    <Interval Duration="20" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="100" Power="0.9500"/>
+    <Interval Duration="20" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="100" Power="0.9500"/>
+    <Interval Duration="20" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="100" Power="0.9500"/>
+    <Interval Duration="20" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="100" Power="0.9500"/>
+    <Interval Duration="20" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="100" Power="0.9500"/>
+    <Cooldown Duration="480" PowerLow="0.5000" PowerHigh="0.6000"/>
+  </workout>
+</workout_file>

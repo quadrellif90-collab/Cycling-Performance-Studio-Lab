@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Race Replication Brick - Dr Yelling</name>
+  <description>Simulate race-day effort. 10mi bike at Level IV then 2mi run at Level IV. Total ~55min.</description>
+  <category>Triathlon Brick</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="600" PowerLow="0.7000" PowerHigh="0.6000"/>
+    <SteadyState Duration="1800" Power="0.9000"/>
+    <SteadyState Duration="960" Power="0.9000"/>
+    <Cooldown Duration="600" PowerLow="0.6000" PowerHigh="0.7000"/>
+  </workout>
+</workout_file>

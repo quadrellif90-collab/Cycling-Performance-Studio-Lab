@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Duathlon Bike Focus</name>
+  <description>Bike-dominant duathlon. Long bike with short run bookends. Total ~70min.</description>
+  <category>Duathlon</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="300" PowerLow="0.7000" PowerHigh="0.6000"/>
+    <SteadyState Duration="300" Power="0.8000"/>
+    <SteadyState Duration="3000" Power="0.8200"/>
+    <SteadyState Duration="600" Power="0.8500"/>
+    <Cooldown Duration="300" PowerLow="0.6000" PowerHigh="0.7000"/>
+  </workout>
+</workout_file>
