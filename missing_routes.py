@@ -36,7 +36,7 @@ def register_missing_routes(app):
                 source="manual",
             )
             from user_home import cpsl_home
-            bia_path = cpsl_home / "bia_history.json"
+            bia_path = cpsl_home() / "bia_history.json"
             history = []
             if bia_path.exists():
                 history = json.loads(bia_path.read_text(encoding="utf-8"))
@@ -54,7 +54,7 @@ def register_missing_routes(app):
         try:
             from nutrition import day_macros, supplement_doses
             from user_home import cpsl_home
-            athlete_path = cpsl_home / "profiles" / "default" / "athlete.json"
+            athlete_path = cpsl_home() / "profiles" / "default" / "athlete.json"
             athlete = {}
             if athlete_path.exists():
                 athlete = json.loads(athlete_path.read_text(encoding="utf-8"))
@@ -99,7 +99,7 @@ def register_missing_routes(app):
             if discipline not in allowed:
                 return JSONResponse({"error": f"Invalid discipline. Allowed: {allowed}"}, status_code=400)
             from user_home import cpsl_home
-            plan_path = cpsl_home / "profiles" / "default" / "plans" / "current_plan.json"
+            plan_path = cpsl_home() / "profiles" / "default" / "plans" / "current_plan.json"
             if not plan_path.exists():
                 return JSONResponse({"error": "No active plan"}, status_code=404)
             plan = json.loads(plan_path.read_text(encoding="utf-8"))
@@ -156,7 +156,7 @@ def register_missing_routes(app):
         """Classify all workouts by content type (16-type system)."""
         try:
             from user_home import cpsl_home
-            workouts_dir = cpsl_home / "workouts"
+            workouts_dir = cpsl_home() / "workouts"
             if not workouts_dir.exists():
                 workouts_dir = Path("workouts")
             from classify_library_content import classify_all
@@ -170,7 +170,7 @@ def register_missing_routes(app):
         """Classify a single workout by content type."""
         try:
             from user_home import cpsl_home
-            workouts_dir = cpsl_home / "workouts"
+            workouts_dir = cpsl_home() / "workouts"
             if not workouts_dir.exists():
                 workouts_dir = Path("workouts")
             from classify_library_content import classify_zwo_v104
@@ -232,7 +232,7 @@ def register_missing_routes(app):
             to_week = body.get("to_week", 0)
             to_day = body.get("to_day", 0)
             from user_home import cpsl_home
-            plan_path = cpsl_home / "profiles" / "default" / "plans" / "current_plan.json"
+            plan_path = cpsl_home() / "profiles" / "default" / "plans" / "current_plan.json"
             if not plan_path.exists():
                 return JSONResponse({"error": "No active plan"}, status_code=404)
             plan = json.loads(plan_path.read_text(encoding="utf-8"))
@@ -259,7 +259,7 @@ def register_missing_routes(app):
         """Check if actual training has drifted from the plan (CTL drift >15%)."""
         try:
             from user_home import cpsl_home
-            plan_path = cpsl_home / "profiles" / "default" / "plans" / "current_plan.json"
+            plan_path = cpsl_home() / "profiles" / "default" / "plans" / "current_plan.json"
             if not plan_path.exists():
                 return {"drift_pct": 0, "status": "no_plan", "alert": False}
             plan = json.loads(plan_path.read_text(encoding="utf-8"))
@@ -294,7 +294,7 @@ def register_missing_routes(app):
         """Identify recovery/deload weeks in the current plan."""
         try:
             from user_home import cpsl_home
-            plan_path = cpsl_home / "profiles" / "default" / "plans" / "current_plan.json"
+            plan_path = cpsl_home() / "profiles" / "default" / "plans" / "current_plan.json"
             if not plan_path.exists():
                 return {"recovery_weeks": [], "count": 0}
             plan = json.loads(plan_path.read_text(encoding="utf-8"))
@@ -322,7 +322,7 @@ def register_missing_routes(app):
             race_week = body.get("race_week", 0)
             race_type = body.get("race_type", "C")  # A, B, or C
             from user_home import cpsl_home
-            plan_path = cpsl_home / "profiles" / "default" / "plans" / "current_plan.json"
+            plan_path = cpsl_home() / "profiles" / "default" / "plans" / "current_plan.json"
             if not plan_path.exists():
                 return JSONResponse({"error": "No active plan"}, status_code=404)
             plan = json.loads(plan_path.read_text(encoding="utf-8"))
@@ -361,7 +361,7 @@ def register_missing_routes(app):
         """Compute ride analytics: decoupling, efficiency factor, NP, IF."""
         try:
             from user_home import cpsl_home
-            rides_dir = cpsl_home / "profiles" / "default" / "rides"
+            rides_dir = cpsl_home() / "profiles" / "default" / "rides"
             ride_file = rides_dir / f"{ride_id}.json"
             if not ride_file.exists():
                 return JSONResponse({"error": "Ride not found"}, status_code=404)
@@ -381,7 +381,7 @@ def register_missing_routes(app):
                     rolling_avg.append(avg ** 4)
                 np_val = (sum(rolling_avg) / len(rolling_avg)) ** 0.25 if rolling_avg else 0
             ftp = 250
-            athlete_path = cpsl_home / "profiles" / "default" / "athlete.json"
+            athlete_path = cpsl_home() / "profiles" / "default" / "athlete.json"
             if athlete_path.exists():
                 athlete = json.loads(athlete_path.read_text(encoding="utf-8"))
                 ftp = athlete.get("ftp", 250)
@@ -423,7 +423,7 @@ def register_missing_routes(app):
         try:
             from execution_score import score_ride
             from user_home import cpsl_home
-            rides_dir = cpsl_home / "profiles" / "default" / "rides"
+            rides_dir = cpsl_home() / "profiles" / "default" / "rides"
             ride_file = rides_dir / f"{ride_id}.json"
             if not ride_file.exists():
                 return JSONResponse({"error": "Ride not found"}, status_code=404)
@@ -442,7 +442,7 @@ def register_missing_routes(app):
         """Full rider stats grid with all metrics."""
         try:
             from user_home import cpsl_home
-            athlete_path = cpsl_home / "profiles" / "default" / "athlete.json"
+            athlete_path = cpsl_home() / "profiles" / "default" / "athlete.json"
             athlete = {}
             if athlete_path.exists():
                 athlete = json.loads(athlete_path.read_text(encoding="utf-8"))
@@ -458,7 +458,7 @@ def register_missing_routes(app):
             season_rides = 0
             try:
                 from user_home import cpsl_home
-                rides_dir = cpsl_home / "profiles" / "default" / "rides"
+                rides_dir = cpsl_home() / "profiles" / "default" / "rides"
                 if rides_dir.exists():
                     for f in rides_dir.glob("*.json"):
                         try:
@@ -493,7 +493,7 @@ def register_missing_routes(app):
         """Aggregate season totals (rides, hours, TSS, distance)."""
         try:
             from user_home import cpsl_home
-            rides_dir = cpsl_home / "profiles" / "default" / "rides"
+            rides_dir = cpsl_home() / "profiles" / "default" / "rides"
             totals = {
                 "rides": 0,
                 "tss": 0,
@@ -576,7 +576,7 @@ def register_missing_routes(app):
         try:
             from breakthrough_detector import detect_breakthrough
             from user_home import cpsl_home
-            ride_path = cpsl_home / "profiles" / "default" / "rides" / f"{ride_id}.json"
+            ride_path = cpsl_home() / "profiles" / "default" / "rides" / f"{ride_id}.json"
             if not ride_path.exists():
                 return {"error": "Ride not found"}
             ride = json.loads(ride_path.read_text(encoding="utf-8"))
@@ -630,7 +630,7 @@ def register_missing_routes(app):
         try:
             from training_phase_detector import detect_training_phases
             from user_home import cpsl_home
-            weekly_path = cpsl_home / "profiles" / "default" / "weekly_summary.json"
+            weekly_path = cpsl_home() / "profiles" / "default" / "weekly_summary.json"
             if not weekly_path.exists():
                 return {"error": "No weekly summary data", "result": None}
             weekly_data = json.loads(weekly_path.read_text(encoding="utf-8"))
@@ -648,7 +648,7 @@ def register_missing_routes(app):
         try:
             from custom_alerts import load_rules
             from user_home import cpsl_home
-            rules = load_rules(cpsl_home)
+            rules = load_rules(cpsl_home())
             return {"rules": [r.to_dict() for r in rules]}
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
@@ -668,9 +668,9 @@ def register_missing_routes(app):
                 value2=body.get("value2"),
                 streak_seconds=int(body.get("streak_seconds", 0)),
             )
-            rules = load_rules(cpsl_home)
+            rules = load_rules(cpsl_home())
             rules.append(rule)
-            save_rules(rules, cpsl_home)
+            save_rules(rules, cpsl_home())
             return {"status": "ok", "rule": rule.to_dict(),
                     "supported_metrics": list(SUPPORTED_METRICS.keys()),
                     "operators": OPERATORS}
@@ -683,9 +683,9 @@ def register_missing_routes(app):
         try:
             from custom_alerts import load_rules, save_rules
             from user_home import cpsl_home
-            rules = load_rules(cpsl_home)
+            rules = load_rules(cpsl_home())
             rules = [r for r in rules if r.id != rule_id]
-            save_rules(rules, cpsl_home)
+            save_rules(rules, cpsl_home())
             return {"status": "ok", "deleted": rule_id}
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
@@ -700,7 +700,7 @@ def register_missing_routes(app):
             from adaptive_planner import generate_adaptive_recommendation, GOAL_PROFILES
             from analytics import polarization_index
             from user_home import cpsl_home
-            profile_path = cpsl_home / "profiles" / "default" / "athlete.json"
+            profile_path = cpsl_home() / "profiles" / "default" / "athlete.json"
             athlete = {}
             if profile_path.exists():
                 athlete = json.loads(profile_path.read_text(encoding="utf-8"))
@@ -717,6 +717,8 @@ def register_missing_routes(app):
                 "available_goals": {k: v["label"] for k, v in GOAL_PROFILES.items()},
             }
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             return JSONResponse({"error": str(e)}, status_code=500)
 
     # ── 22. Polarization Index (per-ride) ──────────────────────────────────
