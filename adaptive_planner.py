@@ -411,7 +411,7 @@ def generate_adaptive_recommendation(
 
     # Reasoning
     reasoning = []
-    reasoning.append(f"Goal: {goal_profile['label']} → recommended method: {method_def['label']}.")
+    reasoning.append(f"Goal: {goal_profile['label']} -> recommended method: {method_def['label']}.")
     if current_method and current_method != recommended_method:
         reasoning.append(f"Currently using {TRAINING_METHODS[current_method]['label']} — "
                          f"shifting to {method_def['label']}.")
