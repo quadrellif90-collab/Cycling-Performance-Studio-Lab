@@ -8621,7 +8621,7 @@ def api_version():
         # Identity marker, not decoration: the launcher's single-instance probe
         # uses it to tell a running Domestique from any other server that
         # happens to hold :8080. Do not rename or remove.
-        "app": "domestique",
+        "app": "cpsl",
         "version": _VERSION,
         "python": platform.python_version(),
         "frozen": getattr(sys, "frozen", False),
