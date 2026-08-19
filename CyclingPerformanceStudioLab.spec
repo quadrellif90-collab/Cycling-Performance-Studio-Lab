@@ -26,6 +26,8 @@ datas = [
     ("frontend/static", "frontend/static"),
     ("workouts", "workouts"),
     ("courses", "courses"),
+    ("routes.json", "."),
+    ("surface_types.json", "."),
     ("VERSION", "."),
 ]
 
@@ -124,6 +126,10 @@ a = Analysis(
         "terra_sync",
         "upstream_check",
         "pcc_routes_v2",
+        "missing_routes",
+        "route_archetypes",
+        "workout_facts",
+        "classify_library_content",
         # Domestique modules
         "readiness",
         "readiness_composite",

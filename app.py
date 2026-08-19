@@ -813,6 +813,13 @@ try:
     except Exception as _e:
         log.debug(f"pcc_routes_v2 registration failed: {_e}")
 
+    # Missing routes (BIA manual, nutrition periodization, multidiscipline, etc.)
+    try:
+        from missing_routes import register_missing_routes as _reg_missing
+        _reg_missing(app)
+    except Exception as _e:
+        log.debug(f"missing_routes registration failed: {_e}")
+
     @app.post("/api/bia/analyze")
     async def api_bia_analyze(request: Request):
         form = await request.form()
