@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>MTB Technical Intervals</name>
+  <description>Short punchy efforts simulating technical trail sections. 8x1min hard with 2min easy. Total ~40min.</description>
+  <category>MTB Technical</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="480" PowerLow="0.7000" PowerHigh="0.5000"/>
+    <SteadyState Duration="60" Power="1.1000"/>
+    <Interval Duration="120" PowerLow="0.5500" PowerHigh="0.5500"/>
+    <SteadyState Duration="60" Power="1.1500"/>
+    <Interval Duration="120" PowerLow="0.5500" PowerHigh="0.5500"/>
+    <SteadyState Duration="60" Power="1.1000"/>
+    <Interval Duration="120" PowerLow="0.5500" PowerHigh="0.5500"/>
+    <SteadyState Duration="60" Power="1.1500"/>
+    <Interval Duration="120" PowerLow="0.5500" PowerHigh="0.5500"/>
+    <SteadyState Duration="60" Power="1.1000"/>
+    <Interval Duration="120" PowerLow="0.5500" PowerHigh="0.5500"/>
+    <SteadyState Duration="60" Power="1.1500"/>
+    <Interval Duration="120" PowerLow="0.5500" PowerHigh="0.5500"/>
+    <SteadyState Duration="60" Power="1.1000"/>
+    <Interval Duration="120" PowerLow="0.5500" PowerHigh="0.5500"/>
+    <Cooldown Duration="480" PowerLow="0.5000" PowerHigh="0.7000"/>
+  </workout>
+</workout_file>

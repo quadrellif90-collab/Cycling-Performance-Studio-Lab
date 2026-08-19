@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Pre-Ride Dynamic Warm-Up</name>
+  <description>Dynamic stretching before cycling. Leg swings, hip circles, torso rotation. Total ~15min.</description>
+  <category>Mobility Warm-Up</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="180" PowerLow="0.5500" PowerHigh="0.4000"/>
+    <SteadyState Duration="60" Power="0.5500"/>
+    <SteadyState Duration="60" Power="0.5500"/>
+    <SteadyState Duration="60" Power="0.5500"/>
+    <SteadyState Duration="60" Power="0.5500"/>
+    <SteadyState Duration="60" Power="0.5500"/>
+    <Cooldown Duration="180" PowerLow="0.4000" PowerHigh="0.5500"/>
+  </workout>
+</workout_file>

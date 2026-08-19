@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Gravel Race Simulation</name>
+  <description>Simulate gravel race effort with mixed terrain. 2x20min at race pace. Total ~60min.</description>
+  <category>Gravel Race</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="480" PowerLow="0.7000" PowerHigh="0.5000"/>
+    <SteadyState Duration="1200" Power="0.8500"/>
+    <Interval Duration="300" PowerLow="0.6000" PowerHigh="0.6000"/>
+    <SteadyState Duration="1200" Power="0.8500"/>
+    <Cooldown Duration="480" PowerLow="0.5000" PowerHigh="0.7000"/>
+  </workout>
+</workout_file>

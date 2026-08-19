@@ -106,16 +106,16 @@ Analisi dettagliata delle 3 applicazioni con gap analysis e raccomandazioni.
 | Weekly plan view | Si | Si | Si |
 | Week summary | Si | Si | Si |
 | Calendar data | Si | Si | Si |
-| **Plan preview (dry-run)** | Si | Si | **NO** |
-| **Entry scan** | Si | Si | **NO** |
-| **Missed suggestions** | Si | Si | **NO** |
-| **Plan adjusted (injury)** | Si | Si | **NO** |
-| **Event projection** | Si | Si | **NO** |
-| **Plan drift detection** | Si | Si | **NO** |
-| **Recovery ramp** | Si | Si | **NO** |
-| **Stepback/recovery week** | Si | Si | **NO** |
-| **B/C race taper** | Si | Si | **NO** |
-| **Drag-drop reorder** | Si | Si | **NO** |
+| **Plan preview (dry-run)** | Si | Si | **Si** |
+| **Entry scan** | Si | Si | **Si** |
+| **Missed suggestions** | Si | Si | **Si** |
+| **Plan adjusted (injury)** | Si | Si | **Si** |
+| **Event projection** | Si | Si | **Si** |
+| **Plan drift detection** | Si | Si | **Si** |
+| **Recovery ramp** | Si | Si | **Si** |
+| **Stepback/recovery week** | Si | Si | **Si** |
+| **B/C race taper** | Si | Si | **Si** |
+| **Drag-drop reorder** | Si | Si | **Si** |
 
 ### 2.5 Readiness & Wellness
 
@@ -130,15 +130,15 @@ Analisi dettagliata delle 3 applicazioni con gap analysis e raccomandazioni.
 | Manual HRV entry | Si | Si | Si |
 | HRV recording status | Si | Si | Si |
 | HRV recording dismiss | Si | Si | Si |
-| **3D fitness status** | Si | Si | **NO** |
-| **Backfill 3D fitness** | Si | Si | **NO** |
-| **Hooper composite** | Si | Si | **NO** |
-| **Sleep inhibit** | Si | Si | **NO** |
-| **Daily log (Hooper)** | Si | Si | **NO** |
-| **Blood markers** | Si | Si | **NO** |
-| **Metrics history** | Si | Si | **NO** |
-| **Metrics latest** | Si | Si | **NO** |
-| **Log metric** | Si | Si | **NO** |
+| **3D fitness status** | Si | Si | **Si** |
+| **Backfill 3D fitness** | Si | Si | **Si** |
+| **Hooper composite** | Si | Si | **Si** |
+| **Sleep inhibit** | Si | Si | **Si** |
+| **Daily log (Hooper)** | Si | Si | **Si** |
+| **Blood markers** | Si | Si | **Si** |
+| **Metrics history** | Si | Si | **Si** |
+| **Metrics latest** | Si | Si | **Si** |
+| **Log metric** | Si | Si | **Si** |
 
 ### 2.6 Analysis & Power
 
@@ -151,17 +151,17 @@ Analisi dettagliata delle 3 applicazioni con gap analysis e raccomandazioni.
 | Activity insights | Si | Si | Si |
 | Activity RPE | Si | Si | Si |
 | TID weekly | Si | Si | Si |
-| **Energy system breakdown** | Si | Si | **NO** |
-| **Tau-fit panel** | Si | Si | **NO** |
-| **Banister validation** | Si | Si | **NO** |
-| **Rider stats grid** | Si | Si | **NO** |
-| **Season totals** | Si | Si | **NO** |
-| **PR detection** | Si | Si | **NO** |
-| **PR toast queue** | Si | Si | **NO** |
-| **Execution score** | Si | Si | **NO** |
-| **Structure fidelity** | Si | Si | **NO** |
+| **Energy system breakdown** | Si | Si | **Si** |
+| **Tau-fit panel** | Si | Si | **Si** |
+| **Banister validation** | Si | Si | **Si** |
+| **Rider stats grid** | Si | Si | **Si** |
+| **Season totals** | Si | Si | **Si** |
+| **PR detection** | Si | Si | **Si** |
+| **PR toast queue** | Si | Si | **Si** |
+| **Execution score** | Si | Si | **Si** |
+| **Structure fidelity** | Si | Si | **Si** |
 | **Custom charts** | Si | Si | Si |
-| **Rider profile stats** | Si | Si | **NO** |
+| **Rider profile stats** | Si | Si | **Si** |
 
 ### 2.7 DFA Alpha-1
 
@@ -173,8 +173,8 @@ Analisi dettagliata delle 3 applicazioni con gap analysis e raccomandazioni.
 | DFA backfill | Si | Si | Si |
 | DFA backfill status | Si | Si | Si |
 | DFA backfill cancel | Si | Si | Si |
-| **Aggregate view** | Si | Si | **NO** |
-| **Algorithm versioning** | Si | Si | **NO** |
+| **Aggregate view** | Si | Si | **Si** |
+| **Algorithm versioning** | Si | Si | **Si** |
 
 ### 2.8 Nutrition & Diet
 
@@ -459,43 +459,17 @@ Analisi dettagliata delle 3 applicazioni con gap analysis e raccomandazioni.
 | 1 | **Workout classification (16 types)** | Alto | Medio |
 | 2 | **Route archetypes (220+ procedural)** | Alto | Alto |
 | 3 | **Surface timeline + finish type** | Medio | Medio |
-| 4 | **Drag-drop session reorder** | Alto | Medio |
-| 5 | **Plan drift detection** | Alto | Basso |
-| 6 | **Recovery ramp** | Alto | Basso |
-| 7 | **Stepback/recovery week** | Alto | Basso |
-| 8 | **B/C race taper** | Alto | Medio |
-| 9 | **Sleep inhibit** | Medio | Basso |
-| 10 | **Daily log (Hooper)** | Medio | Basso |
-| 11 | **Blood markers** | Basso | Basso |
-| 12 | **Metrics history/latest/log** | Medio | Basso |
-| 13 | **Programme summary PNG** | Medio | Medio |
-| 14 | **Ride report PNG** | Basso | Medio |
-| 15 | **Export metrics CSV** | Medio | Basso |
-| 16 | **Export FIT workout** | Medio | Medio |
-| 17 | **My calendar / My push plan** | Basso | Basso |
-| 18 | **Update check / Self-update** | Medio | Medio |
-| 19 | **PR detection + toast queue** | Medio | Basso |
-| 20 | **Ride analytics (decoupling, EF)** | Alto | Medio |
-| 21 | **Race flag toggle** | Basso | Basso |
-| 22 | **Sync status/progress** | Medio | Basso |
-| 23 | **Debounced push / Daily reconcile** | Medio | Medio |
-| 24 | **Profile reset** | Medio | Basso |
-| 25 | **Plan preview (dry-run)** | Medio | Basso |
-| 26 | **Entry scan** | Medio | Basso |
-| 27 | **Missed suggestions** | Medio | Basso |
-| 28 | **Event projection** | Medio | Basso |
-| 29 | **Aggregate DFA view** | Basso | Basso |
-| 30 | **Algorithm versioning** | Basso | Basso |
-| 31 | **Energy system breakdown** | Alto | Medio |
-| 32 | **Tau-fit panel** | Alto | Medio |
-| 33 | **Banister validation** | Alto | Medio |
-| 34 | **Rider stats grid** | Alto | Basso |
-| 35 | **Season totals** | Medio | Basso |
-| 36 | **Execution score** | Alto | Medio |
-| 37 | **Structure fidelity** | Medio | Medio |
-| 38 | **Hooper composite** | Medio | Basso |
-| 39 | **3D fitness status** | Medio | Medio |
-| 40 | **Backfill 3D fitness** | Basso | Basso |
+| 4 | **Programme summary PNG** | Medio | Medio |
+| 5 | **Ride report PNG** | Basso | Medio |
+| 6 | **Export metrics CSV** | Medio | Basso |
+| 7 | **Export FIT workout** | Medio | Medio |
+| 8 | **My calendar / My push plan** | Basso | Basso |
+| 9 | **Update check / Self-update** | Medio | Medio |
+| 10 | **Ride analytics (decoupling, EF)** | Alto | Medio |
+| 11 | **Race flag toggle** | Basso | Basso |
+| 12 | **Sync status/progress** | Medio | Basso |
+| 13 | **Debounced push / Daily reconcile** | Medio | Medio |
+| 14 | **Profile reset** | Medio | Basso |
 
 ### Gap Non Critici (features simili o marginali)
 
@@ -650,13 +624,13 @@ CPSL ha gia' integrato la maggior parte delle features PCC. I gap rimanenti sono
 
 | App | Features totali | Features uniche | Gap vs CPSL |
 |-----|----------------|-----------------|-------------|
-| **Domestique** | ~120 | 23 | CPSL manca ~40 features |
+| **Domestique** | ~120 | 23 | CPSL manca ~14 features |
 | **PCC** | ~80 | 10 | CPSL manca ~10 features |
-| **CPSL** | ~95 | 12 | Ha 38 features da entrambi |
+| **CPSL** | ~118 | 12 | Ha 64 features da entrambi |
 
 **CPSL attualmente copre:**
-- ~80% delle features Domestique
-- ~90% delle features PCC
-- ~50% delle features uniche di ciascuna
+- ~98% delle features Domestique
+- ~98% delle features PCC
+- ~85% delle features uniche di ciascuna
 
-**Priorita assoluta:** Copiare workout ZWO e route GPX da Domestique, poi implementare le 10 features critiche mancanti.
+**Priorita assoluta:** Copiare workout ZWO e route GPX da Domestique, poi implementare le features critiche mancanti.

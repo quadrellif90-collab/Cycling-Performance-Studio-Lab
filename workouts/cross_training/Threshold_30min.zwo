@@ -1,0 +1,16 @@
+<workout_file>
+    <author>Philipp</author>
+    <name>Threshold 30min</name>
+    <description>2x10min at 95% FTP with 3min recovery</description>
+    <sportType>bike</sportType>
+    <tags>
+        <tag name="Threshold"/>
+    </tags>
+    <workout>
+        <Warmup Duration="360" PowerLow="0.5" PowerHigh="0.75" pace="0"/>
+        <SteadyState Duration="600" Power="0.95" pace="0"/>
+        <SteadyState Duration="180" Power="0.55" pace="0"/>
+        <SteadyState Duration="600" Power="0.95" pace="0"/>
+        <Cooldown Duration="360" PowerLow="0.75" PowerHigh="0.5" pace="0"/>
+    </workout>
+</workout_file>

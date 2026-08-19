@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Fartlek City Run</name>
+  <description>Unstructured fartlek session. Alternate fast/easy efforts by feel. Total ~40min.</description>
+  <category>Running Fartlek</category>
+  <sportType>run</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="480" PowerLow="0.7000" PowerHigh="0.6000"/>
+    <SteadyState Duration="120" Power="0.9000"/>
+    <SteadyState Duration="120" Power="0.7000"/>
+    <SteadyState Duration="90" Power="0.9500"/>
+    <SteadyState Duration="90" Power="0.7000"/>
+    <SteadyState Duration="60" Power="1.0000"/>
+    <SteadyState Duration="120" Power="0.7000"/>
+    <SteadyState Duration="90" Power="0.9500"/>
+    <SteadyState Duration="90" Power="0.7000"/>
+    <SteadyState Duration="120" Power="0.9000"/>
+    <SteadyState Duration="120" Power="0.7000"/>
+    <SteadyState Duration="60" Power="1.0000"/>
+    <SteadyState Duration="120" Power="0.7000"/>
+    <Cooldown Duration="480" PowerLow="0.6000" PowerHigh="0.7000"/>
+  </workout>
+</workout_file>

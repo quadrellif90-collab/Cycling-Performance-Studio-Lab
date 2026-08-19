@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>5K Race Prep - 6x800m</name>
+  <description>Interval session for 5K speed. 6x800m at 5K pace with 400m jog recovery. Total ~45min.</description>
+  <category>Running Intervals</category>
+  <sportType>run</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="600" PowerLow="0.7500" PowerHigh="0.6000"/>
+    <SteadyState Duration="400" Power="0.8500"/>
+    <SteadyState Duration="800" Power="1.0500"/>
+    <SteadyState Duration="400" Power="0.8500"/>
+    <SteadyState Duration="800" Power="1.0500"/>
+    <SteadyState Duration="400" Power="0.8500"/>
+    <SteadyState Duration="800" Power="1.0500"/>
+    <SteadyState Duration="400" Power="0.8500"/>
+    <SteadyState Duration="800" Power="1.0500"/>
+    <SteadyState Duration="400" Power="0.8500"/>
+    <SteadyState Duration="800" Power="1.0500"/>
+    <SteadyState Duration="400" Power="0.8500"/>
+    <SteadyState Duration="800" Power="1.0500"/>
+    <Cooldown Duration="600" PowerLow="0.6000" PowerHigh="0.7500"/>
+  </workout>
+</workout_file>

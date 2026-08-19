@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Upper Body for Cyclists</name>
+  <description>Upper body strength session. Push-ups, rows, shoulder work. Total ~30min.</description>
+  <category>Cross-Training Strength</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="300" PowerLow="0.6500" PowerHigh="0.5000"/>
+    <SteadyState Duration="60" Power="0.7000"/>
+    <Interval Duration="45" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="60" Power="0.7000"/>
+    <Interval Duration="45" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="60" Power="0.7000"/>
+    <Interval Duration="45" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="60" Power="0.7000"/>
+    <Interval Duration="45" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="60" Power="0.7000"/>
+    <Cooldown Duration="300" PowerLow="0.5000" PowerHigh="0.6500"/>
+  </workout>
+</workout_file>

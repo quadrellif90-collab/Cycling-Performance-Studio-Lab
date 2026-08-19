@@ -13620,6 +13620,23 @@ def adjust_today_session(
                     f"— easing today to {_disp}"
                 )
 
+    # ── BETA Fase 5: apply daily_recalculate_adjustment load factor ─────
+    # After all gates fire, scale duration/TSS by the combined HRV/DFA/
+    # sleep/TSB factor (0.80–1.10). Session type is NOT changed — only
+    # volume/intensity scales. When factor == 1.0 (neutral), no mutation.
+    beta_factor = float(readiness.get("beta_load_factor") or 1.0)
+    if beta_factor != 1.0 and planned.session_type not in ("rest",):
+        new_dur = max(20, round(planned.duration_min * beta_factor))
+        new_tss = max(5, round(planned.tss_estimate * beta_factor))
+        if new_dur != planned.duration_min or new_tss != planned.tss_estimate:
+            planned = PlannedSession(
+                day=planned.day, day_name=planned.day_name,
+                session_type=planned.session_type,
+                duration_min=new_dur, tss_estimate=new_tss,
+                description=planned.description,
+                adapted=True,
+            )
+
     # Readiness ≥80 + Z2 day: KEEP Z2 (never upgrade — Stöggl 2014 black hole)
     return planned, ""
 

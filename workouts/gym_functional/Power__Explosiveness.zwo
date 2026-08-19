@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Power &amp; Explosiveness</name>
+  <description>Plyometric and power training. Box jumps, kettlebell swings, clean &amp; press. Total ~35min.</description>
+  <category>Gym Power</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="480" PowerLow="0.7000" PowerHigh="0.5000"/>
+    <SteadyState Duration="30" Power="1.1000"/>
+    <Interval Duration="60" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="30" Power="1.1500"/>
+    <Interval Duration="60" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="30" Power="1.1000"/>
+    <Interval Duration="60" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="30" Power="1.1500"/>
+    <Interval Duration="60" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="30" Power="1.1000"/>
+    <Interval Duration="60" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="30" Power="1.1500"/>
+    <Cooldown Duration="480" PowerLow="0.5000" PowerHigh="0.7000"/>
+  </workout>
+</workout_file>

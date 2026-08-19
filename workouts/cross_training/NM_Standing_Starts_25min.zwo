@@ -1,0 +1,25 @@
+<workout_file>
+    <author>Philipp - SYSTM Style</author>
+    <n>NM Standing Starts 25min</n>
+    <description>6x15sec standing starts from low speed | Focus: Acceleration</description>
+    <sportType>bike</sportType>
+    <tags>
+        <tag name="NM"/>
+        <tag name="4DP"/>
+    </tags>
+    <workout>
+        <Warmup Duration="540" PowerLow="0.5" PowerHigh="0.7" pace="0"/>
+        <SteadyState Duration="15" Power="2.8" pace="0"/>
+        <SteadyState Duration="165" Power="0.55" pace="0"/>
+        <SteadyState Duration="15" Power="2.8" pace="0"/>
+        <SteadyState Duration="165" Power="0.55" pace="0"/>
+        <SteadyState Duration="15" Power="2.8" pace="0"/>
+        <SteadyState Duration="165" Power="0.55" pace="0"/>
+        <SteadyState Duration="15" Power="2.8" pace="0"/>
+        <SteadyState Duration="165" Power="0.55" pace="0"/>
+        <SteadyState Duration="15" Power="2.8" pace="0"/>
+        <SteadyState Duration="165" Power="0.55" pace="0"/>
+        <SteadyState Duration="15" Power="2.8" pace="0"/>
+        <Cooldown Duration="300" PowerLow="0.7" PowerHigh="0.5" pace="0"/>
+    </workout>
+</workout_file>

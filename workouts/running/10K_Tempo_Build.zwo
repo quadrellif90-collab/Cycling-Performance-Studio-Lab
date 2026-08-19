@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>10K Tempo Build</name>
+  <description>Progressive tempo run for 10K preparation. Build from marathon to 10K pace. Total ~50min.</description>
+  <category>Running Tempo</category>
+  <sportType>run</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="600" PowerLow="0.7000" PowerHigh="0.6000"/>
+    <SteadyState Duration="600" Power="0.7500"/>
+    <SteadyState Duration="600" Power="0.8000"/>
+    <SteadyState Duration="600" Power="0.8500"/>
+    <SteadyState Duration="600" Power="0.9000"/>
+    <SteadyState Duration="600" Power="0.8500"/>
+    <SteadyState Duration="600" Power="0.8000"/>
+    <Cooldown Duration="600" PowerLow="0.6000" PowerHigh="0.7000"/>
+  </workout>
+</workout_file>

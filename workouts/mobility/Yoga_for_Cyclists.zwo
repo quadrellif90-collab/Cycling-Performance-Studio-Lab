@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Yoga for Cyclists</name>
+  <description>Yoga flow targeting cycling muscle groups. Hip openers, spinal twists, forward folds. Total ~30min.</description>
+  <category>Mobility Yoga</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="300" PowerLow="0.5500" PowerHigh="0.4500"/>
+    <SteadyState Duration="120" Power="0.5500"/>
+    <SteadyState Duration="90" Power="0.5500"/>
+    <SteadyState Duration="90" Power="0.5500"/>
+    <SteadyState Duration="90" Power="0.5500"/>
+    <SteadyState Duration="90" Power="0.5500"/>
+    <SteadyState Duration="90" Power="0.5500"/>
+    <SteadyState Duration="90" Power="0.5500"/>
+    <SteadyState Duration="90" Power="0.5500"/>
+    <SteadyState Duration="120" Power="0.5000"/>
+    <Cooldown Duration="300" PowerLow="0.4500" PowerHigh="0.5500"/>
+  </workout>
+</workout_file>
