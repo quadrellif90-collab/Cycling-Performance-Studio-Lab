@@ -751,6 +751,338 @@ def register_missing_routes(app):
                         "pi_multiplicative": pi_mult,
                         "classification": classification,
                     })
-            return {"rides": zones_data, "n_rides": len(zones_data)}
+                return {"rides": zones_data, "n_rides": len(zones_data)}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── 21. Workout Player: list available workouts ──────────────────────
+    @app.get("/api/player/workouts")
+    async def player_list_workouts():
+        """List all available .zwo workout files."""
+        try:
+            from workout_player import get_workout_files
+            files = get_workout_files()
+            workouts = []
+            for f in files:
+                rel = f.relative_to(Path("workouts").resolve()) if Path("workouts").resolve() in f.parents else f
+                workouts.append({
+                    "filename": f.name,
+                    "path": str(rel),
+                    "name": f.stem,
+                })
+            return {"workouts": workouts}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── 22. Workout Player: parse a workout ──────────────────────────────
+    @app.get("/api/player/workout/{filename}")
+    async def player_get_workout(filename: str):
+        """Parse a ZWO workout and return its timeline + intervals."""
+        try:
+            from workout_player import resolve_workout_path, ZWOParser
+            from profile_manager import ProfileManager
+            pm = ProfileManager.get()
+            ftp = pm.active_profile.get("ftp", 250) if pm.active_profile else 250.0
+            path = resolve_workout_path(filename)
+            if path is None:
+                return JSONResponse({"error": f"Workout not found: {filename}"}, status_code=404)
+            timeline = ZWOParser.parse(path, ftp)
+            return {
+                "name": timeline.name,
+                "description": timeline.description,
+                "author": timeline.author,
+                "duration_total": round(timeline.duration_total, 1),
+                "ftp": timeline.ftp,
+                "intervals": timeline.get_intervals_summary(),
+            }
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── 23. Workout Player: start/resume/stop/pause ──────────────────────
+    @app.post("/api/player/start")
+    async def player_start(request: Request):
+        """Start or resume a workout playback session."""
+        try:
+            from workout_player import WorkoutRegistry, ZWOParser, resolve_workout_path
+            from profile_manager import ProfileManager
+            body = await request.json()
+            filename = body.get("filename")
+            intensity_pct = body.get("intensity_pct", 1.0)
+            if not filename:
+                return JSONResponse({"error": "filename required"}, status_code=400)
+
+            pm = ProfileManager.get()
+            ftp = pm.active_profile.get("ftp", 250) if pm.active_profile else 250.0
+            path = resolve_workout_path(filename)
+            if path is None:
+                return JSONResponse({"error": f"Workout not found: {filename}"}, status_code=404)
+
+            registry = WorkoutRegistry.get()
+            timeline = ZWOParser.parse(path, ftp)
+            session = registry.create_session(timeline)
+            session.set_intensity(intensity_pct)
+
+            return {"ok": True, "session_id": list(registry._active_sessions.keys())[-1] if registry._active_sessions else "session_0"}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.post("/api/player/{action}/{session_id}")
+    async def player_action(action: str, session_id: str):
+        """Perform playback action: stop, pause, resume, skip-next, skip-prev."""
+        try:
+            from workout_player import WorkoutRegistry
+            registry = WorkoutRegistry.get()
+            session = registry.get_session(session_id)
+            if session is None:
+                return JSONResponse({"error": "Session not found"}, status_code=404)
+
+            if action == "stop":
+                session.stop()
+            elif action == "pause":
+                session.pause()
+            elif action == "resume":
+                session.resume()
+            elif action == "skip-next":
+                session.skip_interval(1)
+            elif action == "skip-prev":
+                session.skip_interval(-1)
+            else:
+                return JSONResponse({"error": f"Unknown action: {action}"}, status_code=400)
+
+            return {"ok": True, "status": session.get_status()}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.post("/api/player/intensity/{session_id}")
+    async def player_set_intensity(session_id: str, request: Request):
+        """Set workout intensity percentage (e.g., 0.95 for 95% FTP)."""
+        try:
+            from workout_player import WorkoutRegistry
+            body = await request.json()
+            pct = body.get("intensity_pct", 1.0)
+            registry = WorkoutRegistry.get()
+            session = registry.get_session(session_id)
+            if session is None:
+                return JSONResponse({"error": "Session not found"}, status_code=404)
+            session.set_intensity(pct)
+            return {"ok": True, "intensity_pct": pct}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.post("/api/player/power/{session_id}")
+    async def player_report_power(session_id: str, request: Request):
+        """Report real-time rider power to the player session."""
+        try:
+            from workout_player import WorkoutRegistry
+            body = await request.json()
+            power = body.get("power", 0)
+            registry = WorkoutRegistry.get()
+            session = registry.get_session(session_id)
+            if session is None:
+                return JSONResponse({"error": "Session not found"}, status_code=404)
+            session.report_power(power)
+            return {"ok": True}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.get("/api/player/status/{session_id}")
+    async def player_status(session_id: str):
+        """Get current playback status for a session."""
+        try:
+            from workout_player import WorkoutRegistry
+            registry = WorkoutRegistry.get()
+            session = registry.get_session(session_id)
+            if session is None:
+                return JSONResponse({"error": "Session not found"}, status_code=404)
+            return {"ok": True, "status": session.get_status()}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── 24. Trainer Control ───────────────────────────────────────────────
+    @app.post("/api/trainer/connect")
+    async def trainer_connect(request: Request):
+        """Connect to a smart trainer (ANT+ or BLE)."""
+        try:
+            from workout_player import WorkoutRegistry, ANTPlusTrainer, BLETrainer
+            body = await request.json()
+            protocol = body.get("protocol", "ble")
+            trainer_id = body.get("trainer_id", "")
+            address = body.get("address", "")
+            device_number = body.get("device_number", 0)
+
+            registry = WorkoutRegistry.get()
+            if protocol == "ant+":
+                trainer = ANTPlusTrainer(trainer_id=trainer_id, device_number=device_number)
+            else:
+                trainer = BLETrainer(trainer_id=trainer_id, address=address)
+
+            success = trainer.connect()
+            if not success:
+                return JSONResponse({"error": "Failed to connect to trainer"}, status_code=500)
+
+            tid = registry.register_trainer(trainer)
+            return {"ok": True, "trainer_id": tid, "protocol": protocol}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.get("/api/trainer/list")
+    async def trainer_list():
+        """List all registered trainers and their status."""
+        try:
+            from workout_player import WorkoutRegistry
+            registry = WorkoutRegistry.get()
+            return {"trainers": registry.list_trainers()}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.post("/api/trainer/disconnect/{trainer_id}")
+    async def trainer_disconnect(trainer_id: str):
+        """Disconnect a trainer."""
+        try:
+            from workout_player import WorkoutRegistry
+            registry = WorkoutRegistry.get()
+            trainer = registry.get_trainer(trainer_id)
+            if trainer is None:
+                return JSONResponse({"error": "Trainer not found"}, status_code=404)
+            trainer.disconnect()
+            registry._connected_trainers.pop(trainer_id, None)
+            return {"ok": True}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── 25. HRV Analysis ──────────────────────────────────────────────────
+    @app.post("/api/hrv/extract-rr")
+    async def hrv_extract_rr(request: Request):
+        """Extract RR intervals from raw sensor data."""
+        try:
+            from hrv_engine import extract_rr_intervals
+            body = await request.json()
+            raw_data = body.get("data", [])
+            source = body.get("source", "unknown")
+            rr_points = extract_rr_intervals(raw_data, source=source)
+            return {"ok": True, "rr_points": [asdict(p) for p in rr_points]}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.post("/api/hrv/clean")
+    async def hrv_clean(request: Request):
+        """Clean RR intervals (remove artifacts)."""
+        try:
+            from hrv_engine import clean_rr, compute_quality, RRPoint
+            body = await request.json()
+            raw_points = body.get("data", [])
+            rr_min = body.get("rr_min", 250.0)
+            rr_max = body.get("rr_max", 2500.0)
+            artifact_ratio = body.get("artifact_ratio", 0.25)
+            raw_rr = extract_rr_intervals(raw_points, source="manual")
+            clean_nn = clean_rr(raw_rr, rr_min=rr_min, rr_max=rr_max, artifact_ratio=artifact_ratio)
+            return {"ok": True, "clean_nn": [asdict(c) for c in clean_nn]}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.post("/api/hrv/metrics")
+    async def hrv_metrics(request: Request):
+        """Calculate HRV metrics from cleaned NN intervals."""
+        try:
+            from hrv_engine import clean_rr, compute_hrv_metrics, QualityResult
+            body = await request.json()
+            clean_data = body.get("data", [])
+            raw_data = body.get("raw_data", [])
+            hr = body.get("timestamp")
+            source = body.get("source", "unknown")
+            
+            # Parse clean data
+            clean_nn = [CleanNN(**c) for c in clean_data]
+            raw_rr = [RRPoint(**r) for r in raw_data]
+            
+            m = compute_hrv_metrics(clean_nn, raw=raw_rr, source=source)
+            return {"ok": True, "metrics": asdict(m)}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.post("/api/hrv/daily")
+    async def hrv_daily(request: Request):
+        """Build daily HRV record."""
+        try:
+            from hrv_engine import build_daily_hrv
+            body = await request.json()
+            window = body.get("window", [])
+            raw = body.get("raw", [])
+            date = body.get("date", "")
+            source = body.get("source", "unknown")
+            
+            daily = build_daily_hrv(window, raw, date, source=source)
+            return {"ok": True, "daily": daily}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.post("/api/hrv/baseline")
+    async def hrv_baseline(request: Request):
+        """Compute baseline from daily HRV records."""
+        try:
+            from hrv_engine import compute_baseline
+            body = await request.json()
+            daily = body.get("daily", [])
+            window_days = body.get("window_days", 7)
+            
+            baseline = compute_baseline(daily, window_days=window_days)
+            return {"ok": True, "baseline": baseline}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.post("/api/hrv/deviation")
+    async def hrv_deviation(request: Request):
+        """Calculate deviation of today's HRV vs baseline."""
+        try:
+            from hrv_engine import hrv_deviation
+            body = await request.json()
+            today_rmssd = body.get("today_rmssd", 0.0)
+            baseline_mean = body.get("baseline_mean", 0.0)
+            
+            result = hrv_deviation(today_rmssd, baseline_mean)
+            return {"ok": True, "deviation": result}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.post("/api/hrv/rolling")
+    async def hrv_rolling(request: Request):
+        """Compute rolling average HRV."""
+        try:
+            from hrv_engine import rolling_average
+            body = await request.json()
+            daily = body.get("daily", [])
+            days = body.get("days", 7)
+            
+            result = rolling_average(daily, days=days)
+            return {"ok": True, "rolling": result}
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    # ── 26. Nutrition ─────────────────────────────────────────────────────
+    @app.post("/api/nutrition/daily-targets")
+    async def nutrition_daily_targets(request: Request):
+        """Return daily nutrition targets based on goal and phase."""
+        try:
+            from nutrition import day_macros, supplement_doses
+            from profile_manager import ProfileManager
+            from user_home import cpsl_home
+            
+            pm = ProfileManager.get()
+            athlete_path = cpsl_home() / "profiles" / "default" / "athlete.json"
+            athlete = {}
+            if athlete_path.exists():
+                athlete = json.loads(athlete_path.read_text(encoding="utf-8"))
+            
+            weight = athlete.get("weight_kg", 75)
+            height = athlete.get("height_cm", 180)
+            age = athlete.get("age", 30)
+            sex = athlete.get("sex", "m")
+            goal = body.get("goal", "maintain")
+            phase = body.get("phase", "base")
+            
+            macros = day_macros(goal, phase, weight, height, age, sex)
+            supplements = supplement_doses(goal, phase)
+            
+            return {"ok": True, "macros": macros, "supplements": supplements}
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)

@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ workout.name if workout else "Workout Player" }} — Cycling Performance Studio Lab</title>
+    <link rel="stylesheet" href="/static/cpsl_ui.css">
+    <style>
+        .player-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .workout-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .workout-title {
+            font-size: 1.8em;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+        .workout-meta {
+            font-size: 0.85em;
+            color: #666;
+        }
+        .power-display {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .power-item {
+            text-align: center;
+        }
+        .power-value {
+            font-size: 2.5em;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+        .power-label {
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            margin-top: 4px;
+        }
+        .power-target .power-value { color: #2563eb; }
+        .power-current .power-value { color: #059669; }
+        .power-diff .power-value { color: #dc2626; }
+        .interval-name {
+            font-size: 1.3em;
+            font-weight: 600;
+            text-align: center;
+            margin: 16px 0;
+            color: #1e293b;
+        }
+        .progress-container {
+            margin: 20px 0;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: visible;
+            position: relative;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2563eb, #10b981);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75em;
+            color: #666;
+            margin-top: 4px;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 24px 0;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #33415e;
+            border: 1px solid #cbd5e1;
+        }
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .intensity-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 16px 0;
+        }
+        .intensity-control label {
+            font-weight: 500;
+            color: #475569;
+        }
+        .intensity-control input[type="range"] {
+            width: 200px;
+        }
+        .intensity-control .intensity-value {
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            min-width: 60px;
+            text-align: right;
+        }
+        .intervals-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border-top: 1px solid #e2e8f0;
+        }
+        .interval-row {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .interval-row.active {
+            background: #eff6ff;
+            border-left: 3px solid #2563eb;
+        }
+        .interval-idx {
+            width: 30px;
+            font-size: 0.85em;
+            color: #94a3b8;
+        }
+        .interval-name-cell {
+            flex: 1;
+            font-size: 0.95em;
+        }
+        .interval-target {
+            font-size: 0.9em;
+            color: #475569;
+            font-variant-numeric: tabular-nums;
+        }
+        .trainer-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .trainer-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .trainer-dot.connected { background: #10b981; }
+        .trainer-dot.disconnected { background: #ef4444; }
+        @media (max-width: 768px) {
+            .power-value { font-size: 1.8em; }
+            .controls { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <div class="player-container">
+        <!-- Header -->
+        <div class="workout-header">
+            <div class="workout-title">{{ workout.name if workout else "Workout Player" }}</div>
+            <div class="workout-meta">
+                {{ workout.description if workout else "Select a workout to begin" }} |
+                Duration: {{ "%.1f"|format((workout.duration_total / 60) if workout else 0) }} min
+            </div>
+        </div>
+
+        <!-- Power Display -->
+        <div class="power-display">
+            <div class="power-item power-target">
+                <div class="power-value" id="targetPower">0</div>
+                <div class="power-label">Target (W)</div>
+            </div>
+            <div class="power-item power-current">
+                <div class="power-value" id="currentPower">0</div>
+                <div class="power-label">Current (W)</div>
+            </div>
+            <div class="power-item power-diff">
+                <div class="power-value" id="powerDiff">0</div>
+                <div class="power-label">Difference</div>
+            </div>
+        </div>
+
+        <!-- Interval Name -->
+        <div class="interval-name" id="intervalName">--</div>
+
+        <!-- Progress -->
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+            <div class="progress-labels">
+                <span id="timeElapsed">0:00</span>
+                <span id="timeRemaining">{{ "%.1f"|format((workout.duration_total / 60) if workout else 0) }}:00</span>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button class="btn btn-secondary" id="skipPrevBtn">Previous</button>
+            {% if not session_id %}
+            <button class="btn btn-primary" id="startBtn">Start</button>
+            {% else %}
+            <button class="btn btn-secondary" id="pauseBtn">Pause</button>
+            <button class="btn btn-primary" id="resumeBtn" style="display:none;">Resume</button>
+            <button class="btn btn-danger" id="stopBtn">Stop</button>
+            {% endif %}
+            <button class="btn btn-secondary" id="skipNextBtn">Next</button>
+        </div>
+
+        <!-- Intensity Control -->
+        <div class="intensity-control">
+            <label for="intensitySlider">Intensity:</label>
+            <input type="range" id="intensitySlider" min="50" max="150" value="100">
+            <span class="intensity-value" id="intensityValue">100%</span>
+        </div>
+
+        <!-- Trainer Status -->
+        <div class="trainer-status">
+            <span class="trainer-dot disconnected" id="trainerDot"></span>
+            <span id="trainerText">No trainer connected</span>
+        </div>
+
+        <!-- Intervals List -->
+        {% if workout %}
+        <div class="intervals-list">
+            {% for interval in workout.intervals %}
+            <div class="interval-row" data-interval-index="{{ interval.index }}">
+                <div class="interval-idx">{{ loop.index }}</div>
+                <div class="interval-name-cell">{{ interval.name }}</div>
+                <div class="interval-target">
+                    {% if interval.power > 0 %}
+                    {{ "%.0f%%"|format(interval.power * 100) }} FTP
+                    {% elif interval.power_low > 0 and interval.power_high > 0 %}
+                    {{ "%.0f%%"|format(interval.power_low * 100) }} → {{ "%.0f%%"|format(interval.power_high * 100) }} FTP
+                    {% else %}
+                    —
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        let sessionId = null;
+        let currentInterval = 0;
+        let ftp = {{ workout.ftp if workout else 250 }};
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateDisplay(status) {
+            document.getElementById('targetPower').textContent = Math.round(status.target_power);
+            document.getElementById('currentPower').textContent = Math.round(status.current_power);
+            const diff = status.target_power - status.current_power;
+            document.getElementById('powerDiff').textContent = diff > 0 ? `+${Math.round(diff)}` : `${Math.round(diff)}`;
+
+            document.getElementById('intervalName').textContent = status.target_interval_name;
+            document.getElementById('timeElapsed').textContent = formatTime(status.elapsed);
+            const total = status.total_duration;
+            const remaining = total - status.elapsed;
+            document.getElementById('timeRemaining').textContent = formatTime(Math.max(0, remaining));
+
+            const pct = total > 0 ? (status.elapsed / total) * 100 : 0;
+            document.getElementById('progressFill').style.width = `${Math.min(100, pct)}%`;
+
+            // Highlight current interval
+            document.querySelectorAll('.interval-row').forEach((row, i) => {
+                row.classList.toggle('active', i === status.interval_index);
+            });
+            currentInterval = status.interval_index;
+
+            // Update trainer status
+            const dot = document.getElementById('trainerDot');
+            const text = document.getElementById('trainerText');
+            dot.className = 'trainer-dot disconnected';
+            text.textContent = 'No trainer connected';
+        }
+
+        async function startWorkout() {
+            const btn = document.getElementById('startBtn');
+            btn.disabled = true;
+            btn.textContent = 'Loading...';
+
+            try {
+                const resp = await fetch('/api/player/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        filename: '{{ workout_filename }}',
+                        intensity_pct: 1.0
+                    })
+                });
+                const data = await resp.json();
+                if (data.ok) {
+                    sessionId = Object.keys(data).includes('session_id') ? data.session_id : `session_${Date.now()}`;
+                    document.getElementById('startBtn').style.display = 'none';
+                    document.getElementById('pauseBtn').style.display = 'inline-block';
+                    document.getElementById('resumeBtn').style.display = 'none';
+                    startPolling();
+                }
+            } catch (e) {
+                console.error('Start failed:', e);
+                btn.disabled = false;
+                btn.textContent = 'Start';
+            }
+        }
+
+        async function playerAction(action) {
+            if (!sessionId) return;
+            try {
+                await fetch(`/api/player/${action}/${sessionId}`, { method: 'POST' });
+                updateButtons(action);
+                if (action === 'stop') {
+                    stopPolling();
+                }
+            } catch (e) {
+                console.error('Action failed:', e);
+            }
+        }
+
+        function updateButtons(action) {
+            const pauseBtn = document.getElementById('pauseBtn');
+            const resumeBtn = document.getElementById('resumeBtn');
+            if (action === 'pause') {
+                pauseBtn.style.display = 'none';
+                resumeBtn.style.display = 'inline-block';
+            } else if (action === 'resume') {
+                pauseBtn.style.display = 'inline-block';
+                resumeBtn.style.display = 'none';
+            } else if (action === 'stop') {
+                document.getElementById('startBtn').style.display = 'inline-block';
+                pauseBtn.style.display = 'none';
+                resumeBtn.style.display = 'none';
+            }
+        }
+
+        let pollTimer = null;
+        function startPolling() {
+            stopPolling();
+            pollTimer = setInterval(async () => {
+                if (!sessionId) return;
+                try {
+                    const resp = await fetch(`/api/player/status/${sessionId}`);
+                    const data = await resp.json();
+                    if (data.ok) {
+                        updateDisplay(data.status);
+                    }
+                } catch (e) {
+                    console.error('Poll failed:', e);
+                }
+            }, 1000);
+        }
+
+        function stopPolling() {
+            if (pollTimer) {
+                clearInterval(pollTimer);
+                pollTimer = null;
+            }
+        }
+
+        document.getElementById('startBtn').addEventListener('click', startWorkout);
+        document.getElementById('pauseBtn').addEventListener('click', () => playerAction('pause'));
+        document.getElementById('resumeBtn').addEventListener('click', () => playerAction('resume'));
+        document.getElementById('stopBtn').addEventListener('click', () => playerAction('stop'));
+        document.getElementById('skipNextBtn').addEventListener('click', () => playerAction('skip-next'));
+        document.getElementById('skipPrevBtn').addEventListener('click', () => playerAction('skip-prev'));
+
+        document.getElementById('intensitySlider').addEventListener('input', function() {
+            const pct = this.value;
+            document.getElementById('intensityValue').textContent = `${pct}%`;
+            if (sessionId) {
+                fetch(`/api/player/intensity/${sessionId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ intensity_pct: pct / 100 })
+                }).catch(e => console.error('Intensity update failed:', e));
+            }
+        });
+    </script>
+</body>
+</html>
