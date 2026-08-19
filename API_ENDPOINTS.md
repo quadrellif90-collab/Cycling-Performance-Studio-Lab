@@ -4,6 +4,8 @@ Riferimento completo di tutti gli endpoint HTTP di Cycling Performance Studio La
 
 **Base URL:** `http://127.0.0.1:22400`
 
+**Totale: 224 endpoints** (191 in app.py + 5 in session_manager.py + 2 in gpx_parser.py + 28 in pcc_routes_v2.py)
+
 ---
 
 ## Autenticazione
@@ -13,352 +15,407 @@ Per la produzione, implementare middleware di autenticazione personalizzato.
 
 ---
 
-## Pagine HTML
+## Indice
 
-| Method | Path | Descrizione |
-|--------|------|-------------|
-| GET | `/` | Dashboard principale |
-| GET | `/profile` | Gestione profilo |
-| GET | `/workouts` | Libreria workout |
-| GET | `/analytics` | Dashboard analytics |
-| GET | `/settings` | Impostazioni |
-
----
-
-## Profili API
-
-| Method | Path | Descrizione |
-|--------|------|-------------|
-| GET | `/api/profiles` | Lista tutti i profili |
-| POST | `/api/profiles` | Crea nuovo profilo |
-| POST | `/api/profiles/{id}/switch` | Cambia profilo attivo |
-| DELETE | `/api/profiles/{id}` | Elimina profilo |
-| GET | `/api/profiles/{id}/athlete` | Ottieni dati atleta |
-| POST | `/api/profiles/{id}/athlete` | Salva dati atleta |
-| POST | `/api/profiles/{id}/env` | Salva credenziali .env |
-
-### POST `/api/profiles`
-
-Crea un nuovo profilo atleta.
-
-```json
-Request:
-{
-  "name": "Marco",
-  "color": "blue"
-}
-
-Response:
-{
-  "profile_id": "marco"
-}
-```
-
-### POST `/api/profiles/{id}/athlete`
-
-Salva dati atleta con validazione.
-
-```json
-Request:
-{
-  "ftp": 250,
-  "weight_kg": 75,
-  "lthr": 175,
-  "max_hr": 195,
-  "lbm_kg": 60,
-  "age": 32,
-  "sex": "M"
-}
-
-Response:
-{
-  "success": true
-}
-```
-
-**Validazione:**
-- FTP: 50-600 W
-- Peso: 30-200 kg
-- LTHR: 100-250 bpm
-- Max HR: 100-250 bpm
-- LBM: 20-150 kg
-
-### POST `/api/profiles/{id}/env`
-
-Salva credenziali per profilo (ICU, BIA Vision).
-
-```json
-Request:
-{
-  "icu_athlete_id": "12345",
-  "icu_api_key": "xxx",
-  "icu_access_token": "xxx",
-  "bia_vision_api_key": "xxx"
-}
-
-Response:
-{
-  "success": true
-}
-```
+1. [Version & Health](#version--health)
+2. [Dashboard](#dashboard)
+3. [Profiles](#profiles)
+4. [Fitness](#fitness)
+5. [Training Plan](#training-plan)
+6. [Analysis](#analysis)
+7. [HRV](#hrv)
+8. [Nutrition](#nutrition)
+9. [BIA & Body](#bia--body)
+10. [Strength & Mobility](#strength--mobility)
+11. [Field Tests](#field-tests)
+12. [CP Models](#cp-models)
+13. [Activity Insights](#activity-insights)
+14. [Injury](#injury)
+15. [Calendar](#calendar)
+16. [Export](#export)
+17. [Sync Targets](#sync-targets)
+18. [Custom Charts](#custom-charts)
+19. [Huawei HRV](#huawei-hrv)
+20. [Terra](#terra)
+21. [Onboarding](#onboarding)
+22. [Upstream](#upstream)
+23. [Sessions](#sessions)
+24. [GPX](#gpx)
+25. [Workouts](#workouts)
+26. [Courses](#courses)
+27. [Settings](#settings)
 
 ---
 
-## Sync API
+## Version & Health
 
-| Method | Path | Descrizione |
-|--------|------|-------------|
-| GET | `/api/sync/targets` | Lista target sync disponibili |
-| POST | `/api/sync/icu/push` | Push dati a Intervals.icu |
-
----
-
-## Fitness & Analytics API
-
-| Method | Path | Descrizione |
-|--------|------|-------------|
-| POST | `/api/fitness/estimate-ftp` | Stima FTP dai best efforts |
-| POST | `/api/fitness/signature` | Calcola firma fitness completa |
-| POST | `/api/fitness/cp-wprime` | Analisi CP/W' Monod-Scherrer |
-
-### POST `/api/fitness/estimate-ftp`
-
-Stima FTP usando scaling factors Coggan.
-
-```json
-Request:
-{
-  "efforts": {
-    "300": 280,
-    "600": 250,
-    "1200": 230,
-    "3600": 210
-  }
-}
-
-Response:
-{
-  "ftp": 209,
-  "success": true,
-  "cached": false
-}
-```
-
-### POST `/api/fitness/signature`
-
-Calcola firma fitness completa (FTP, LTP, HIE, Pmax).
-
-```json
-Request:
-{
-  "efforts": {"300": 280, "600": 250},
-  "ftp": 210
-}
-
-Response:
-{
-  "ftp": 210,
-  "ltp": 157,
-  "hie": 21300,
-  "peak_power": 418,
-  "success": true
-}
-```
-
-### POST `/api/fitness/cp-wprime`
-
-Modello Monod-Scherrer per Critical Power e W'.
-
-```json
-Request:
-{
-  "efforts": {
-    "180": 350,
-    "300": 280,
-    "600": 250,
-    "1200": 230
-  }
-}
-
-Response:
-{
-  "cp": 205.0,
-  "w_prime": 23143,
-  "success": true
-}
-```
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/version` | 200 | Versione app (app: "cpsl") |
+| GET | `/api/diag/health` | 200 | Health check |
 
 ---
 
-## Infortuni API
+## Dashboard
 
-| Method | Path | Descrizione |
-|--------|------|-------------|
-| GET | `/api/injuries` | Lista infortuni + sommario |
-| POST | `/api/injuries` | Crea infortunio |
-| PUT | `/api/injuries/{id}` | Aggiorna infortunio |
-| POST | `/api/injuries/{id}/resolve` | Risolvi infortunio |
-| DELETE | `/api/injuries/{id}` | Elimina infortunio |
-
-### POST `/api/injuries`
-
-```json
-Request:
-{
-  "name": "Tendinite rotulea",
-  "date_start": "2025-01-15",
-  "severity": "medium",
-  "notes": "Dolore dopo allenamento in salita"
-}
-
-Response:
-{
-  "success": true,
-  "injury_id": "inj_20250115_abc123"
-}
-```
-
-### GET `/api/injuries`
-
-```json
-Response:
-{
-  "active_injuries": [...],
-  "summary": {
-    "active_count": 2,
-    "total_count": 5,
-    "by_severity": {
-      "minor": 1,
-      "medium": 3,
-      "severe": 1
-    },
-    "recent_injuries": [...]
-  }
-}
-```
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/dashboard/home` | 200 | Home dashboard con TID heatmap, daily adapt, strength, calendar |
+| GET | `/api/activity-insights` | 200 | Insights ultima sessione |
 
 ---
 
-## GPX Import API
+## Profiles
 
-| Method | Path | Descrizione |
-|--------|------|-------------|
-| POST | `/api/gpx/import` | Upload file GPX |
-| POST | `/api/gpx/parse-file` | Parsing GPX da path |
-
-### POST `/api/gpx/import`
-
-Upload multipart di file `.gpx`.
-
-```json
-Response:
-{
-  "success": true,
-  "filename": "ride.gpx",
-  "summary": {
-    "total_tracks": 1,
-    "total_distance_km": 45.2,
-    "total_elevation_gain_m": 850,
-    "total_duration_s": 5400
-  },
-  "routes": [
-    {
-      "track_name": "Morning Ride",
-      "distance_meters": 45200,
-      "elevation_gain_m": 850,
-      "avg_power_w": 185,
-      "max_power_w": 420,
-      "avg_hr": 155,
-      "max_hr": 182
-    }
-  ]
-}
-```
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/profiles` | 200 | Lista tutti i profili |
+| POST | `/api/profiles` | 201 | Crea nuovo profilo |
+| POST | `/api/profiles/{id}/switch` | 200 | Cambia profilo attivo |
+| DELETE | `/api/profiles/{id}` | 200 | Elimina profilo |
+| GET | `/api/profiles/{id}/athlete` | 200 | Ottieni dati atleta |
+| POST | `/api/profiles/{id}/athlete` | 200 | Salva dati atleta |
+| POST | `/api/profiles/{id}/env` | 200 | Salva credenziali .env |
+| GET | `/api/profile` | 200 | Profilo atleta corrente |
 
 ---
 
-## Data Export API
+## Fitness
 
-| Method | Path | Descrizione |
-|--------|------|-------------|
-| GET | `/api/export/backup` | Backup completo profilo |
-| GET | `/api/export/metrics` | Export metriche profilo |
-| GET | `/api/export/zip` | Backup ZIP compresso |
-
----
-
-## Session API
-
-| Method | Path | Descrizione |
-|--------|------|-------------|
-| POST | `/api/sessions` | Crea sessione |
-| GET | `/api/sessions` | Lista sessioni attive |
-| GET | `/api/sessions/{id}` | Ottieni dettagli sessione |
-| DELETE | `/api/sessions/{id}` | Distruggi sessione |
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| POST | `/api/fitness/estimate-ftp` | 200 | Stima FTP dai best efforts |
+| POST | `/api/fitness/signature` | 200 | Calcola firma fitness completa |
+| POST | `/api/fitness/cp-wprime` | 200 | Analisi CP/W' Monod-Scherrer |
+| POST | `/api/fitness/power-curve` | 200 | Curva potenza personalizzata |
+| POST | `/api/fitness/aerobic-decoupling` | 200 | Analisi decoupling aerobico |
+| POST | `/api/fitness/ramp-test` | 200 | Advisory ramp test FTP |
+| GET | `/api/fitness/readiness` | 200 | Readiness score composito |
+| GET | `/api/fitness/strain` | 200 | Strain score ultima sessione |
 
 ---
 
-## Diagnostica API
+## Training Plan
 
-| Method | Path | Descrizione |
-|--------|------|-------------|
-| GET | `/api/diag/recent-errors` | Errori recenti |
-| GET | `/api/diag/health` | Health check |
-
-### GET `/api/diag/health`
-
-```json
-Response:
-{
-  "status": "ok",
-  "active_profile": "marco",
-  "profiles_count": 3,
-  "sync_targets": ["intervals_icu"]
-}
-```
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/plan` | 200 | Piano corrente |
+| POST | `/api/plan/generate` | 200 | Genera nuovo piano |
+| POST | `/api/plan/recalculate` | 200 | Ricalcola piano esistente |
+| POST | `/api/plan/adjust` | 200 | Aggiustamento manuale |
+| DELETE | `/api/plan` | 200 | Elimina piano |
+| POST | `/api/plan/re-draw` | 200 | Ridisegna settimana |
+| POST | `/api/plan/taper` | 200 | Applica taper |
+| GET | `/api/plan/block-model` | 200 | Raccomandazioni blocchi |
+| GET | `/api/plan/daily-adjust` | 200 | Adjustment giornaliero |
+| POST | `/api/plan/delete-session` | 200 | Elimina sessione dal piano |
 
 ---
 
-## Codici di Errore
+## Analysis
 
-Tutti gli errori usano il formato `E_<domain>_<failure>`.
-
-| Codice | Dominio | Descrizione |
-|--------|---------|-------------|
-| `E_PROFILE_LOAD` | profile | Caricamento profilo fallito |
-| `E_PROFILE_SWITCH_FAILED` | profile | Timeout cambio profilo |
-| `E_SYNC_TIMEOUT` | sync | Timeout sync gate |
-| `E_SYNC_BLOCKING_SLOW` | sync | Sync bloccata/lenta |
-| `E_BIA_VISION_FAILED` | bia | Errore Vision API |
-| `E_EXPORT_FAILED` | export | Export fallito |
-
-Per l'elenco completo vedere `error_codes.py` (50 codici).
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/analysis/latest` | 200 | Analisi ultima sessione |
+| GET | `/api/analysis/history` | 200 | Storico analisi |
+| GET | `/api/analysis/weekly-summary` | 200 | Riepilogo settimanale |
+| GET | `/api/analysis/tid-weekly` | 200 | TID (Training Impact Distribution) settimanale |
 
 ---
 
-## Rate Limiting
+## HRV
 
-Nessun rate limiting implementato in modalita sviluppo.
-Per la produzione, implementare rate limiting personalizzato.
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/hrv/summary` | 200 | Riepilogo HRV |
+| GET | `/api/hrv/daily` | 200 | Dati HRV giornalieri |
+| GET | `/api/hrv/trend` | 200 | Trend HRV |
+| GET | `/api/hrv/baseline` | 200 | Baseline HRV |
 
 ---
 
-## Formato Risposta
+## Nutrition
 
-Tutti gli endpoint JSON restituiscono risposte nel formato:
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/nutrition-full` | 200 | Piano nutrizionale completo |
+| GET | `/api/nutrition/macros` | 200 | Macro giornalieri |
+| GET | `/api/nutrition/supplements` | 200 | Raccomandazioni integratori |
+| GET | `/api/diet` | 200 | Piano alimentare |
+| GET | `/api/diet-weekly` | 200 | Piano alimentare settimanale |
 
-```json
-{
-  "success": true,
-  "data": { ... }
-}
-```
+---
 
-In caso di errore:
+## BIA & Body
 
-```json
-{
-  "error": "Descrizione errore",
-  "detail": "Dettagli aggiuntivi"
-}
-```
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/bia/history` | 200 | Storico BIA |
+| GET | `/api/bia/latest` | 200 | Ultimo lettura BIA |
+| POST | `/api/bia/import` | 200 | Importa BIA da PDF |
+| POST | `/api/bia/manual` | 200 | Inserimento manuale BIA |
+| GET | `/api/bia-history` | 200 | Storico BIA (alias) |
+
+---
+
+## Strength & Mobility
+
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/strength-plan` | 200 | Piano forza |
+| GET | `/api/strength/summary` | 200 | Riepilogo forza per fase |
+| GET | `/api/mobility-plan` | 200 | Piano mobilita |
+| GET | `/api/mobility/today` | 200 | Routine mobilita oggi |
+
+---
+
+## Field Tests
+
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/field-test/protocols` | 200 | Lista protocolli test campo |
+| GET | `/api/field-test/{id}` | 200 | Dettaglio protocollo |
+| POST | `/api/field-test/start` | 200 | Inizia test |
+| POST | `/api/field-test/complete` | 200 | Completa test |
+
+---
+
+## CP Models
+
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/cp-models` | 200 | Modelli CP disponibili |
+| POST | `/api/cp-models/fit` | 200 | Fitta modello CP |
+| GET | `/api/cp-models/latest` | 200 | Ultimo modello CP |
+
+---
+
+## Activity Insights
+
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/activity-insights` | 200 | Insights sessione |
+| POST | `/api/activity/rpe` | 200 | Log RPE per sessione |
+| GET | `/api/activity/rpe-history` | 200 | Storico RPE |
+
+---
+
+## Injury
+
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/injuries` | 200 | Lista infortuni |
+| POST | `/api/injuries` | 201 | Crea infortunio |
+| GET | `/api/injuries/{id}` | 200 | Dettaglio infortunio |
+| PUT | `/api/injuries/{id}` | 200 | Aggiorna infortunio |
+| DELETE | `/api/injuries/{id}` | 200 | Elimina infortunio |
+| GET | `/api/injuries/summary` | 200 | Riepilogo infortuni |
+| GET | `/api/injury/blocks` | 200 | Blocchi infortunio attivi |
+
+---
+
+## Calendar
+
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/calendar.ics` | 200 | Esporta piano in formato ICS |
+
+---
+
+## Export
+
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/export/backup` | 200 | Backup completo profilo |
+| GET | `/api/export/bundle` | 200 | Bundle ZIP con tutti i dati |
+| GET | `/api/export/metrics-csv` | 200 | Metriche in formato CSV |
+
+---
+
+## Sync Targets
+
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/sync-targets` | 200 | Lista sync targets disponibili |
+| GET | `/api/sync-targets/{id}` | 200 | Dettaglio sync target |
+| POST | `/api/sync-targets/{id}/push` | 200 | Push dati a target |
+| POST | `/api/sync-targets/{id}/pull` | 200 | Pull dati da target |
+
+---
+
+## Custom Charts
+
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/custom-charts` | 200 | Lista grafici custom |
+| POST | `/api/custom-charts` | 201 | Crea grafico custom |
+| PUT | `/api/custom-charts/{id}` | 200 | Aggiorna grafico |
+| DELETE | `/api/custom-charts/{id}` | 200 | Elimina grafico |
+
+---
+
+## Huawei HRV
+
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/huawei/status` | 200 | Stato connessione Huawei |
+| GET | `/api/huawei/hrv/summary` | 200 | Riepilogo HRV Huawei |
+| GET | `/api/huawei/hrv/daily` | 200 | Dati HRV giornalieri Huawei |
+| GET | `/api/huawei/hrv/export` | 200 | Esporta HRV Huawei |
+| GET | `/api/huawei/hrv/debug` | 422* | Debug dati HRV (richiede query params) |
+| POST | `/api/huawei/import` | 200 | Importa dati Huawei |
+| GET | `/api/huawei/devices` | 200 | Lista dispositivi Huawei |
+| GET | `/api/huawei/activities` | 200 | Attivita Huawei |
+
+---
+
+## Terra
+
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/terra/status` | 500* | Stato Terra (richiede credenziali) |
+| POST | `/api/terra/auth` | 200 | Genera URL auth Terra |
+| POST | `/api/terra/callback` | 200 | Callback Terra OAuth |
+| POST | `/api/terra/disconnect` | 200 | Disconnetti Terra |
+| GET | `/api/terra/data` | 200 | Dati Terra |
+
+*\* 500 = nessuna credenziale Terra configurata (expected)*
+
+---
+
+## Onboarding
+
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/onboarding/status` | 500* | Stato onboarding |
+| POST | `/api/onboarding/complete` | 200 | Completa onboarding |
+| POST | `/api/onboarding/skip` | 200 | Skip onboarding |
+
+*\* 500 = nessun dato onboarding (expected)*
+
+---
+
+## Upstream
+
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/upstream/check` | 200 | Verifica aggiornamenti |
+
+---
+
+## Sessions (session_manager.py)
+
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/sessions` | 200 | Lista sessioni |
+| POST | `/api/sessions` | 201 | Crea sessione |
+| GET | `/api/sessions/{id}` | 200 | Dettaglio sessione |
+| PUT | `/api/sessions/{id}` | 200 | Aggiorna sessione |
+| GET | `/api/audit-log` | 200 | Audit log |
+
+---
+
+## GPX (gpx_parser.py)
+
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| POST | `/api/gpx/import` | 200 | Upload e parsing file GPX |
+| GET | `/api/gpx/activities` | 200 | Attivita GPX importate |
+
+---
+
+## Workouts
+
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/workouts` | 200 | Libreria workout |
+| GET | `/api/workouts/{id}` | 200 | Dettaglio workout |
+| POST | `/api/workouts/import` | 200 | Importa workout |
+| GET | `/api/workouts/stats` | 200 | Statistiche libreria |
+
+---
+
+## Courses
+
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/courses` | 200 | Lista percorsi |
+| GET | `/api/courses/{id}` | 200 | Dettaglio percorso |
+| POST | `/api/courses` | 201 | Crea percorso |
+| PUT | `/api/courses/{id}` | 200 | Aggiorna percorso |
+| DELETE | `/api/courses/{id}` | 200 | Elimina percorso |
+
+---
+
+## Settings
+
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/settings` | 200 | Impostazioni correnti |
+| PUT | `/api/settings` | 200 | Aggiorna impostazioni |
+| POST | `/api/settings/icu` | 200 | Salva credenziali ICU |
+| GET | `/api/settings/icu/status` | 200 | Stato connessione ICU |
+
+---
+
+## Metabolic Profile
+
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/metabolic-profile` | 200 | Profilo metabolico |
+
+---
+
+## Recommendations
+
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/athlete/recommendations` | 200 | Raccomandazioni personalizzate |
+
+---
+
+## Pedal Asymmetry
+
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/pedal-latest` | 200 | Ultima lettura asimmetria |
+| GET | `/api/pedal-history` | 200 | Storico asimmetria |
+
+---
+
+## CPEP (CP Event Protocol)
+
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/cpep-latest` | 200 | Ultimo CPEP record |
+
+---
+
+## Route Analysis
+
+| Method | Path | Status | Descrizione |
+|--------|------|--------|-------------|
+| GET | `/api/route-wprime` | 422* | Analisi W' per percorso (richiede query params) |
+
+*\* 422 = parametri query mancanti (expected)*
+
+---
+
+## Errori Comuni
+
+| Status | Significato |
+|--------|-------------|
+| 200 | Successo |
+| 404 | Endpoint non trovato |
+| 422 | Parametri mancanti o non validi |
+| 500 | Errore interno (spesso expected: nessun dato/credenziali) |
+
+---
+
+## Note
+
+- **Base URL**: `http://127.0.0.1:22400`
+- **Formato risposta**: JSON (tranne `/api/calendar.ics` che ritorna `text/calendar`)
+- **CORS**: Abilitato per tutti gli origin
+- **Autenticazione**: Nessuna in modalita sviluppo
+- **Docs**: `http://127.0.0.1:22400/docs` (Swagger UI) e `http://127.0.0.1:22400/redoc` (ReDoc)
