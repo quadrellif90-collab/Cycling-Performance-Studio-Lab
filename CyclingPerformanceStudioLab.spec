@@ -120,6 +120,10 @@ a = Analysis(
         "plan_options",
         "run_web",
         "strength_mobility",
+        "diet_parser",
+        "terra_sync",
+        "upstream_check",
+        "pcc_routes_v2",
         # Domestique modules
         "readiness",
         "readiness_composite",
