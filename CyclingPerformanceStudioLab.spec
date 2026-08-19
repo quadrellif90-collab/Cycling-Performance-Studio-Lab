@@ -83,7 +83,10 @@ a = Analysis(
         "scipy.optimize",
         "scipy.linalg",
         # Core modules
+        "workout_player",
         "profile_manager",
+        "hrv_engine",
+        "nutrition",
         "log_config",
         "error_codes",
         "config",

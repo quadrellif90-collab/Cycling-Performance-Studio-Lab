@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRV Monitor — Cycling Performance Studio Lab</title>
+    <link rel="stylesheet" href="/static/cpsl_ui.css">
+    <style>
+        .hrv-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .hrv-header {
+            text-align: center;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .hrv-title {
+            font-size: 1.8em;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+        .hrv-subtitle {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .status-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .status-label {
+            font-size: 0.85em;
+            color: #666;
+        }
+        .status-value {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .status-value.good { color: #10b981; }
+        .status-value.poor { color: #ef4444; }
+        .status-value.warning { color: #f59e0b; }
+        .hrv-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 20px 0;
+        }
+        .hrv-panel {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        }
+        .hrv-panel h3 {
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+        }
+        .metric-label {
+            font-size: 0.8em;
+            color: #666;
+        }
+        .metric-value {
+            font-weight: 600;
+            color: #1e293b;
+            font-variant-numeric: tabular-nums;
+        }
+        .metric-value.good { color: #10b981; }
+        .metric-value.poor { color: #ef4444; }
+        .metric-value.warning { color: #f59e0b; }
+        .morning-window {
+            background: #f0f4ff;
+            border-radius 8px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+        .morning-window h4 {
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .morning-window p {
+            font-size: 0.9em;
+            color: #1e293b;
+        }
+        .chart-canvas {
+            background: #f8f9fa;
+            border-radius: 8px;
+            min-height: 200px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+        @media (max-width: 768px) {
+            .hrv-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="hrv-container">
+        <div class="hrv-header">
+            <div class="hrv-title">HRV Monitor</div>
+            <div class="hrv-subtitle">Heart Rate Variability — Recovery & Readiness</div>
+        </div>
+
+        <!-- Status Card -->
+        <div class="status-card" id="statusCard">
+            <div class="status-row">
+                <span class="status-label">Ultima misurazione</span>
+                <span class="status-value" id="lastHrv">Caricando...</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">Punteggio qualità</span>
+                <span class="status-value" id="qualityScore">—</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">Categoria</span>
+                <span class="status-value" id="qualityCategory">—</span>
+            </div>
+        </div>
+
+        <!-- Main HRV Grid -->
+        <div class="hrv-grid">
+            <!-- RMSSD Panel -->
+            <div class="hrv-panel">
+                <h3>RMSSD (ms)</h3>
+                <div class="metric-row">
+                    <span class="metric-label">Valore attuale</span>
+                    <span class="metric-value" id="rmssdValue">—</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Baseline media</span>
+                    <span class="metric-value" id="rmssdBaseline">—</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Deviazione%</span>
+                    <span class="metric-value" id="rmssdDev">—</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Stato</span>
+                    <span class="metric-value" id="rmssdStatus">—</span>
+                </div>
+            </div>
+
+            <!-- SDNN Panel -->
+            <div class="hrv-panel">
+                <h3>SDNN (ms)</h3>
+                <div class="metric-row">
+                    <span class="metric-label">Valore attuale</span>
+                    <span class="metric-value" id="sdnnValue">—</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Valore basale</span>
+                    <span class="metric-value" id="sdnnBaseline">—</span>
+                </div>
+            </div>
+
+            <!-- Time Domain -->
+            <div class="hrv-panel">
+                <h3>Time Domain</h3>
+                <div class="metric-row">
+                    <span class="metric-label">FC media</span>
+                    <span class="metric-value" id="hrValue">— bpm</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">pNN50 (%)</span>
+                    <span class="metric-value" id="pnn50Value">—</span>
+                </div>
+            </div>
+
+            <!-- Frequency Domain -->
+            <div class="hrv-panel">
+                <h3>Freq. Domain</h3>
+                <div class="metric-row">
+                    <span class="metric-label">LF (ms²)</span>
+                    <span class="metric-value" id="lfValue">—</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">HF (ms²)</span>
+                    <span class="metric-value" id="hfValue">—</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">LF/HF</span>
+                    <span class="metric-value" id="lfhfValue">—</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Morning Window -->
+        <div class="morning-window" id="morningWindow" style="display:none;">
+            <h4>Finestra mattutina HRV</h4>
+            <p id="morningDetail">RR intervals rilevati durante la finestra post-risveglio</p>
+        </div>
+
+        <!-- HRV Trend Chart -->
+        <div class="chart-canvas" id="trendCanvas">Trend HRV (7 giorni)</div>
+
+        <!-- Action Buttons -->
+        <div style="margin-top: 24px; text-align: center;">
+            <button class="btn btn-primary" id="refreshBtn">Aggiorna HRV</button>
+            <button class="btn btn-secondary" id="importBtn">Importa dati FIT/TCX</button>
+        </div>
+    </div>
+
+    <script>
+        let hrvData = [];
+        let baseline = null;
+
+        function formatNumber(val) {
+            if (val === undefined || val === null) return "—";
+            return parseFloat(val).toFixed(1);
+        }
+
+        function updateStatus(data) {
+            const card = document.getElementById('statusCard');
+            if (!data.valid) {
+                card.style.background = '#fff0f0';
+                document.getElementById('lastHrv').textContent = 'Nessuna misurazione valida';
+                document.getElementById('qualityScore').textContent = '—';
+                document.getElementById('qualityCategory').textContent = 'invalid';
+                return;
+            }
+            
+            card.style.background = '#f8f9fa';
+            document.getElementById('lastHrv').textContent = new Date(data.timestamp * 1000).toLocaleString();
+            document.getElementById('qualityScore').textContent = data.quality_score.toFixed(2);
+            
+            const catMap = { excellent: 'Eccellente', good: 'Buono', fair: 'Sufficiente', poor: 'Scarso', invalid: 'Non valida' };
+            document.getElementById('qualityCategory').textContent = catMap[data.quality_category] || data.quality_category;
+
+            // Update RMSSD
+            document.getElementById('rmssdValue').textContent = formatNumber(data.rmssd_ms);
+            document.getElementById('rmssdBaseline').textContent = formatNumber(data.baseline_mean);
+            
+            if (data.deviation_pct !== null) {
+                document.getElementById('rmssdDev').textContent = `${data.deviation_pct > 0 ? '+' : ''}${data.deviation_pct}%`;
+                const devEl = document.getElementById('rmssdStatus');
+                if (data.deviation_pct > 10) {
+                    devEl.classList.remove('good', 'warning', 'poor');
+                    devEl.classList.add('poor');
+                    devEl.textContent = 'Alta variazione — recovery potrebbe essere compromesso';
+                } else if (data.deviation_pct > 5) {
+                    devEl.classList.remove('good', 'warning', 'poor');
+                    devEl.classList.add('warning');
+                    devEl.textContent = 'Variazione moderata';
+                } else {
+                    devEl.classList.remove('good', 'warning', 'poor');
+                    devEl.classList.add('good');
+                    devEl.textContent = 'Nella norma';
+                }
+            } else {
+                document.getElementById('rmssdDev').textContent = '—';
+                document.getElementById('rmssdStatus').textContent = '—';
+            }
+        }
+
+        function updateMetrics(data) {
+            if (!data.valid) return;
+
+            document.getElementById('rmssdValue').textContent = formatNumber(data.rmssd_ms);
+            document.getElementById('sdnnValue').textContent = formatNumber(data.sdnn_ms);
+            document.getElementById('hrValue').textContent = formatNumber(data.mean_hr) + ' bpm';
+            document.getElementById('pnn50Value').textContent = formatNumber(data.pnn50_pct) + ' %';
+            document.getElementById('lfValue').textContent = formatNumber(data.lf_ms2) + ' ms²';
+            document.getElementById('hfValue').textContent = formatNumber(data.hf_ms2) + ' ms²';
+            document.getElementById('lfhfValue').textContent = formatNumber(data.lf_hf_ratio);
+        }
+
+        function updateMorningWindow(data) {
+            const mw = document.getElementById('morningWindow');
+            if (!data || data.length === 0) {
+                mw.style.display = 'none';
+                return;
+            }
+            mw.style.display = 'block';
+            document.getElementById('morningDetail').textContent = 
+                `${data.length} battiti rilevati nella finestra mattutina. RMSSD: ${formatNumber(data[0].rmssd_ms)} ms`;
+        }
+
+        async function refreshHrv() {
+            try {
+                const resp = await fetch('/api/hrv/baseline', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ daily: [], window_days: 7 })
+                });
+                const data = await resp.json();
+                if (data.ok) {
+                    baseline = data.baseline;
+                    updateStatus(baseline);
+                }
+            } catch (e) {
+                console.error('HRV refresh failed:', e);
+            }
+
+            try {
+                const resp = await fetch('/api/hrv/rolling', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ daily: [], days: 7 })
+                });
+                const data = await resp.json();
+                if (data.ok) {
+                    // Render simple trend
+                    const canvas = document.getElementById('trendCanvas');
+                    canvas.innerHTML = 'Trend: ' + data.rolling.map(r => r.date + ': ' + r['rolling_7d']).join(', ');
+                }
+            } catch (e) {
+                console.error('HRV trend failed:', e);
+            }
+        }
+
+        document.getElementById('refreshBtn').addEventListener('click', refreshHrv);
+        refreshHrv();
+    </script>
+</body>
+</html>
