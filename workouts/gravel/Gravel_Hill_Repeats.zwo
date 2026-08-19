@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Gravel Hill Repeats</name>
+  <description>Climbing repeats on gravel terrain. 5x3min climb with 2min descent. Total ~45min.</description>
+  <category>Gravel Climbing</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="480" PowerLow="0.7000" PowerHigh="0.5000"/>
+    <SteadyState Duration="180" Power="0.9500"/>
+    <Interval Duration="120" PowerLow="0.5500" PowerHigh="0.5500"/>
+    <SteadyState Duration="180" Power="1.0000"/>
+    <Interval Duration="120" PowerLow="0.5500" PowerHigh="0.5500"/>
+    <SteadyState Duration="180" Power="1.0000"/>
+    <Interval Duration="120" PowerLow="0.5500" PowerHigh="0.5500"/>
+    <SteadyState Duration="180" Power="1.0000"/>
+    <Interval Duration="120" PowerLow="0.5500" PowerHigh="0.5500"/>
+    <SteadyState Duration="180" Power="1.0000"/>
+    <Cooldown Duration="480" PowerLow="0.5000" PowerHigh="0.7000"/>
+  </workout>
+</workout_file>

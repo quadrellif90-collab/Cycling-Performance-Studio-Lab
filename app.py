@@ -11741,6 +11741,25 @@ def _api_today_session_impl():
     if r.get("score") is None:
         r["score"] = 50  # final-fallback neutral default if no local data either
 
+    # ── BETA Fase 5: feed daily_recalculate_adjustment factor into ──────
+    # the readiness dict so adjust_today_session can apply it as a load
+    # multiplier. This closes the gap between the standalone /api/daily-adapt
+    # endpoint and the live session-adjustment pipeline.
+    try:
+        from training_planner import daily_recalculate_adjustment
+        _beta = daily_recalculate_adjustment(
+            hrv_ms=(training.get("hrv") or {}).get("rmssd_ms")
+                   if isinstance(training.get("hrv"), dict) else None,
+            dfa_alpha1=(training.get("dfa") or {}).get("alpha1_last")
+                       if isinstance(training.get("dfa"), dict) else None,
+            hooper=r.get("hooper_index"),
+            sleep_score=sleep.get("score"),
+            tsb=training.get("tsb"),
+        )
+        r["beta_load_factor"] = _beta.get("factor", 1.0)
+    except Exception:  # noqa: BLE001
+        r["beta_load_factor"] = 1.0
+
     hrv_streak = sleep.get("red_hrv_streak", 0)
 
     # Check yesterday's actual TSS vs planned (with cross-training weighting)

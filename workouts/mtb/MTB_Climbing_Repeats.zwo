@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>MTB Climbing Repeats</name>
+  <description>Simulate repeated climbs. 4x5min at high resistance with coast recovery. Total ~50min.</description>
+  <category>MTB Climbing</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="480" PowerLow="0.7000" PowerHigh="0.5000"/>
+    <SteadyState Duration="300" Power="1.0000"/>
+    <Interval Duration="180" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="300" Power="1.0500"/>
+    <Interval Duration="180" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="300" Power="1.0500"/>
+    <Interval Duration="180" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="300" Power="1.0500"/>
+    <Cooldown Duration="480" PowerLow="0.5000" PowerHigh="0.7000"/>
+  </workout>
+</workout_file>

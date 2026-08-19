@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Cyclist Core Strength</name>
+  <description>Core stability workout for cycling performance. Planks, dead bugs, pallof press. Total ~30min.</description>
+  <category>Cross-Training Core</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="300" PowerLow="0.6500" PowerHigh="0.5000"/>
+    <SteadyState Duration="60" Power="0.7000"/>
+    <Interval Duration="30" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="60" Power="0.7000"/>
+    <Interval Duration="30" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="60" Power="0.7000"/>
+    <Interval Duration="30" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="60" Power="0.7000"/>
+    <Interval Duration="30" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="60" Power="0.7000"/>
+    <Interval Duration="30" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="60" Power="0.7000"/>
+    <Cooldown Duration="300" PowerLow="0.5000" PowerHigh="0.6500"/>
+  </workout>
+</workout_file>

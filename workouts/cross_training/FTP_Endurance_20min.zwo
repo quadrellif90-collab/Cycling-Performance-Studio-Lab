@@ -1,0 +1,15 @@
+<workout_file>
+    <author>Philipp - SYSTM Style</author>
+    <n>FTP Endurance 20min</n>
+    <description>Steady endurance at 75% FTP - aerobic base building | Focus: Endurance</description>
+    <sportType>bike</sportType>
+    <tags>
+        <tag name="FTP"/>
+        <tag name="4DP"/>
+    </tags>
+    <workout>
+        <Warmup Duration="300" PowerLow="0.5" PowerHigh="0.65" pace="0"/>
+        <SteadyState Duration="900" Power="0.75" pace="0"/>
+        <Cooldown Duration="300" PowerLow="0.65" PowerHigh="0.5" pace="0"/>
+    </workout>
+</workout_file>

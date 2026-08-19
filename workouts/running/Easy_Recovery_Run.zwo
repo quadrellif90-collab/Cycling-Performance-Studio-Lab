@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Easy Recovery Run</name>
+  <description>Easy-paced recovery run. Keep heart rate low. Total ~30min.</description>
+  <category>Running Recovery</category>
+  <sportType>run</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="300" PowerLow="0.6500" PowerHigh="0.5500"/>
+    <SteadyState Duration="1200" Power="0.6500"/>
+    <Cooldown Duration="300" PowerLow="0.5500" PowerHigh="0.6500"/>
+  </workout>
+</workout_file>

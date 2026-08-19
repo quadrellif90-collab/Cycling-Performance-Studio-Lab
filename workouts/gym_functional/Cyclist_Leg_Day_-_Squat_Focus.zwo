@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Cyclist Leg Day - Squat Focus</name>
+  <description>Heavy compound lower body session. Back squats, lunges, leg press. Total ~45min.</description>
+  <category>Gym Strength</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="480" PowerLow="0.6500" PowerHigh="0.5000"/>
+    <SteadyState Duration="120" Power="0.7500"/>
+    <Interval Duration="60" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="120" Power="0.8500"/>
+    <Interval Duration="90" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="120" Power="0.8500"/>
+    <Interval Duration="90" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="120" Power="0.8500"/>
+    <Interval Duration="90" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="90" Power="0.8000"/>
+    <Interval Duration="60" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="90" Power="0.8000"/>
+    <Cooldown Duration="480" PowerLow="0.5000" PowerHigh="0.6500"/>
+  </workout>
+</workout_file>

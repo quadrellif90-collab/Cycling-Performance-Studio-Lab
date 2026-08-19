@@ -98,6 +98,33 @@ class TestTrainingPlanner:
         from training_planner import daily_recalculate_adjustment
         assert callable(daily_recalculate_adjustment)
 
+    def test_daily_recalculate_returns_factor(self):
+        from training_planner import daily_recalculate_adjustment
+        result = daily_recalculate_adjustment()
+        assert "factor" in result
+        assert 0.80 <= result["factor"] <= 1.10
+
+    def test_daily_recalculate_low_hrv(self):
+        from training_planner import daily_recalculate_adjustment
+        result = daily_recalculate_adjustment(hrv_ms=15)
+        assert result["factor"] < 1.0
+        assert any("HRV" in s for s in result["signals"])
+
+    def test_adjust_today_session_beta_factor(self):
+        from training_planner import adjust_today_session, PlannedSession
+        ps = PlannedSession(
+            day=__import__("datetime").date.today(),
+            day_name="Mon", session_type="threshold",
+            duration_min=60, tss_estimate=80,
+            description="test",
+        )
+        adjusted, _ = adjust_today_session(
+            planned=ps,
+            readiness={"score": 80, "beta_load_factor": 0.85},
+        )
+        assert adjusted.duration_min <= 60
+        assert adjusted.tss_estimate <= 80
+
     def test_recommend_block_model(self):
         from training_planner import recommend_block_model
         assert callable(recommend_block_model)

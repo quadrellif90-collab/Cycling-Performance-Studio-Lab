@@ -1,0 +1,29 @@
+<workout_file>
+    <author>Philipp - SYSTM Style</author>
+    <n>FTP Over-Under 35min</n>
+    <description>4x5min over/under - 2min@90%, 2min@105%, 1min@90% | Focus: Threshold Variability</description>
+    <sportType>bike</sportType>
+    <tags>
+        <tag name="FTP"/>
+        <tag name="4DP"/>
+    </tags>
+    <workout>
+        <Warmup Duration="420" PowerLow="0.5" PowerHigh="0.75" pace="0"/>
+        <SteadyState Duration="120" Power="0.9" pace="0"/>
+        <SteadyState Duration="120" Power="1.05" pace="0"/>
+        <SteadyState Duration="60" Power="0.9" pace="0"/>
+        <SteadyState Duration="90" Power="0.55" pace="0"/>
+        <SteadyState Duration="120" Power="0.9" pace="0"/>
+        <SteadyState Duration="120" Power="1.05" pace="0"/>
+        <SteadyState Duration="60" Power="0.9" pace="0"/>
+        <SteadyState Duration="90" Power="0.55" pace="0"/>
+        <SteadyState Duration="120" Power="0.9" pace="0"/>
+        <SteadyState Duration="120" Power="1.05" pace="0"/>
+        <SteadyState Duration="60" Power="0.9" pace="0"/>
+        <SteadyState Duration="90" Power="0.55" pace="0"/>
+        <SteadyState Duration="120" Power="0.9" pace="0"/>
+        <SteadyState Duration="120" Power="1.05" pace="0"/>
+        <SteadyState Duration="60" Power="0.9" pace="0"/>
+        <Cooldown Duration="300" PowerLow="0.75" PowerHigh="0.5" pace="0"/>
+    </workout>
+</workout_file>

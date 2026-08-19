@@ -1,0 +1,14 @@
+<workout_file>
+    <author>Philipp</author>
+    <name>Endurance 35min</name>
+    <description>Base endurance ride at 65% FTP</description>
+    <sportType>bike</sportType>
+    <tags>
+        <tag name="Endurance"/>
+    </tags>
+    <workout>
+        <Warmup Duration="180" PowerLow="0.5" PowerHigh="0.65" pace="0"/>
+        <SteadyState Duration="1920" Power="0.65" pace="0"/>
+        <Cooldown Duration="180" PowerLow="0.65" PowerHigh="0.5" pace="0"/>
+    </workout>
+</workout_file>

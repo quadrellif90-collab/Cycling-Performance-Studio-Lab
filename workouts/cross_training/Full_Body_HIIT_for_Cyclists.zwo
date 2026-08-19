@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Full Body HIIT for Cyclists</name>
+  <description>High-intensity interval training for cross-training. Burpees, mountain climbers, squats. Total ~25min.</description>
+  <category>Cross-Training HIIT</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="300" PowerLow="0.7000" PowerHigh="0.5000"/>
+    <SteadyState Duration="45" Power="1.0000"/>
+    <Interval Duration="30" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="45" Power="1.0500"/>
+    <Interval Duration="30" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="45" Power="1.0000"/>
+    <Interval Duration="30" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="45" Power="1.0500"/>
+    <Interval Duration="30" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="45" Power="1.0000"/>
+    <Interval Duration="30" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="45" Power="1.0500"/>
+    <Cooldown Duration="300" PowerLow="0.5000" PowerHigh="0.7000"/>
+  </workout>
+</workout_file>

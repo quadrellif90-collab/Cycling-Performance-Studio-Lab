@@ -1,0 +1,29 @@
+<workout_file>
+    <author>Philipp - SYSTM Style</author>
+    <n>NM Sprint Drills 20min</n>
+    <description>8x10sec max sprints - neuromuscular development | Focus: Sprint Power</description>
+    <sportType>bike</sportType>
+    <tags>
+        <tag name="NM"/>
+        <tag name="4DP"/>
+    </tags>
+    <workout>
+        <Warmup Duration="480" PowerLow="0.5" PowerHigh="0.7" pace="0"/>
+        <SteadyState Duration="10" Power="3.0" pace="0"/>
+        <SteadyState Duration="110" Power="0.55" pace="0"/>
+        <SteadyState Duration="10" Power="3.0" pace="0"/>
+        <SteadyState Duration="110" Power="0.55" pace="0"/>
+        <SteadyState Duration="10" Power="3.0" pace="0"/>
+        <SteadyState Duration="110" Power="0.55" pace="0"/>
+        <SteadyState Duration="10" Power="3.0" pace="0"/>
+        <SteadyState Duration="110" Power="0.55" pace="0"/>
+        <SteadyState Duration="10" Power="3.0" pace="0"/>
+        <SteadyState Duration="110" Power="0.55" pace="0"/>
+        <SteadyState Duration="10" Power="3.0" pace="0"/>
+        <SteadyState Duration="110" Power="0.55" pace="0"/>
+        <SteadyState Duration="10" Power="3.0" pace="0"/>
+        <SteadyState Duration="110" Power="0.55" pace="0"/>
+        <SteadyState Duration="10" Power="3.0" pace="0"/>
+        <Cooldown Duration="300" PowerLow="0.7" PowerHigh="0.5" pace="0"/>
+    </workout>
+</workout_file>

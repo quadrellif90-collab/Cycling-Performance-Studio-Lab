@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>MTB Sprint Starts</name>
+  <description>Explosive start intervals for race starts. 6x15s max effort with 3min recovery. Total ~30min.</description>
+  <category>MTB Sprint</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="480" PowerLow="0.7000" PowerHigh="0.5000"/>
+    <SteadyState Duration="15" Power="1.3000"/>
+    <Interval Duration="180" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="15" Power="1.3500"/>
+    <Interval Duration="180" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="15" Power="1.3000"/>
+    <Interval Duration="180" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="15" Power="1.3500"/>
+    <Interval Duration="180" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="15" Power="1.3000"/>
+    <Interval Duration="180" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="15" Power="1.3500"/>
+    <Cooldown Duration="480" PowerLow="0.5000" PowerHigh="0.7000"/>
+  </workout>
+</workout_file>

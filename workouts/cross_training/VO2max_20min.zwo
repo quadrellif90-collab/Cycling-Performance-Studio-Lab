@@ -1,0 +1,22 @@
+<workout_file>
+    <author>Philipp</author>
+    <name>VO2max 20min</name>
+    <description>5x2min at 120% FTP with 1.5min recovery</description>
+    <sportType>bike</sportType>
+    <tags>
+        <tag name="VO2max"/>
+    </tags>
+    <workout>
+        <Warmup Duration="300" PowerLow="0.5" PowerHigh="0.75" pace="0"/>
+        <SteadyState Duration="120" Power="1.2" pace="0"/>
+        <SteadyState Duration="90" Power="0.55" pace="0"/>
+        <SteadyState Duration="120" Power="1.2" pace="0"/>
+        <SteadyState Duration="90" Power="0.55" pace="0"/>
+        <SteadyState Duration="120" Power="1.2" pace="0"/>
+        <SteadyState Duration="90" Power="0.55" pace="0"/>
+        <SteadyState Duration="120" Power="1.2" pace="0"/>
+        <SteadyState Duration="90" Power="0.55" pace="0"/>
+        <SteadyState Duration="120" Power="1.2" pace="0"/>
+        <Cooldown Duration="300" PowerLow="0.75" PowerHigh="0.5" pace="0"/>
+    </workout>
+</workout_file>

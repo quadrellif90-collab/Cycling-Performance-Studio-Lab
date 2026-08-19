@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Single-Leg Stability</name>
+  <description>Unilateral strength for cycling balance. Bulgarian split squats, step-ups, single-leg deadlift. Total ~40min.</description>
+  <category>Gym Stability</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="480" PowerLow="0.6500" PowerHigh="0.5000"/>
+    <SteadyState Duration="90" Power="0.7500"/>
+    <Interval Duration="45" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="90" Power="0.7500"/>
+    <Interval Duration="45" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="90" Power="0.8000"/>
+    <Interval Duration="45" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="90" Power="0.8000"/>
+    <Interval Duration="45" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="90" Power="0.7500"/>
+    <Interval Duration="45" PowerLow="0.5000" PowerHigh="0.5000"/>
+    <SteadyState Duration="90" Power="0.7500"/>
+    <Cooldown Duration="480" PowerLow="0.5000" PowerHigh="0.6500"/>
+  </workout>
+</workout_file>

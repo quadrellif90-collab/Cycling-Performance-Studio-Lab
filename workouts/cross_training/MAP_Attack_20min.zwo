@@ -1,0 +1,21 @@
+<workout_file>
+    <author>Philipp - SYSTM Style</author>
+    <n>MAP Attack 20min</n>
+    <description>4x2min at 115% FTP (MAP) - VO2max intervals | Focus: Maximal Aerobic Power</description>
+    <sportType>bike</sportType>
+    <tags>
+        <tag name="MAP"/>
+        <tag name="4DP"/>
+    </tags>
+    <workout>
+        <Warmup Duration="300" PowerLow="0.5" PowerHigh="0.75" pace="0"/>
+        <SteadyState Duration="120" Power="1.15" pace="0"/>
+        <SteadyState Duration="150" Power="0.55" pace="0"/>
+        <SteadyState Duration="120" Power="1.15" pace="0"/>
+        <SteadyState Duration="150" Power="0.55" pace="0"/>
+        <SteadyState Duration="120" Power="1.15" pace="0"/>
+        <SteadyState Duration="150" Power="0.55" pace="0"/>
+        <SteadyState Duration="120" Power="1.15" pace="0"/>
+        <Cooldown Duration="300" PowerLow="0.75" PowerHigh="0.5" pace="0"/>
+    </workout>
+</workout_file>

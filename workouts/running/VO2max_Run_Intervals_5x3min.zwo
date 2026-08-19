@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>VO2max Run Intervals 5x3min</name>
+  <description>High-intensity VO2max session. 5x3min at hard effort with 2min jog recovery. Total ~40min.</description>
+  <category>Running VO2max</category>
+  <sportType>run</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="600" PowerLow="0.7500" PowerHigh="0.6000"/>
+    <SteadyState Duration="180" Power="1.1000"/>
+    <SteadyState Duration="120" Power="0.8000"/>
+    <SteadyState Duration="180" Power="1.1000"/>
+    <SteadyState Duration="120" Power="0.8000"/>
+    <SteadyState Duration="180" Power="1.1000"/>
+    <SteadyState Duration="120" Power="0.8000"/>
+    <SteadyState Duration="180" Power="1.1000"/>
+    <SteadyState Duration="120" Power="0.8000"/>
+    <SteadyState Duration="180" Power="1.1000"/>
+    <Cooldown Duration="600" PowerLow="0.6000" PowerHigh="0.7500"/>
+  </workout>
+</workout_file>

@@ -1,0 +1,25 @@
+<workout_file>
+    <author>Philipp - SYSTM Style</author>
+    <n>AC Repeats 25min</n>
+    <description>6x45sec at 135% FTP - repeated anaerobic efforts | Focus: AC Repeatability</description>
+    <sportType>bike</sportType>
+    <tags>
+        <tag name="AC"/>
+        <tag name="4DP"/>
+    </tags>
+    <workout>
+        <Warmup Duration="420" PowerLow="0.5" PowerHigh="0.75" pace="0"/>
+        <SteadyState Duration="45" Power="1.35" pace="0"/>
+        <SteadyState Duration="135" Power="0.55" pace="0"/>
+        <SteadyState Duration="45" Power="1.35" pace="0"/>
+        <SteadyState Duration="135" Power="0.55" pace="0"/>
+        <SteadyState Duration="45" Power="1.35" pace="0"/>
+        <SteadyState Duration="135" Power="0.55" pace="0"/>
+        <SteadyState Duration="45" Power="1.35" pace="0"/>
+        <SteadyState Duration="135" Power="0.55" pace="0"/>
+        <SteadyState Duration="45" Power="1.35" pace="0"/>
+        <SteadyState Duration="135" Power="0.55" pace="0"/>
+        <SteadyState Duration="45" Power="1.35" pace="0"/>
+        <Cooldown Duration="300" PowerLow="0.75" PowerHigh="0.5" pace="0"/>
+    </workout>
+</workout_file>

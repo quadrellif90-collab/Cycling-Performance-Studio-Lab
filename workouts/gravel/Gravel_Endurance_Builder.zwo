@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Gravel Endurance Builder</name>
+  <description>Long mixed-surface endurance ride. Steady effort with gravel-pace surges. Total ~75min.</description>
+  <category>Gravel Endurance</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="480" PowerLow="0.6500" PowerHigh="0.5000"/>
+    <SteadyState Duration="1800" Power="0.7000"/>
+    <SteadyState Duration="300" Power="0.8000"/>
+    <SteadyState Duration="600" Power="0.7000"/>
+    <SteadyState Duration="300" Power="0.8500"/>
+    <SteadyState Duration="600" Power="0.7000"/>
+    <SteadyState Duration="300" Power="0.8000"/>
+    <Cooldown Duration="480" PowerLow="0.5000" PowerHigh="0.6500"/>
+  </workout>
+</workout_file>

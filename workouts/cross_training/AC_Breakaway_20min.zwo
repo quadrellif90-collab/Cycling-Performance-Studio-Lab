@@ -1,0 +1,23 @@
+<workout_file>
+    <author>Philipp - SYSTM Style</author>
+    <n>AC Breakaway 20min</n>
+    <description>5x40sec at 140% FTP (AC) - anaerobic power | Focus: Anaerobic Capacity</description>
+    <sportType>bike</sportType>
+    <tags>
+        <tag name="AC"/>
+        <tag name="4DP"/>
+    </tags>
+    <workout>
+        <Warmup Duration="420" PowerLow="0.5" PowerHigh="0.75" pace="0"/>
+        <SteadyState Duration="40" Power="1.4" pace="0"/>
+        <SteadyState Duration="140" Power="0.55" pace="0"/>
+        <SteadyState Duration="40" Power="1.4" pace="0"/>
+        <SteadyState Duration="140" Power="0.55" pace="0"/>
+        <SteadyState Duration="40" Power="1.4" pace="0"/>
+        <SteadyState Duration="140" Power="0.55" pace="0"/>
+        <SteadyState Duration="40" Power="1.4" pace="0"/>
+        <SteadyState Duration="140" Power="0.55" pace="0"/>
+        <SteadyState Duration="40" Power="1.4" pace="0"/>
+        <Cooldown Duration="300" PowerLow="0.75" PowerHigh="0.5" pace="0"/>
+    </workout>
+</workout_file>

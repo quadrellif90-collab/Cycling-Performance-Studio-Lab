@@ -1,0 +1,19 @@
+<workout_file>
+    <author>Philipp - SYSTM Style</author>
+    <n>FTP Threshold 30min</n>
+    <description>3x6min at 95-100% FTP - threshold builder | Focus: Threshold</description>
+    <sportType>bike</sportType>
+    <tags>
+        <tag name="FTP"/>
+        <tag name="4DP"/>
+    </tags>
+    <workout>
+        <Warmup Duration="360" PowerLow="0.5" PowerHigh="0.75" pace="0"/>
+        <SteadyState Duration="360" Power="0.95" pace="0"/>
+        <SteadyState Duration="120" Power="0.55" pace="0"/>
+        <SteadyState Duration="360" Power="1.0" pace="0"/>
+        <SteadyState Duration="120" Power="0.55" pace="0"/>
+        <SteadyState Duration="360" Power="0.95" pace="0"/>
+        <Cooldown Duration="300" PowerLow="0.75" PowerHigh="0.5" pace="0"/>
+    </workout>
+</workout_file>

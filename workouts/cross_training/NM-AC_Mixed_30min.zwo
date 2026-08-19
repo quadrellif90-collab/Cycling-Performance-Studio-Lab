@@ -1,0 +1,31 @@
+<workout_file>
+    <author>Philipp - SYSTM Style</author>
+    <n>NM-AC Mixed 30min</n>
+    <description>Mixed work: 4x(10sec sprint + 20sec@140% AC) | Focus: Sprint to Anaerobic</description>
+    <sportType>bike</sportType>
+    <tags>
+        <tag name="NM+AC"/>
+        <tag name="4DP"/>
+    </tags>
+    <workout>
+        <Warmup Duration="540" PowerLow="0.5" PowerHigh="0.75" pace="0"/>
+        <SteadyState Duration="10" Power="3.0" pace="0"/>
+        <SteadyState Duration="20" Power="1.4" pace="0"/>
+        <SteadyState Duration="150" Power="0.55" pace="0"/>
+        <SteadyState Duration="10" Power="3.0" pace="0"/>
+        <SteadyState Duration="20" Power="1.4" pace="0"/>
+        <SteadyState Duration="150" Power="0.55" pace="0"/>
+        <SteadyState Duration="10" Power="3.0" pace="0"/>
+        <SteadyState Duration="20" Power="1.4" pace="0"/>
+        <SteadyState Duration="150" Power="0.55" pace="0"/>
+        <SteadyState Duration="10" Power="3.0" pace="0"/>
+        <SteadyState Duration="20" Power="1.4" pace="0"/>
+        <SteadyState Duration="150" Power="0.55" pace="0"/>
+        <SteadyState Duration="10" Power="3.0" pace="0"/>
+        <SteadyState Duration="20" Power="1.4" pace="0"/>
+        <SteadyState Duration="150" Power="0.55" pace="0"/>
+        <SteadyState Duration="10" Power="3.0" pace="0"/>
+        <SteadyState Duration="20" Power="1.4" pace="0"/>
+        <Cooldown Duration="360" PowerLow="0.75" PowerHigh="0.5" pace="0"/>
+    </workout>
+</workout_file>

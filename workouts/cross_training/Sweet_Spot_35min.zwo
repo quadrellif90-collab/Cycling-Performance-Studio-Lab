@@ -1,0 +1,18 @@
+<workout_file>
+    <author>Philipp</author>
+    <name>Sweet Spot 35min</name>
+    <description>3x9min at 88% FTP with 2min recovery</description>
+    <sportType>bike</sportType>
+    <tags>
+        <tag name="Sweet Spot"/>
+    </tags>
+    <workout>
+        <Warmup Duration="240" PowerLow="0.5" PowerHigh="0.7" pace="0"/>
+        <SteadyState Duration="540" Power="0.88" pace="0"/>
+        <SteadyState Duration="120" Power="0.55" pace="0"/>
+        <SteadyState Duration="540" Power="0.88" pace="0"/>
+        <SteadyState Duration="120" Power="0.55" pace="0"/>
+        <SteadyState Duration="540" Power="0.88" pace="0"/>
+        <Cooldown Duration="240" PowerLow="0.7" PowerHigh="0.5" pace="0"/>
+    </workout>
+</workout_file>

@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Half Marathon Long Run</name>
+  <description>Steady long run with marathon-pace finish. Builds endurance for half marathon distance. Total ~75min.</description>
+  <category>Running Endurance</category>
+  <sportType>run</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="600" PowerLow="0.7000" PowerHigh="0.6000"/>
+    <SteadyState Duration="1800" Power="0.7000"/>
+    <SteadyState Duration="1200" Power="0.7500"/>
+    <SteadyState Duration="600" Power="0.8000"/>
+    <SteadyState Duration="600" Power="0.7500"/>
+    <Cooldown Duration="600" PowerLow="0.6000" PowerHigh="0.7000"/>
+  </workout>
+</workout_file>

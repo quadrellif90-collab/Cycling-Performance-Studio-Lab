@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<workout_file>
+  <author>CPSL</author>
+  <name>Post-Ride Cool Down &amp; Stretch</name>
+  <description>Static stretching after cycling. Focus on quads, hamstrings, hip flexors, calves. Total ~20min.</description>
+  <category>Mobility Cool-Down</category>
+  <sportType>bike</sportType>
+  <tags/>
+  <workout>
+    <Warmup Duration="300" PowerLow="0.6000" PowerHigh="0.5000"/>
+    <SteadyState Duration="60" Power="0.5500"/>
+    <SteadyState Duration="60" Power="0.5500"/>
+    <SteadyState Duration="60" Power="0.5500"/>
+    <SteadyState Duration="60" Power="0.5500"/>
+    <SteadyState Duration="60" Power="0.5500"/>
+    <SteadyState Duration="60" Power="0.5500"/>
+    <Cooldown Duration="300" PowerLow="0.5000" PowerHigh="0.6000"/>
+  </workout>
+</workout_file>
