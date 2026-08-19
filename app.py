@@ -20761,6 +20761,47 @@ def api_ride_fit(ride_id: str):
     )
 
 
+@app.get("/api/rides/{ride_id}/report/png")
+def api_ride_report_png(ride_id: str):
+    """Render a ride report as a shareable PNG image (1600×900).
+
+    Uses ride_report_png.render_ride_report_png with the saved ride's
+    summary + sample data. Falls back gracefully if Pillow is missing.
+    """
+    import ride_storage
+    ride = ride_storage.get_ride(ride_id)
+    if not ride:
+        return JSONResponse({"error": "Ride not found"}, 404)
+
+    samples = ride.get("samples", {}) or {}
+    summary = ride.get("summary", {}) or {}
+
+    # Build profile dict for FTP reference line
+    profile = {}
+    try:
+        from profile_manager import ProfileManager
+        pm = ProfileManager.get()
+        athlete = pm._athlete or {}
+        if athlete.get("ftp"):
+            profile["ftp"] = int(athlete["ftp"])
+    except Exception:
+        pass
+
+    try:
+        from ride_report_png import render_ride_report_png
+        png = render_ride_report_png(summary, samples, profile or None)
+    except Exception as e:
+        _log.exception(f"ride report PNG render failed: {e}")
+        return JSONResponse({"error": f"PNG render failed: {e}"}, 500)
+
+    safe_id = re.sub(r'[^\w.\-]', '_', ride_id)
+    return Response(
+        content=png,
+        media_type="image/png",
+        headers={"Content-Disposition": f'inline; filename="ride-report-{safe_id}.png"'},
+    )
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # v4.6.7 IMPL-SUM PROGRAMME-SUMMARY — end-of-plan recap
 # ═══════════════════════════════════════════════════════════════════════════════
