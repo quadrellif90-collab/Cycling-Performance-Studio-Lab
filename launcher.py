@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Domestique Launcher — entry point for the packaged desktop app.
+Cycling Performance Studio Lab — entry point for the packaged desktop app.
 
 Starts the FastAPI server IN-PROCESS (not as subprocess, to avoid PyInstaller
 fork issues), opens the browser, and shows a system tray icon.
@@ -104,10 +104,10 @@ configure_tls_ca()
 
 # PORT SELECTION. 8080 was pinned so single-instance detection always knew
 # where to look; the cost was that 8080 is one of the most contested ports on
-# a Linux desktop, and losing it meant Domestique showed a stranger's web UI
+# a Linux desktop, and losing it meant Cycling Performance Studio Lab showed a stranger's web UI
 # (a Pop!_OS tester got a camera app's page) or refused to start.
 #
-# The pin is no longer needed: /api/version answers {"app": "domestique"}, so
+# The pin is no longer needed: /api/version answers {"app": "cpsl"}, so
 # the launcher can positively identify its own instance and a fallback is safe
 # rather than ambiguous.
 #
@@ -129,17 +129,17 @@ PORT_CANDIDATES = (22400, 21055, 26214)
 DEFAULT_PORT = PORT_CANDIDATES[0]
 
 
-def is_domestique_at(url: str) -> bool:
-    """True only if the server answering ``url`` is actually Domestique.
+def is_cpsl_at(url: str) -> bool:
+    """True only if the server answering ``url`` is actually Cycling Performance Studio Lab.
 
     A bare "did something answer on 8080?" is not an identity check, and on a
     Linux desktop 8080 is a crowded port. A tester on Pop!_OS had a camera
     web UI there: the probe got its 200, we declared ourselves already
-    running, and pointed the window at it — so Domestique's own window showed
+    running, and pointed the window at it — so Cycling Performance Studio Lab's own window showed
     someone else's app, with no intervals.icu prompt, no error and no crash
     file, because from the launcher's point of view nothing had gone wrong.
 
-    ``app == "domestique"`` is the marker. Instances predating it are still
+    ``app == "cpsl"`` is the marker. Instances predating it are still
     recognised by the shape of /api/version (version + data_dir), so a new
     launcher probing an older running instance does not mistake it for a
     stranger and refuse to start.
@@ -153,18 +153,18 @@ def is_domestique_at(url: str) -> bool:
         return False
     if not isinstance(body, dict):
         return False
-    return (body.get("app") == "domestique"
+    return (body.get("app") == "cpsl"
             or ("version" in body and "data_dir" in body))
 
 
 def _port_memo():
     """Where the last successfully-bound port is remembered."""
-    from user_home import domestique_home
-    return domestique_home() / "port.txt"
+    from user_home import cpsl_home
+    return cpsl_home() / "port.txt"
 
 
 def _port_is_available(port: int) -> bool:
-    """Free, or already serving Domestique.
+    """Free, or already serving Cycling Performance Studio Lab.
 
     "Already ours" counts as available on purpose: it is what keeps
     single-instance detection working. Without it, launching a second copy
@@ -180,7 +180,7 @@ def _port_is_available(port: int) -> bool:
         s.bind(("127.0.0.1", port))
         return True
     except OSError:
-        return is_domestique_at(f"http://127.0.0.1:{port}")
+        return is_cpsl_at(f"http://127.0.0.1:{port}")
     finally:
         try:
             s.close()
@@ -191,7 +191,7 @@ def _port_is_available(port: int) -> bool:
 def _resolve_port() -> int:
     """The port to serve on. Never asks the user; never blocks startup.
 
-    Order: an explicit DOMESTIQUE_PORT wins outright (a deliberate override
+    Order: an explicit CPSL_PORT wins outright (a deliberate override
     must not be silently overruled, so it gets no fallback). Otherwise the
     port we bound last time is tried first — a stable URL is what makes
     bookmarks and desktop shortcuts survive restarts — then the candidates in
@@ -199,7 +199,7 @@ def _resolve_port() -> int:
     reaches _ensure_port_free_or_die() and reports the failure properly,
     rather than dying here with no diagnostics.
     """
-    env = os.environ.get("DOMESTIQUE_PORT", "").strip()
+    env = os.environ.get("CPSL_PORT", "").strip()
     if env:
         try:
             return int(env)
@@ -242,22 +242,22 @@ PORT = _resolve_port()
 URL = f"http://127.0.0.1:{PORT}"
 # The one source of truth for every child: app.py's config reads this to build
 # the OAuth redirect URI, so the callback always matches the port we bound.
-os.environ["DOMESTIQUE_PORT"] = str(PORT)
+os.environ["CPSL_PORT"] = str(PORT)
 
 
 def _log():
-    """Best-effort launcher logger that writes to ~/.domestique/logs/.
+    """Best-effort launcher logger that writes to ~/.cpsl/logs/.
 
     v2.0.2 WIN-START-FIX: a frozen *windowed* build (console=False) has a
     dead stdout, so every startup `print()` here vanishes. Mirroring the
     diagnostics through log_config leaves a trace on disk
-    (~/.domestique/logs/domestique_<ts>.log) so a "nothing happened"
+    (~/.cpsl/logs/cpsl_<ts>.log) so a "nothing happened"
     Windows launch is actually diagnosable. Returns None if log_config
     can't be imported (e.g. partial bundle) — callers must tolerate that.
     """
     try:
         import log_config
-        return log_config.get_logger("domestique.app")
+        return log_config.get_logger("cpsl.app")
     except Exception:
         return None
 
@@ -268,12 +268,12 @@ def _is_server_only() -> bool:
     v2.0.2 WIN-CI-SMOKE: CI needs to confirm a frozen Windows build actually
     boots and serves the right version, but a headless GitHub runner has no
     display — calling webview.start() or run_with_tray() would block forever
-    waiting on a GUI/tray loop that can never appear. When DOMESTIQUE_SERVER_ONLY=1
+    waiting on a GUI/tray loop that can never appear. When CPSL_SERVER_ONLY=1
     (or --server-only is passed) we start the server via the normal path, wait
     for it to come up, then keep-alive without ever touching pywebview/pystray.
     The flag is opt-in: when it is unset every existing path is unchanged.
     """
-    return os.environ.get("DOMESTIQUE_SERVER_ONLY") == "1" or "--server-only" in sys.argv
+    return os.environ.get("CPSL_SERVER_ONLY") == "1" or "--server-only" in sys.argv
 
 
 def _ensure_port_free_or_die() -> None:
@@ -281,9 +281,9 @@ def _ensure_port_free_or_die() -> None:
 
     _resolve_port() has already walked the candidate list, so reaching this
     with a busy port means EVERY candidate was occupied, or an explicit
-    DOMESTIQUE_PORT override points at something in use. The single-instance
+    CPSL_PORT override points at something in use. The single-instance
     branch in `main()` has also already run, so a listener here is not another
-    Domestique — it is an unrelated app. Report it properly instead of
+    Cycling Performance Studio Lab — it is an unrelated app. Report it properly instead of
     floating to an unbounded port nobody can find afterwards.
 
     NOTE — we deliberately do NOT set SO_REUSEADDR on this probe. With
@@ -304,15 +304,15 @@ def _ensure_port_free_or_die() -> None:
     except OSError as e:
         tried = ", ".join(str(p) for p in PORT_CANDIDATES)
         msg = (
-            f"Domestique could not find a free port.\n\n"
+            f"Cycling Performance Studio Lab could not find a free port.\n\n"
             f"It tried {tried}, and something is using all of them.\n\n"
-            f"Close whatever is using them and start Domestique again."
+            f"Close whatever is using them and start Cycling Performance Studio Lab again."
         )
         detail = (
             f"cannot bind 127.0.0.1:{PORT} ({e})\n\n"
             f"Tried in order: {tried}.\n"
-            f"Set DOMESTIQUE_PORT to choose one yourself, e.g.\n"
-            f"  DOMESTIQUE_PORT=23500 domestique\n\n"
+            f"Set CPSL_PORT to choose one yourself, e.g.\n"
+            f"  CPSL_PORT=23500 cpsl\n\n"
             f"To see what holds a port:\n"
             f"  Linux/macOS:  ss -ltnp | grep {PORT}   (or lsof -i :{PORT})\n"
             f"  Windows:      netstat -ano | findstr :{PORT}\n"
@@ -459,7 +459,7 @@ def start_server():
             # by CI and by users on a silent windowed build.
             try:
                 from pathlib import Path as _P
-                _crash = _P.home() / ".domestique" / "startup_crash.txt"
+                _crash = _P.home() / ".cpsl" / "startup_crash.txt"
                 _crash.parent.mkdir(parents=True, exist_ok=True)
                 _crash.write_text(_server_traceback, encoding="utf-8")
             except Exception:
@@ -557,13 +557,13 @@ def run_with_tray():
             MenuItem("Quit", quit_app),
         )
 
-        icon = Icon("Domestique", img, "Domestique", menu)
+        icon = Icon("Cycling Performance Studio Lab", img, "Cycling Performance Studio Lab", menu)
         icon.run()
 
     except ImportError:
         # pystray not installed — block until Ctrl+C
         print("(pystray not installed — running without system tray)")
-        print(f"Domestique → {URL}")
+        print(f"Cycling Performance Studio Lab → {URL}")
         print("Press Ctrl+C to quit.")
         try:
             _shutdown_event.wait()
@@ -572,7 +572,7 @@ def run_with_tray():
 
 
 def is_already_running():
-    """Check if another DOMESTIQUE instance is already serving on our port.
+    """Check if another CPSL instance is already serving on our port.
 
     Differentiates failure modes so operators can distinguish:
       - URLError: connection refused → port is free, not already running.
@@ -586,7 +586,7 @@ def is_already_running():
     import urllib.error
     try:
         urllib.request.urlopen(URL, timeout=1)
-        return is_domestique_at(URL)
+        return is_cpsl_at(URL)
     except urllib.error.URLError as e:
         reason = getattr(e, "reason", e)
         if isinstance(reason, PermissionError):
@@ -603,21 +603,21 @@ def is_already_running():
 
 
 def _activate_existing_window() -> bool:
-    """Bring the existing Domestique native window to the foreground.
+    """Bring the existing Cycling Performance Studio Lab native window to the foreground.
 
     Returns True on success, False if we should fall back to opening a browser.
     """
     if sys.platform == "darwin":
-        # The pywebview native app registers as "Domestique" (see BUNDLE
-        # in domestique.spec). Tell System Events to activate it. This
+        # The pywebview native app registers as "Cycling Performance Studio Lab" (see BUNDLE
+        # in cpsl.spec). Tell System Events to activate it. This
         # avoids the annoying browser-tab fallback when the user double-clicks
         # the .app while a previous instance is still running.
         try:
             import subprocess
-            # Try bundle id first (set in domestique.spec Info.plist)
+            # Try bundle id first (set in cpsl.spec Info.plist)
             res = subprocess.run(
                 ["osascript", "-e",
-                 'tell application id "com.platypus45.domestique" to activate'],
+                 'tell application id "com.platypus45.cpsl" to activate'],
                 capture_output=True, timeout=3,
             )
             if res.returncode == 0:
@@ -626,7 +626,7 @@ def _activate_existing_window() -> bool:
             subprocess.run(
                 ["osascript", "-e",
                  'tell application "System Events" to '
-                 'set frontmost of first process whose name is "Domestique" to true'],
+                 'set frontmost of first process whose name is "Cycling Performance Studio Lab" to true'],
                 capture_output=True, timeout=3,
             )
             return True
@@ -638,7 +638,7 @@ def _activate_existing_window() -> bool:
         try:
             import ctypes
             user32 = ctypes.windll.user32
-            hwnd = user32.FindWindowW(None, "Domestique")
+            hwnd = user32.FindWindowW(None, "Cycling Performance Studio Lab")
             if hwnd:
                 user32.ShowWindow(hwnd, 9)  # SW_RESTORE
                 user32.SetForegroundWindow(hwnd)
@@ -786,7 +786,7 @@ def _linux_gui_fatal(reason: str) -> None:
     import traceback
     # Called from inside the except block, so this is the live backend failure.
     detail = traceback.format_exc()
-    msg = f"Domestique could not open its window: {reason}"
+    msg = f"Cycling Performance Studio Lab could not open its window: {reason}"
 
     # guilib swallows the backend's real ImportError and re-raises a generic
     # WebViewException, so the one fact worth having — WHICH library is missing,
@@ -813,8 +813,8 @@ def _fatal_report(msg: str, detail: str) -> "None":
     """
     crash = None
     try:
-        from user_home import domestique_home
-        crash = domestique_home() / "startup_crash.txt"
+        from user_home import cpsl_home
+        crash = cpsl_home() / "startup_crash.txt"
         crash.parent.mkdir(parents=True, exist_ok=True)
         crash.write_text(f"{msg}\n\n{detail}", encoding="utf-8")
     except Exception:
@@ -841,15 +841,15 @@ def _fatal_report(msg: str, detail: str) -> "None":
         _qapp = QApplication.instance() or QApplication([])  # bound: must outlive the box
         box = QMessageBox()
         box.setIcon(QMessageBox.Icon.Critical)
-        # NOT "Domestique": the CI smoke test proves a native window exists
+        # NOT "Cycling Performance Studio Lab": the CI smoke test proves a native window exists
         # by searching X for a mapped window of that name, and this dialog
         # would satisfy it — the release would go green while the app was
         # dying in front of it. The title must be one no success path emits.
-        box.setWindowTitle("Domestique — startup failure")
+        box.setWindowTitle("Cycling Performance Studio Lab — startup failure")
         box.setText(msg)
         box.setInformativeText(
             f"Details written to {crash}." if crash is not None
-            else "Run Domestique from a terminal to see the full error."
+            else "Run Cycling Performance Studio Lab from a terminal to see the full error."
         )
         box.setDetailedText(detail)
         # Auto-close: a modal nobody is there to dismiss (CI under Xvfb, a
@@ -892,10 +892,10 @@ def _fallback_to_browser(reason: str) -> None:
             import ctypes
             ctypes.windll.user32.MessageBoxW(
                 0,
-                f"Domestique's built-in window could not start "
+                f"Cycling Performance Studio Lab's built-in window could not start "
                 f"({reason}).\n\nIt has opened in your default web browser "
                 f"at {URL} instead.",
-                "Domestique",
+                "Cycling Performance Studio Lab",
                 0x40,  # MB_ICONINFORMATION
             )
         except Exception:
@@ -914,12 +914,12 @@ def main():
     # Opening Chrome/Safari defeats the whole point of the pywebview app.
     if is_already_running():
         if _activate_existing_window():
-            print(f"Domestique already running — activated existing window.")
+            print(f"Cycling Performance Studio Lab already running — activated existing window.")
             return
         # Last resort: if we can't find the window (user killed the pywebview
         # process but something else is holding the port), open the browser so
         # the user can at least reach the UI.
-        print(f"Domestique already running → {URL}")
+        print(f"Cycling Performance Studio Lab already running → {URL}")
         # Linux: the native window IS the product. A browser tab here is
         # the exact degradation this release forbids, and it is the
         # DEFAULT path when a user double-clicks the AppImage twice.
@@ -929,7 +929,7 @@ def main():
             _open_url(URL)
         return
 
-    print(f"Starting Domestique on {URL}...")
+    print(f"Starting Cycling Performance Studio Lab on {URL}...")
 
     # Handle signals
     # CON5: ask uvicorn for a graceful shutdown (which drains in-flight
@@ -978,7 +978,7 @@ def main():
                 f"{type(_server_error).__name__}: {_server_error}"
             )
             print(msg)
-            print("See ~/.domestique/logs/ for full traceback.")
+            print("See ~/.cpsl/logs/ for full traceback.")
             # v2.0.2 WIN-START-FIX: mirror to disk for windowed builds.
             if log is not None:
                 log.error(msg)
@@ -1090,7 +1090,7 @@ def main():
             except ValueError:
                 _scale = 1.0  # a junk value is Qt's to complain about, not ours
         webview.create_window(
-            "Domestique", URL,
+            "Cycling Performance Studio Lab", URL,
             width=round(1400 / _scale), height=round(900 / _scale),
             min_size=(1000, 600),
             x=100, y=50,  # position near top-left, not bottom
@@ -1104,13 +1104,13 @@ def main():
         # stamps) died between launches — the app always reopened in dark
         # mode. private_mode=False keeps the persistent store, unwiped.
         # storage_path pins the Windows WebView2 profile inside the
-        # Domestique data dir (ignored by the cocoa backend).
+        # Cycling Performance Studio Lab data dir (ignored by the cocoa backend).
         # LINUX-QT (§1): pin the backend instead of letting guilib pick. Its
         # Linux default tries GTK/WebKitGTK first, which we deliberately do not
         # bundle; leaving the choice to import-failure ordering would mean a dev
         # box with PyGObject installed runs a backend no user ever gets.
         # gui=None is pywebview's own default, so macOS/Windows are unchanged.
-        from user_home import domestique_home as _dh
+        from user_home import cpsl_home as _dh
         webview.start(  # blocks until the window closes
             gui="qt" if sys.platform == "linux" else None,
             private_mode=False,
