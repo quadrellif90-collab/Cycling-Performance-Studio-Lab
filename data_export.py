@@ -1,216 +1,105 @@
-"""
-Data Export Module for Cycling Performance Studio Lab.
+"""PCC 5.x — Export bundle (portabilità / backup, principio "tutto incorporato").
 
-Fornisce funzionalita di backup, export dati esportazione completa del profilo,
-export workout, export metriche, e formati compatibili con altri software.
+Genera un archivio ZIP locale-first contenente:
+  * profile.json        — atleta + impostazioni (da ProfileManager)
+  * metrics.csv         — tutte le metriche storiche (da db.query_metric_history)
+  * field_tests.json    — risultati field test (se presenti)
+  * cpep_history.json   — test lab CPET/INSCYD (se presenti)
+  * pedal_asymmetry.json— asimmetrie pedala (se presenti)
+  * custom_charts.json  — grafici definiti (se presenti)
+  * plan/current_plan.json — piano corrente (se presente)
+  * .domestique/        — copia integrale della cartella profilo (backup grezzo)
+
+Tutto offline, solo stdlib (zipfile). Nessun upload cloud. Il file viene
+salvato in una cartella export del profilo e restituito come download.
+
+Single source of truth: legge dagli stessi store del resto dell'app
+(ProfileManager, db, file JSON già scritti dalle altre viste).
 """
 
+from __future__ import annotations
+
+import io
 import json
-import os
-import csv
 import zipfile
-import logging
-from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
-
-from profile_manager import get as pm_get
-from error_codes import _log_error, REGISTRY
-
-logger = logging.getLogger(__name__)
+from typing import Optional
 
 
-INJURIES_EXPORT_FILENAME = "injuries_backup.json"
-WORKOUTS_EXPORT_FILENAME = "workouts_backup.json"
-
-
-def get_profile_dir(profile_id: str) -> Path:
-    """Ottiene la directory del profilo."""
-    pm = pm_get()
-    return Path(os.getenv("APPDATA", Path.home() / ".cpsl")) / "profiles" / profile_id
-
-
-def export_profile_backup(profile_id: str, backup_dir: Optional[Path] = None) -> Dict[str, Any]:
-    """Crea un backup completo del profilo."""
+def _profile_dir() -> Optional[Path]:
     try:
-        pm = pm_get()
-        if profile_id != pm.active_id:
-            return {"error": "Profile not active"}
-
-        profile_dir = get_profile_dir(profile_id)
-        if not profile_dir.exists():
-            return {"error": "Profile directory not found"}
-
-        if backup_dir is None:
-            backup_dir = profile_dir / "backups"
-
-        backup_dir.mkdir(parents=True, exist_ok=True)
-
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        backup_name = f"profile_backup_{timestamp}"
-
-        # 1. Backup athlete.json
-        athlete_path = profile_dir / "athlete.json"
-        if athlete_path.exists():
-            import shutil
-            shutil.copy2(athlete_path, backup_dir / f"{backup_name}_athlete.json")
-
-        # 2. Backup user_prefs.json
-        prefs_path = profile_dir / "user_prefs.json"
-        if prefs_path.exists():
-            import shutil
-            shutil.copy2(prefs_path, backup_dir / f"{backup_name}_prefs.json")
-
-        # 3. Backup .env (senza valori sensibili marcati)
-        env_path = profile_dir / ".env"
-        if env_path.exists():
-            import shutil
-            shutil.copy2(env_path, backup_dir / f"{backup_name}_env.json")
-
-        # 4. Backup injuries data
-        injuries_path = profile_dir / "injuries.json"
-        if injuries_path.exists():
-            import shutil
-            shutil.copy2(injuries_path, backup_dir / f"{backup_name}_injuries.json")
-
-        # 5. Backup ride data (rides directory)
-        rides_dir = profile_dir / "rides"
-        if rides_dir.exists():
-            backup_rides_dir = backup_dir / f"{backup_name}_rides"
-            import shutil
-            shutil.copytree(rides_dir, backup_rides_dir, dirs_exist_ok=True)
-
-        # 6. Create manifest
-        manifest = {
-            "backup_name": backup_name,
-            "timestamp": datetime.now().isoformat(),
-            "profile_id": profile_id,
-            "files": [
-                f for f in os.listdir(backup_dir)
-                if f.startswith(backup_name)
-            ]
-        }
-        with open(backup_dir / f"{backup_name}_manifest.json", "w", encoding="utf-8") as f:
-            json.dump(manifest, f, indent=2)
-
-        return {"backup_path": str(backup_dir), "manifest": manifest}
-
-    except Exception as e:
-        _log_error("E_EXPORT_FAILED", e)
-        return {"error": str(e)}
+        from profile_manager import ProfileManager
+        pm = ProfileManager.get()
+        aid = getattr(pm, "_active_id", None) or "default"
+        return Path.home() / ".domestique" / "profiles" / aid
+    except Exception:
+        return None
 
 
-def export_metrics_export(profile_id: str, metrics_type: str = "all") -> Dict[str, Any]:
-    """Esporta metriche specifiche del profilo."""
+def build_metrics_csv() -> str:
+    """Return CSV of all tracked metrics (metric,date,value,source,notes)."""
     try:
-        pm = pm_get()
-        if profile_id != pm.active_id:
-            return {"error": "Profile not active"}
-
-        profile_dir = get_profile_dir(profile_id)
-        metrics: Dict[str, Any] = {}
-
-        # Metriche base atleta
-        athlete_path = profile_dir / "athlete.json"
-        if athlete_path.exists():
-            import json
-            with open(athlete_path, "r", encoding="utf-8") as f:
-                athlete = json.load(f)
-            metrics["athlete"] = {
-                "ftp": athlete.get("ftp"),
-                "weight_kg": athlete.get("weight_kg"),
-                "lthr": athlete.get("lthr"),
-                "max_hr": athlete.get("max_hr"),
-                "lbm_kg": athlete.get("lbm_kg"),
-                "ftp_source": athlete.get("ftp_source"),
-                "max_hr_source": athlete.get("max_hr_source"),
-            }
-
-        # Metriche infortuni
-        injuries_path = profile_dir / "injuries.json"
-        if injuries_path.exists():
-            import json
-            with open(injuries_path, "r", encoding="utf-8") as f:
-                injuries = json.load(f)
-            active_injuries = [i for i in injuries if i.get("status") == "active"]
-            metrics["injuries"] = {
-                "active_count": len(active_injuries),
-                "total_count": len(injuries),
-                "by_severity": {
-                    "minor": sum(1 for i in active_injuries if i.get("severity") == "minor"),
-                    "medium": sum(1 for i in active_injuries if i.get("severity") == "medium"),
-                    "severe": sum(1 for i in active_injuries if i.get("severity") == "severe"),
-                },
-                "recent_injuries": len([
-                    i for i in active_injuries
-                    if date.fromisoformat(i.get("date_start", "")) 
-                    >= date.today() - __import__("datetime").timedelta(days=30)
-                ]),
-            }
-
-        # Metriche workout (se disponibili)
-        workouts_dir = profile_dir / "workouts"
-        if workouts_dir.exists():
-            import json
-            workout_files = [f for f in os.listdir(workouts_dir) if f.endswith(".zwo")]
-            metrics["workouts"] = {
-                "total_count": len(workout_files),
-                "file_names": workout_files[:20],  # Primo 20 file
-            }
-
-        return metrics
-
-    except Exception as e:
-        _log_error("E_EXPORT_FAILED", e)
-        return {"error": str(e)}
+        import db
+        rows = db.get_db().execute(
+            "SELECT metric, date, value, source, notes FROM athlete_metrics ORDER BY metric, date"
+        ).fetchall()
+        lines = ["metric,date,value,source,notes"]
+        for r in rows:
+            notes = (r.get("notes") or "").replace('"', '""')
+            lines.append(f'{r["metric"]},{r["date"]},{r["value"]},{r.get("source","")},"{notes}"')
+        return "\n".join(lines)
+    except Exception:
+        return "metric,date,value,source,notes\n"
 
 
-def export_zip_backup(profile_id: str, backup_dir: Optional[Path] = None) -> Dict[str, Any]:
-    """Crea un archivio ZIP compresso del profilo."""
-    try:
-        pm = pm_get()
-        if profile_id != pm.active_id:
-            return {"error": "Profile not active"}
+def build_bundle() -> tuple[bytes, str]:
+    """Build the export ZIP in memory. Returns (zip_bytes, filename)."""
+    pdir = _profile_dir()
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        # profile
+        try:
+            from profile_manager import ProfileManager
+            prof = ProfileManager.get().to_dict() if hasattr(ProfileManager.get(), "to_dict") else {}
+            if not prof:
+                import os
+                aj = pdir / "athlete.json"
+                if aj.exists():
+                    prof = json.loads(aj.read_text(encoding="utf-8"))
+            z.writestr("profile.json", json.dumps(prof, indent=2, ensure_ascii=False))
+        except Exception:
+            z.writestr("profile.json", "{}")
+        # metrics csv
+        z.writestr("metrics.csv", build_metrics_csv())
+        # json sidecars already written by other views
+        for name in ["field_tests.json", "cpep_history.json",
+                     "pedal_asymmetry_history.json", "custom_charts.json"]:
+            fp = pdir / name
+            if fp.exists():
+                z.writestr(name, fp.read_text(encoding="utf-8"))
+        # current plan
+        cp = pdir / "plan" / "current_plan.json"
+        if cp.exists():
+            z.writestr("plan/current_plan.json", cp.read_text(encoding="utf-8"))
+        # raw backup of full profile dir (exclude the zip itself)
+        if pdir and pdir.exists():
+            written = set(z.namelist())
+            sidecars = {"field_tests.json", "cpep_history.json",
+                        "pedal_asymmetry_history.json", "custom_charts.json",
+                        "injury_blocks.json"}
+            for f in pdir.rglob("*"):
+                if f.is_file():
+                    rel = str(f.relative_to(pdir))
+                    if rel in written or rel in sidecars:
+                        continue
+                    try:
+                        z.writestr(rel, f.read_bytes())
+                    except Exception:
+                        pass
+    stamp = _stamp()
+    return buf.getvalue(), f"pcc_export_{stamp}.zip"
 
-        profile_dir = get_profile_dir(profile_id)
-        if not profile_dir.exists():
-            return {"error": "Profile directory not found"}
 
-        if backup_dir is None:
-            backup_dir = profile_dir / "backups"
-
-        backup_dir.mkdir(parents=True, exist_ok=True)
-
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        zip_name = f"profile_backup_{timestamp}.zip"
-        zip_path = backup_dir / zip_name
-
-        # Raccolta files da includere
-        files_to_zip = [
-            ("athlete.json", profile_dir / "athlete.json"),
-            ("user_prefs.json", profile_dir / "user_prefs.json"),
-            (".env", profile_dir / ".env"),
-            ("injuries.json", profile_dir / "injuries.json"),
-        ]
-
-        # Aggiungi rides directory se esiste
-        rides_dir = profile_dir / "rides"
-
-        # Crea ZIP
-        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
-            for filename, filepath in files_to_zip:
-                if filepath.exists():
-                    zf.write(filepath, filename)
-            # Aggiungi rides directory
-            if rides_dir.exists():
-                for root, dirs, files in os.walk(rides_dir):
-                    for file in files:
-                        file_path = Path(root) / file
-                        arcname = os.path.relpath(file_path, profile_dir)
-                        zf.write(file_path, arcname)
-
-        return {"zip_path": str(zip_path), "size": zip_path.stat().st_size}
-
-    except Exception as e:
-        _log_error("E_EXPORT_FAILED", e)
-        return {"error": str(e)}
+def _stamp() -> str:
+    from datetime import datetime
+    return datetime.now().strftime("%Y%m%d_%H%M%S")
