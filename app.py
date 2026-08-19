@@ -22954,10 +22954,112 @@ def api_workout_import(request: Request):
     return {"ok": True, "filename": filename, "size": len(content)}
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# HTML
-# ═══════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════════════════
+# AI Coach APIs (v1.0.0) ────────────────────────────────────────────────────
+# Tutti gli endpoint sono protetti dalla feature flag AI_COACH_ENABLED.
+# Se la flag è OFF, tutti restituiscono {ok: false, error: "disabled"}.
+# ════════════════════════════════════════════════════════════════════════════════
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# AI Coach APIs (v1.0.0) ──────────────────────────────────────────────────
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from ai_coach import get_client, generate_weekly_analysis, generate_weekly_plan, generate_goal_plan
+from ai_coach.friel_coaching import build_friel_assessment, FRIEL_SYSTEM_PROMPT, WEEKLY_ANALYSIS_PROMPT, GENERATE_PLAN_PROMPT
+
+# Dependency: gets LLM client from app state or config
+def _get_llm_client():
+    from cpsl.config import AI_LLM_PROVIDER, AI_LLM_API_KEY, AI_LLM_MODEL
+    return get_client(provider=AI_LLM_PROVIDER, api_key=AI_LLM_API_KEY, model=AI_LLM_MODEL)
+
+# ── 40. GET /api/ai/status ──────────────────────────────────────────────
+@app.get("/api/ai/status")
+async def api_ai_status():
+    """Restituisce lo stato del AI Coach (abilitato/disabilitato + provider)."""
+    from cpsl.config import AI_COACH_ENABLED
+    return {
+        "ok": True,
+        "ai_coach_enabled": bool(AI_COACH_ENABLED),
+        "provider": getattr(cpsl.config, "AI_LLM_PROVIDER", "openai"),
+        "model": getattr(cpsl.config, "AI_LLM_MODEL", "gpt-4o"),
+    }
+
+# ── 41. POST /api/ai/weekly-analysis ────────────────────────────────────
+@app.post("/api/ai/weekly-analysis")
+async def api_ai_weekly_analysis(request: Request):
+    """Genera un'analisi settimanale usando LLM + dati nativi CPSL."""
+    from cpsl.config import AI_COACH_ENABLED
+    if not AI_COACH_ENABLED:
+        return JSONContent({"ok": False, "error": "AI coach disabled"})
+    try:
+        body = await request.json()
+        rides = body.get("rides", [])
+        profile_data = body.get("profile_data", {})
+        client = _get_llm_client()
+        analysis = generate_weekly_analysis(rides=rides, profile_data=profile_data, client=client)
+        return {"ok": True, "analysis": analysis}
+    except Exception as e:
+        return JSONContent({"ok": False, "error": str(e)})
+
+# ── 42. POST /api/ai/generate-plan ──────────────────────────────────────
+@app.post("/api/ai/generate-plan")
+async def api_ai_generate_plan(request: Request):
+    """Genera un piano di allenamento personalizzato usando LLM + dati CPSL."""
+    from cpsl.config import AI_COACH_ENABLED
+    if not AI_COACH_ENABLED:
+        return JSONContent({"ok": False, "error": "AI coach disabled"})
+    try:
+        body = await request.json()
+        analysis = body.get("analysis", {})
+        goal = body.get("goal")
+        preferred_method = body.get("preferred_method")
+        days_per_week = body.get("days_per_week", 5)
+        client = _get_llm_client()
+        plan = generate_weekly_plan(analysis=analysis, goal=goal, preferred_method=preferred_method,
+                                    days_per_week=days_per_week, client=client)
+        return {"ok": True, "plan": plan}
+    except Exception as e:
+        return JSONContent({"ok": False, "error": str(e)})
+
+# ── 43. POST /api/ai/friel-assessment ────────────────────────────────────
+@app.post("/api/ai/friel-assessment")
+async def api_ai_friel_assessment(request: Request):
+    """Restituisce un assessment in stile Friel basato su CTL/ATL/TSB e dati."""
+    from cpsl.config import AI_COACH_ENABLED
+    if not AI_COACH_ENABLED:
+        return JSONContent({"ok": False, "error": "AI coach disabled"})
+    try:
+        body = await request.json()
+        total_tss = body.get("total_tss", 0)
+        ctl = body.get("ctl", 0)
+        atl = body.get("atl", 0)
+        tsb = body.get("tsb", 0)
+        pi = body.get("pi", 0)
+        phenotype = body.get("phenotype", "All-Rounder")
+        phase = body.get("phase", "Build")
+        durability = body.get("durability", "unknown")
+        assessment = build_friel_assessment(total_tss, ctl, atl, tsb, pi, phenotype, phase, durability)
+        return {"ok": True, "assessment": assessment}
+    except Exception as e:
+        return JSONContent({"ok": False, "error": str(e)})
+
+# ── 44. POST /api/ai/friel-prompts ──────────────────────────────────────
+@app.get("/api/ai/friel-prompts")
+async def api_ai_friel_prompts():
+    """Restituisce i system prompt e i template prompt Friel per l'AI Coach."""
+    from cpsl.config import AI_COACH_ENABLED
+    if not AI_COACH_ENABLED:
+        return JSONContent({"ok": False, "error": "AI coach disabled"})
+    return {
+        "ok": True,
+        "friel_system_prompt": FRIEL_SYSTEM_PROMPT,
+        "weekly_analysis_prompt": WEEKLY_ANALYSIS_PROMPT,
+        "generate_plan_prompt": GENERATE_PLAN_PROMPT,
+    }
+
+# ════════════════════════════════════════════════════════════════════════════════
+# HTML
+# ════════════════════════════════════════════════════════════════════════════════
 @app.get("/", response_class=HTMLResponse)
 def dashboard(request: Request):
     from fastapi.responses import RedirectResponse
@@ -22992,6 +23094,37 @@ def dashboard(request: Request):
     return templates.TemplateResponse(
         request=request, name="dashboard.html",
         context={"active_profile_id": active_profile_id})
+
+# Workout Player page
+@app.get("/player/{workout_filename}", response_class=HTMLResponse)
+def workout_player_page(request: Request, workout_filename: str = ""):
+    """Serve the workout player UI for a given .zwo file."""
+    from workout_player import resolve_workout_path, ZWOParser
+    from profile_manager import ProfileManager
+    pm = ProfileManager.get()
+    ftp = pm.active_profile.get("ftp", 250.0) if pm.active_profile else 250.0
+
+    workout_data = None
+    if workout_filename:
+        path = resolve_workout_path(workout_filename)
+        if path:
+            timeline = ZWOParser.parse(path, ftp)
+            workout_data = {
+                "name": timeline.name,
+                "description": timeline.description,
+                "author": timeline.author,
+                "duration_total": round(timeline.duration_total, 1),
+                "ftp": timeline.ftp,
+                "intervals": timeline.get_intervals_summary(),
+            }
+
+    return templates.TemplateResponse(
+        request=request, name="workout_player.html",
+        context={
+            "workout": workout_data,
+            "workout_filename": workout_filename,
+            "active_profile_id": pm.active_id or "",
+        })
 
 
 if __name__ == "__main__":
