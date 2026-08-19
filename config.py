@@ -105,6 +105,27 @@ EA_SAFE     = 35
 EA_DANGER   = 30
 
 
+# ── AI Coach Configuration ───────────────────────────────────────────────────
+
+# ── Feature flags ────────────────────────────────────────────────────────────
+AI_COACH_ENABLED = False
+ENABLE_TP_MCP = False
+
+# ── Multi-provider LLM settings ─────────────────────────────────────────────
+# User selects provider in Settings UI. Available:
+#   "openai", "anthropic", "google", "mistral", "deepseek", "groq",
+#   "openrouter", "ollama", "lmstudio", "perplexity", "replicate",
+#   "cohere", "xai", "azure"
+AI_LLM_PROVIDER = "openai"
+AI_LLM_API_KEY = ""
+AI_LLM_MODEL = "gpt-4o"
+AI_LLM_TEMPERATURE = 0.7
+AI_LLM_MAX_TOKENS = 2000
+AI_LLM_SYSTEM_PROMPT = """Sei un coach ciclistico esperto. Usa i dati nativi di CPSL 
+(CP/W', phenotype, durabilità, fase di allenamento, polarizzazione) per fornire 
+analisi personalate e suggerimenti per l'allenamento. Sii conciso, tecnico ma 
+accessibile, e basa tutto sui dati misurati."""
+
 # ── Dynamic proxy for per-profile values ─────────────────────────────────────
 
 def __getattr__(name: str):
