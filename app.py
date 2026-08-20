@@ -664,12 +664,14 @@ try:
 except OSError:
     _VERSION = "0.0.0"
 
-# v4.0.0-alpha pivot: the app is a planner + workout library + post-ride
-# viewer. No live trainer connection, no BLE, no WebSocket. All data flows
-# through plain HTTP; the heavy lifting happens in the user's preferred
-# indoor app (Tacx / MyWhoosh / Golden Cheetah), and Domestique imports
-# the resulting FIT afterward via POST /api/ride/import.
-APP_VERSION = "4.0.0-alpha"
+# APP_VERSION mirrors _VERSION (the canonical VERSION file) — one source of truth.
+APP_VERSION = _VERSION
+
+# CPSL is a planner + workout library + post-ride viewer. No live trainer
+# connection, no BLE, no WebSocket. All data flows through plain HTTP; the
+# heavy lifting happens in the user's preferred indoor app (Tacx / MyWhoosh /
+# Golden Cheetah), and CPSL imports the resulting FIT afterward via
+# POST /api/ride/import.
 
 # v1.0.2 IMPL-MIGRATION: cached migration-check result for the dashboard.
 # Populated once at lifespan startup; consumed by GET /api/migrations/last-run-result.
@@ -903,6 +905,13 @@ try:
 
     _gpx.register_routes(app)
     _sess.register_routes(app)
+
+    # AI Coach memory + rider-context routes (persistent memory, RAG)
+    try:
+        from ai_coach.register_routes import register_ai_memory_routes as _reg_ai_mem
+        _reg_ai_mem(app)
+    except Exception as _e:
+        log.debug(f"ai_coach.register_routes failed: {_e}")
 
     # PCC v2 routes (Huawei HRV, Terra, Custom Charts, Onboarding, etc.)
     try:
@@ -8779,10 +8788,10 @@ def _select_platform_asset(assets, plat):
     """Pick (download_url, asset_name) from a GitHub release `assets` list
     based on `plat` (sys.platform string).
 
-    macOS (`darwin`) → `.dmg`, prefer plain `Domestique.dmg` over decorated
-    variants like `Domestique-1.0.3.dmg` so the canonical asset wins.
+    macOS (`darwin`) → `.dmg`, prefer plain `Cycling-Performance-Studio-Lab.dmg` over decorated
+    variants like `Cycling-Performance-Studio-Lab-1.0.3.dmg` so the canonical asset wins.
     Windows (`win32`) → prefer `.exe`, fall back to `.zip`.
-    Linux → `.AppImage` (released as `Domestique-v<VERSION>-x86_64.AppImage`).
+    Linux → `.tar.gz` (released as `CyclingPerformanceStudioLab-v<VERSION>-linux-x86_64.tar.gz`).
     Anything else (BSD) → no asset; banner falls back to release_url.
     """
     if not isinstance(assets, list):
@@ -23324,24 +23333,40 @@ async def api_ai_friel_prompts():
 # ── 45. POST /api/ai/coach-query ────────────────────────────────────────
 @app.post("/api/ai/coach-query")
 async def api_ai_coach_query(request: Request):
-    """Query contestuale all'AI Coach usando i dati analytics correnti.
+    """Query contestuale all'AI Coach con memoria persistente e RAG sui dati del rider.
 
     Accetta una query utente e un contesto opzionale (profile_id, metrics,
-    workout_summary) e restituisce un parere di coaching generato dall'LLM.
+    workout_summary) e restituisce un parere di coaching generato dall'LLM,
+    groundato nei dati reali del rider (FTP, HRV, phenotype, durability, gap
+    del piano) e nella cronologia delle sessioni precedenti (memoria).
     """
     from config import AI_COACH_ENABLED
     if not AI_COACH_ENABLED:
         return JSONResponse({"ok": False, "error": "AI coach disabled"})
     try:
+        from ai_coach.memory import (
+            add_memory,
+            get_recent_memory,
+            rider_context_prompt,
+        )
         body = await request.json()
         query = body.get("query", "")
         context = body.get("context", {}) or {}
         if not query:
             return JSONResponse({"ok": False, "error": "Query is required"})
-        client = _get_llm_client()
-        prompt_parts = [FRIEL_SYSTEM_PROMPT]
-        if context.get("profile_id"):
-            prompt_parts.append(f"Profile ID: {context['profile_id']}")
+        profile_id = context.get("profile_id") or "default"
+
+        # 1) Rider context (RAG) — real data, not generic LLM knowledge
+        rider_ctx = rider_context_prompt(profile_id)
+
+        # 2) Conversation memory — last sessions for this rider
+        mem = get_recent_memory(profile_id, limit=10)
+        mem_text = "\n".join(f"{m['role']}: {m['content']}" for m in mem)
+
+        # 3) Assemble the grounded prompt
+        prompt_parts = [FRIEL_SYSTEM_PROMPT, rider_ctx]
+        if mem_text:
+            prompt_parts.append(f"[PREVIOUS SESSIONS]\n{mem_text}")
         if context.get("metrics"):
             import json as _json
             prompt_parts.append(f"Recent metrics: {_json.dumps(context['metrics'])}")
@@ -23349,11 +23374,20 @@ async def api_ai_coach_query(request: Request):
             prompt_parts.append(f"Workout summary: {context['workout_summary']}")
         prompt_parts.append(f"User query: {query}")
         full_prompt = "\n\n".join(prompt_parts)
+
+        client = _get_llm_client()
         response = client.chat(messages=[{"role": "user", "content": full_prompt}])
+
+        # 4) Persist the exchange so the coach remembers next time
+        add_memory(profile_id, "user", query, tags=["query"])
+        add_memory(profile_id, "coach", response, tags=["reply"])
+
         return {
             "ok": True,
             "response": response,
             "query": query,
+            "profile_id": profile_id,
+            "memory_entries": len(mem) + 2,
             "timestamp": datetime.utcnow().isoformat(),
         }
     except Exception as e:
