@@ -13,49 +13,46 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.11", "3.12"]
-    
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    
-    - name: Cache pip
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('requirements-*.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        if [ "$RUNNER_OS" == "Windows" ]; then
-          pip install -r requirements-win.txt
-        elif [ "$RUNNER_OS" == "macOS" ]; then
-          pip install -r requirements-mac.txt
-        else
-          pip install -r requirements-linux.txt
-        fi
-        pip install pytest pytest-asyncio pytest-cov ruff black
-    
-    - name: Lint with ruff
-      run: ruff check .
-    
-    - name: Format check with black
-      run: black --check .
-    
-    - name: Run tests
-      run: pytest tests/ -v --tb=short --cov=. --cov-report=xml
-    
-    - name: Upload coverage
-      uses: codecov/codecov-action@v4
-      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
-      with:
-        files: ./coverage.xml
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements-*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            pip install -r requirements-win.txt
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            pip install -r requirements-mac.txt
+          else
+            pip install -r requirements-linux.txt
+          fi
+          pip install pytest pytest-asyncio pytest-cov ruff black
+      
+      - name: Lint with ruff
+        run: ruff check .
+      
+      - name: Format check with black
+        run: black --check .
+      
+      - name: Run tests
+        run: pytest tests/ -v --tb=short --cov=. --cov-report=xml
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
 
   build:
     needs: test
@@ -64,32 +61,62 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.11"
-    
-    - name: Install build dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pyinstaller
-    
-    - name: Build executable
-      run: |
-        if [ "$RUNNER_OS" == "Windows" ]; then
-          ./build_win.bat
-        elif [ "$RUNNER_OS" == "macOS" ]; then
-          ./build_mac.sh
-        else
-          ./build_linux.sh
-        fi
-      shell: bash
-    
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: cpsl-${{ runner.os }}-${{ matrix.os }}
-        path: dist/
-        retention-days: 7
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            pip install -r requirements-win.txt
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            pip install -r requirements-mac.txt
+          else
+            pip install -r requirements-linux.txt
+          fi
+      
+      - name: Build executable
+        run: |
+          if [ "$OS" = "Windows" ]; then
+            ./build_win.bat
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            ./build_mac.sh
+          else
+            ./build_linux.sh
+          fi
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpsl-${{ matrix.os }}-build
+          path: dist/
+          retention-days: 7
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "CPSL v${{ github.ref_name }}"
+          files: dist/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
