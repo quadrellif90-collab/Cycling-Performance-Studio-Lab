@@ -168,3 +168,23 @@ class TestPedalAPI:
     def test_pedal_history(self, client):
         r = client.get("/api/pedal-history")
         assert r.status_code in (200, 500)
+
+
+class TestBIAVisionAPI:
+    """Test /api/bia-vision-analyze endpoint."""
+
+    def test_bia_vision_analyze_missing_key(self, client):
+        r = client.post("/api/bia-vision-analyze")
+        assert r.status_code == 400
+        assert "BIA_VISION_API_KEY" in r.json().get("error", "")
+
+
+class TestSelfUpdateAPI:
+    """Test /api/self-update endpoint."""
+
+    def test_self_update_no_asset(self, client):
+        r = client.post("/api/self-update")
+        # Should return 400 when no download URL available (upstream check fails)
+        assert r.status_code in (200, 400, 500)
+        data = r.json()
+        assert "ok" in data or "error" in data

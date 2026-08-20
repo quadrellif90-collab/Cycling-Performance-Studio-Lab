@@ -1204,7 +1204,6 @@ def register_pcc_routes(app: FastAPI):
     app.post("/api/huawei/import")(api_huawei_import)
     app.post("/api/plan/delete-session")(api_plan_delete_session)
     app.get("/api/upstream/check")(api_upstream_check)
-    app.post("/api/self-update")(api_self_update)
     app.get("/oauth/terra/start")(api_terra_start)
     app.get("/oauth/terra/callback")(api_terra_callback)
     app.get("/api/terra/status")(api_terra_status)

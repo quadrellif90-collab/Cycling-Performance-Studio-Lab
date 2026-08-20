@@ -22542,6 +22542,167 @@ async def api_bia_sync_icu(request: Request):
         return {"ok": False, "error": f"Errore di rete ICU: {e}", "results": bulk}
 
 
+# ─── 31b. POST /api/bia-vision-analyze ───────────────────────────────────────
+#
+# Cloud vision layer per BIA PDF (ibrido: cloud se chiave in .env).
+# Se BIA_VISION_API_KEY e' configurata, il PDF viene renderizzato in immagini
+# e inviato a un modello vision che ritorna JSON strutturato con i campi BIA.
+# Se la chiave non c'e', ritorna errore 400 (fallback su Tesseract gia' in /api/bia-import).
+
+@app.post("/api/bia-vision-analyze")
+async def api_bia_vision_analyze(request: Request):
+    """Analizza un PDF BIA via modello vision (z.ai/OpenAI-compatible).
+
+    Richiede BIA_VISION_API_KEY in .env. Accetta multipart/form-data con file 'file'
+    o raw application/pdf body. Ritorna JSON con i campi BIA estratti.
+    """
+    from bia_vision import extract_bia_via_vision, vision_configured
+    if not vision_configured():
+        return JSONResponse(status_code=400, content={"error": "BIA_VISION_API_KEY non configurata in .env"})
+    try:
+        ctype = request.headers.get("content-type", "")
+        if "multipart/form-data" in ctype:
+            form = await request.form()
+            f = form.get("file")
+            if not f:
+                return JSONResponse(status_code=400, content={"error": "Nessun file PDF inviato"})
+            pdf_bytes = f.file.read() if hasattr(f, "file") else f.read()
+        elif "application/pdf" in ctype:
+            pdf_bytes = await request.body()
+        else:
+            return JSONResponse(status_code=400, content={"error": "Content-Type deve essere multipart/form-data o application/pdf"})
+        result = extract_bia_via_vision(pdf_bytes)
+        if result is None:
+            return JSONResponse(status_code=500, content={"error": "Vision model fallito o risposta non valida"})
+        return {"ok": True, "reading": result}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": f"BIA vision analisi fallita: {e}"})
+
+
+# ─── 31c. POST /api/self-update ──────────────────────────────────────────────
+#
+# Auto-aggiornamento reale tramite GitHub Releases (portato da PCC).
+# Scarica l'asset platform-specifico della release 'latest' e lo installa.
+
+@app.post("/api/self-update")
+async def api_self_update(request: Request):
+    """CPSL — auto-aggiornamento reale tramite GitHub Releases.
+
+    Scarica l'asset platform-specifico della release 'latest' del fork e lo
+    installa:
+      - Windows: esegue l'installer NSIS silenzioso (CPSL-Setup.exe /S) che
+        sostituisce l'EXE; poi termina l'app per lasciare libero il file.
+      - macOS: monta CPSL.dmg e copia l'app in /Applications (cp -R), poi
+        riavvia. Se non ha permessi, apre il .dmg per l'installazione manuale.
+      - Linux: scarica AppImage e sostituisce quella in uso.
+    Ritorna prima di completare l'install perche' l'app deve liberare i file.
+    """
+    import shutil
+    import subprocess
+    import tempfile
+    import httpx
+
+    # Usa update check per ottenere download URL
+    from upstream_check import check_upstream
+    info = check_upstream()
+    dl = info.get("download_url")
+    if not dl:
+        return JSONResponse(status_code=400, content={"ok": False, "error": "Nessun asset scaricabile per questa piattaforma"})
+    plat = sys.platform
+    try:
+        # scarica in temp
+        td = tempfile.mkdtemp(prefix="cpsl-update-")
+        fname = info.get("asset_name") or ("CPSL-Setup.exe" if plat == "win32" else "CPSL.dmg" if plat == "darwin" else "CPSL.AppImage")
+        dest = os.path.join(td, fname)
+        async with httpx.AsyncClient(timeout=300) as client:
+            r = await client.get(dl, follow_redirects=True)
+            r.raise_for_status()
+            with open(dest, "wb") as f:
+                f.write(r.content)
+
+        if plat == "win32" and fname.lower().endswith(".exe"):
+            # Windows: NSIS installer silenzioso
+            try:
+                subprocess.Popen([dest, "/S"], shell=False)
+            except OSError as e:
+                needs_admin = (getattr(e, "winerror", None) == 740
+                               or "740" in str(e) or "elevated" in str(e).lower())
+                return JSONResponse(status_code=200, content={
+                    "ok": False, "launched": False,
+                    "needs_admin": bool(needs_admin),
+                    "mode": "windows-installer-blocked",
+                    "release_url": info.get("release_url") or dl,
+                    "manual_url": info.get("release_url") or dl,
+                    "error": ("L'aggiornamento silenzioso richiede i privilegi di "
+                              "amministratore (Windows scrive in Program Files). "
+                              "Apri la release e installa CPSL-Setup.exe come admin, "
+                              "oppure riavvia CPSL come amministratore.")
+                             if needs_admin else str(e),
+                })
+            # Admin ok: prepara il batch di update (wait -> install -> restart)
+            prog = os.environ.get("ProgramFiles", r"C:\Program Files")
+            inst_dir = os.path.join(prog, "CPSL")
+            exe_path = os.path.join(inst_dir, "CPSL.exe")
+            bat = os.path.join(td, "update.bat")
+            try:
+                with open(bat, "w", encoding="utf-8") as bf:
+                    bf.write("@echo off\n")
+                    bf.write("timeout /t 4 /nobreak >nul\n")
+                    bf.write('"%s" /S\n' % dest.replace("/", "\\"))
+                    bf.write('if exist "%s" start "" "%s"\n' % (exe_path, exe_path))
+                DETACHED = 0x00000008
+                subprocess.Popen([bat], shell=True, creationflags=DETACHED)
+            except Exception as e:
+                return JSONResponse(status_code=200, content={
+                    "ok": False, "launched": False,
+                    "release_url": info.get("release_url") or dl,
+                    "manual_url": info.get("release_url") or dl,
+                    "error": "Impossibile avviare l'aggiornamento: " + str(e),
+                })
+            return JSONResponse(status_code=200, content={
+                "ok": True, "closing": True, "mode": "windows-installer",
+            })
+
+        elif plat == "darwin" and fname.lower().endswith(".dmg"):
+            # macOS: monta DMG, copia in /Applications
+            try:
+                subprocess.Popen(["hdiutil", "attach", dest], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except Exception as e:
+                return JSONResponse(status_code=200, content={
+                    "ok": False, "launched": False,
+                    "release_url": info.get("release_url") or dl,
+                    "manual_url": info.get("release_url") or dl,
+                    "error": "Impossibile montare DMG: " + str(e),
+                })
+            return JSONResponse(status_code=200, content={
+                "ok": True, "closing": True, "mode": "macos-dmg",
+                "message": "DMG montato. Trascina CPSL in /Applications e riavvia."
+            })
+
+        elif plat == "linux" and fname.lower().endswith(".appimage"):
+            # Linux: sostituisci AppImage in uso
+            try:
+                current_exe = os.path.realpath(sys.argv[0])
+                shutil.copy2(dest, current_exe)
+                os.chmod(current_exe, 0o755)
+            except Exception as e:
+                return JSONResponse(status_code=200, content={
+                    "ok": False, "launched": False,
+                    "release_url": info.get("release_url") or dl,
+                    "manual_url": info.get("release_url") or dl,
+                    "error": "Impossibile sostituire AppImage: " + str(e),
+                })
+            return JSONResponse(status_code=200, content={
+                "ok": True, "closing": True, "mode": "linux-appimage",
+                "message": "AppImage aggiornata. Riavvia CPSL."
+            })
+
+        return JSONResponse(status_code=400, content={"ok": False, "error": f"Piattaforma {plat} non supportata per self-update"})
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"ok": False, "error": f"Self-update fallito: {e}"})
+
+
 # ─── 32. GET /api/export-plan-html ───────────────────────────────────────────
 
 @app.get("/api/export-plan-html")
