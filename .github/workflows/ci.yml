@@ -100,11 +100,11 @@ jobs:
 
       - name: Build executable (macOS)
         if: matrix.os == 'macos-latest'
-        run: ./build_mac.sh
+        run: bash build_mac.sh
 
       - name: Build executable (Linux)
         if: matrix.os == 'ubuntu-latest'
-        run: ./build_linux.sh
+        run: bash build_linux.sh
 
       - name: Upload Windows artifact
         if: matrix.os == 'windows-latest'
