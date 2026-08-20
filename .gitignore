@@ -1,10 +1,63 @@
+# Build outputs
 build/
 dist/
 *.spec.bak
+
+# Python
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+
+# Logs & temp
 *.log
 *.tmp
+*.temp
 pcc_debug.log
 pcc_import_error.log
+startup_crash.txt
+test_output*.txt
+hrvtest.txt
+
+# Distribution (keep only final EXE in dist/)
+dist/*
+!dist/CyclingPerformanceStudioLab.exe
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# PyInstaller
+*.manifest
+*.spec.bak
+
+# Test artifacts
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Local config / secrets
+.oauth.env
+*.env
+*.key
+*.pem
+
+# Cache
+*.cache
+update_check_cache.json
+last_run_version.txt
+last_pr_toast.json
+
+# User data (keep profiles/ but ignore runtime)
+.cpsl/*.log
+.cpsl/*.db-journal
+.cpsl/*.wal
+
+# PyInstaller build cache
+C:\Users\*\AppData\Local\pyinstaller

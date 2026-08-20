@@ -175,7 +175,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=True,  # console for now (dev mode)
+    console=False,  # windowed app (no terminal)
     icon="assets/icon.ico" if os.path.exists("assets/icon.ico") else None,
 )
 

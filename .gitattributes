@@ -1,0 +1,64 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Python files - always LF
+*.py text eol=lf
+
+# Config / data files - LF
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.ini text eol=lf
+*.cfg text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.rst text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+*.xml text eol=lf
+*.csv text eol=lf
+*.sql text eol=lf
+*.sh text eol=lf
+*.ps1 text eol=lf
+
+# Workout files - LF (XML-based)
+*.zwo text eol=lf
+*.erg text eol=lf
+*.fit binary
+
+# Course files - LF (XML-based)
+*.crs text eol=lf
+
+# Spec file
+*.spec text eol=lf
+
+# Binary files - no conversion
+*.exe binary
+*.dll binary
+*.so binary
+*.dylib binary
+*.pyd binary
+*.pyc binary
+*.db binary
+*.sqlite binary
+*.sqlite3 binary
+*.pkl binary
+*.pickle binary
+*.ico binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.otf binary
+
+# Line ending exceptions - force CRLF for Windows batch/PowerShell if needed
+*.bat text eol=crlf
+*.cmd text eol=crlf

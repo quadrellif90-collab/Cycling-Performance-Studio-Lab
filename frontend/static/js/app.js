@@ -446,9 +446,10 @@ window.CPSL = window.CPSL || {};
     // ─── Init ─────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', function() {
         loadProfiles().then(() => loadAthlete());
+    initAiCoachTab();        initAiCoachTab();
     });
 
-    // ─── Public API ───────────────────────────────────────────
+    // ─── Public API ───────────────────────────────────────────────
     Object.assign(window.CPSL, {
         toast, openModal, closeModal,
         loadDashboard, loadProfile, loadAnalytics, loadWorkouts, loadSettings,
@@ -457,6 +458,95 @@ window.CPSL = window.CPSL || {};
         filterWorkouts, setFilter, showWorkout,
         showInjuryForm, saveInjury, resolveInjury,
         uploadBIA, testICU, saveICU, syncICU,
-        exportBackup, exportZIP, exportMetrics, uploadGPX
-    });
+        exportBackup, exportZIP, exportMetrics, uploadGPX,
+        toggleAiCoachChat, sendAiCoachMessage
+
+    // AI Coach Tab ─────────────────────────────────────────────────
+    async function initAiCoachTab() {
+        const statusEl = document.getElementById('ai_coach_status');
+        const chatEl = document.getElementById('ai_coach_chat');
+        const formEl = document.getElementById('ai_coach_form');
+        const loadingEl = document.getElementById('ai_coach_loading');
+        
+        if (!statusEl || !chatEl || !formEl || !loadingEl) return;
+        
+        try {
+            const r = await api('/api/ai/status');
+            if (r && r.ai_coach_enabled) {
+                statusEl.textContent = 'AI Coach attivo';
+                statusEl.style.color = 'var(--green)';
+                chatEl.style.display = 'block';
+                formEl.style.display = 'block';
+            } else {
+                statusEl.textContent = 'AI Coach disabilitato (flag OFF)';
+                statusEl.style.color = 'var(--red)';
+            }
+        } catch(e) {
+            statusEl.textContent = 'Errore stato AI Coach';
+            statusEl.style.color = 'var(--red)';
+        }
+    }
+
+    async function toggleAiCoachChat(show) {
+        const chatEl = document.getElementById('ai_coach_chat');
+        const formEl = document.getElementById('ai_coach_form');
+        const loadingEl = document.getElementById('ai_coach_loading');
+        const inputEl = document.getElementById('ai_coach_input');
+        
+        if (!chatEl || !formEl || !loadingEl || !inputEl) return;
+        
+        if (show) {
+            chatEl.style.display = 'block';
+            formEl.style.display = 'block';
+            loadingEl.style.display = 'none';
+            inputEl.disabled = false;
+            inputEl.focus();
+        } else {
+            chatEl.style.display = 'none';
+            formEl.style.display = 'none';
+            loadingEl.style.display = 'none';
+            inputEl.disabled = true;
+            inputEl.value = '';
+        }
+    }
+
+    async function sendAiCoachMessage() {
+        const inputEl = document.getElementById('ai_coach_input');
+        const chatEl = document.getElementById('ai_coach_chat');
+        const statusEl = document.getElementById('ai_coach_status');
+        const loadingEl = document.getElementById('ai_coach_loading');
+        const formEl = document.getElementById('ai_coach_form');
+        
+        if (!inputEl || !chatEl || !statusEl || !loadingEl || !formEl) return;
+        
+        const message = inputEl.value.trim();
+        if (!message) return;
+        
+        # Show loading state
+        loadingEl.style.display = 'block';
+        chatEl.style.display = 'none';
+        formEl.style.display = 'none';
+        
+        try:
+            const r = await apiPost('/api/ai/weekly-analysis', {rides: [], profile_data: {}});
+            if (r && r.ok && r.analysis) {
+                # Display analysis result
+                let html = '<div class="activity">';
+                html += `<div class="act-name"><strong>Analisi Settimanale</strong></div>`;
+                html += `<div class="act-meta">${r.analysis.llm_analysis || 'Nessuna analisi disponibile'}</div>`;
+                html += '</div>';
+                chatEl.innerHTML += html;
+            } else:
+                toast(r?.error || 'Errore analysis', 'error');
+        # catch(e):
+            toast('Errore comunicazione AI', 'error');
+        # finally:
+            # Reset state
+            loadingEl.style.display = 'none';
+            chatEl.style.display = 'block';
+            formEl.style.display = 'block';
+            inputEl.value = '';
+        }
+    
+    };
 })();
