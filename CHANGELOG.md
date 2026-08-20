@@ -5,7 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/).
 
-## [1.1.2] - 2026-08-20
+## [1.1.3] - 2026-08-20
+
+### Added
+- **AI Coach chat is now functional**: new `/api/ai/settings` endpoint persists LLM provider + key (stored in gitignored `ai_config.json`, never committed) and toggles the coach on/off at runtime. Verified live with Google Gemini (`gemini-3-flash-preview`) and Groq.
+- **Gemini client fix**: `_chat_google` now forwards the `system` instruction (previously ignored), so the coach's Friel-style system prompt is honored.
+
+### Fixed
+- `get_client()` was called with invalid `provider=` kwarg — now passes `config_section` dict (matches `LLMClient.from_config`).
+- RAG context now reads real HRV/weight/FTP from the intervals.icu sync store (verified live: FTP 200W, HRV avg 57ms, weight 70kg, RHR 48).
+
+### Verified live (real athlete data)
+- AI Coach query grounded in real rider data ✅
+- Persistent memory (8 entries saved across sessions) ✅
+- intervals.icu connect / sync / plan push ✅
+
+
 
 ### Fixed
 - **`/api/icu/sync` 404**: the frontend "Sync" button called an endpoint that was never registered server-side. Added the route — now pulls wellness/HRV + athlete numbers from intervals.icu on demand.
