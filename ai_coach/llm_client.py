@@ -229,10 +229,11 @@ class LLMClient:
 
     def _chat_google(self, messages, system=None) -> str:
         """API Google Gemini."""
-        # Gemini accetta un formato semplificato
         text = "\n".join(m["content"] for m in messages)
         url = f"{self.base_url}/{self.model}:generateContent?key={self.api_key}"
         payload = {"contents": [{"role": "user", "parts": [{"text": text}]}]}
+        if system:
+            payload["systemInstruction"] = {"parts": [{"text": system}]}
         with httpx.Client(timeout=30.0) as client:
             resp = client.post(url, json=payload)
             resp.raise_for_status()

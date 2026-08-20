@@ -61,3 +61,5 @@ last_pr_toast.json
 
 # PyInstaller build cache
 C:\Users\*\AppData\Local\pyinstaller
+# AI Coach LLM settings (contains API key — never commit)
+ai_config.json
