@@ -68,15 +68,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/).
 - Comparative report: `ANALISI_COMPARATIVA_3_APP.md` generated
 - Test infrastructure: 239/239 CPSL tests passing
 
-### Fixed
-- None
-
-## [0.10.0] - 2026-08-20 (Future)
+## [Unreleased]
 
 ### Planned
-- AI Coach full integration
-- Multi-platform build automation (Windows/macOS/Linux CI)
-- Enhanced reporting and dashboard widgets
+- Dashboard widget enhancements
+- External integrations (Strava / TrainingPeaks)
+- Mobile companion app
 
 ### Notes
 - Version targeted for next release cycle
