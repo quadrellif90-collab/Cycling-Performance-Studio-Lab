@@ -608,10 +608,10 @@ window.CPSL = window.CPSL || {};
       try {
         const test = await apiPost('/api/setup/test-icu', { api_key: input.value.trim() });
         if (test && test.ok) {
-          // Persist via the settings save path
+          // Persist via the settings save path — uses icu_api_key / icu_id field names
           const save = await apiPost('/api/setup/save', {
-            api_key: input.value.trim(),
-            athlete_id: test.athlete_id || ''
+            icu_api_key: input.value.trim(),
+            icu_id: test.athlete_id || ''
           });
           if (status) status.innerHTML = '<span style="color:var(--green);">✓ Connesso' +
             (test.athlete_name ? ' come ' + esc(test.athlete_name) : '') + '</span>';
