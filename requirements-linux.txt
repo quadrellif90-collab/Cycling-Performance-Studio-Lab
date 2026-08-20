@@ -1,5 +1,9 @@
 # Linux-specific dependencies
-# Use GTK/WebKitGTK backend for pywebview (no Qt) to avoid PyInstaller
-# "multiple Qt bindings" conflict on Linux.
+# NOTE: We intentionally do NOT install pywebview[gtk] or any Qt backend here.
+# PyGObject/Qt require system dev libraries (cairo, gobject, etc.) that are not
+# present on the GitHub Actions runner and fail to build from source.
+# The CPSL executable runs as a local FastAPI+uvicorn web server and opens the
+# user's default browser; an embedded webview window is optional. PyInstaller
+# still bundles the `webview` import (it tolerates a missing native backend at
+# runtime — the server + browser fallback works without it).
 -r requirements-common.txt
-pywebview[gtk]>=5.0
