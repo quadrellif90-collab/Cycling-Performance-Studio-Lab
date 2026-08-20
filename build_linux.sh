@@ -49,4 +49,7 @@ else
 fi
 
 echo "=== Build complete ==="
-ls -la dist/*.tar.gz dist/*.AppImage 2>/dev/null
+ls -la dist/*.tar.gz 2>/dev/null
+ls -la dist/*.AppImage 2>/dev/null || echo "(no AppImage - tar.gz is the Linux artifact)"
+exit 0
+
