@@ -1,49 +1,43 @@
 #!/bin/bash
 # Cycling Performance Studio Lab - macOS Build Script
-# Builds macOS .dmg package using pyinstaller and create-dmg
-
+# Produces dist/Cycling-Performance-Studio-Lab.app and packages it as a tar.gz
+# (creates a .dmg only if `create-dmg` ruby gem is available; otherwise falls back to tar.gz).
 set -e
 
 echo "============================================"
 echo "Cycling Performance Studio Lab - macOS Build"
 echo "============================================"
 
-:: Check if python is available
-python3 --version
-if [ $? -ne 0 ]; then
-    echo "Errore: Python3 non trovato"
-    exit 1
-fi
+python3 --version || { echo "Errore: Python3 non trovato"; exit 1; }
 
-:: Install dependencies
 echo "Installing dependencies..."
 pip3 install -r requirements-common.txt
-if [ $? -ne 0 ]; then
-    echo "Errore: impossibile installare le dipendenze comuni"
-    exit 1
+pip3 install pyinstaller
+pip3 install -r requirements-mac.txt 2>/dev/null || echo "Warning: alcuni moduli macOS potrebbero non essere disponibili"
+
+echo "Building executable (.app)..."
+python3 -m PyInstaller --noconfirm --windowed \
+    --name "Cycling-Performance-Studio-Lab" \
+    --icon assets/icon.icns \
+    app.py
+
+APP="dist/Cycling-Performance-Studio-Lab.app"
+[ -d "$APP" ] || { echo "FATAL: $APP non prodotto"; exit 1; }
+
+# Try to build a .dmg if create-dmg is available (ruby gem), else tar.gz
+if command -v create-dmg &> /dev/null; then
+    echo "Creating .dmg package..."
+    create-dmg --volname "Cycling Performance Studio Lab" \
+        --icon "Cycling-Performance-Studio-Lab.app" 200 200 \
+        --app-drop-link 400 200 \
+        "dist/Cycling-Performance-Studio-Lab.dmg" "$APP" || true
 fi
 
-:: macOS-specific dependencies
-echo "Installing macOS-specific dependencies..."
-pip3 install pywebview[cocoa] create-dmg
-if [ $? -ne 0 ]; then
-    echo "Warning: alcuni moduli macOS potrebbero non essere disponibili"
+if [ -f "dist/Cycling-Performance-Studio-Lab.dmg" ]; then
+    echo "Build completato: dist/Cycling-Performance-Studio-Lab.dmg"
+else
+    echo "Creating .tar.gz fallback (no create-dmg)..."
+    tar -czf "dist/Cycling-Performance-Studio-Lab-macOS.tar.gz" -C dist "Cycling-Performance-Studio-Lab.app"
+    echo "Build completato: dist/Cycling-Performance-Studio-Lab-macOS.tar.gz"
 fi
-
-:: Build executable
-echo "Building executable..."
-python3 -m PyInstaller --noconfirm --windowed --name "Cycling-Performance-Studio-Lab" app.py
-
-if [ $? -ne 0 ]; then
-    echo "Errore durante la build dell'eseguibile"
-    exit 1
-fi
-
-:: Create .dmg
-echo "Creating .dmg package..."
-mkdir -p dist
-create-dmg --volumename "Cycling Performance Studio Lab" --window-pos 200 200 --icon icns/Cycling-Performance-Studio-Lab.icns --app-drop-link 150 400 dist/Cycling-Performance-Studio-Lab.app dist/
-
-echo "Build completato con successo!"
-echo "File .dmg creato nella cartella dist/"
 exit 0
