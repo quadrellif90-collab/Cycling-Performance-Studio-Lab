@@ -188,3 +188,29 @@ class TestSelfUpdateAPI:
         assert r.status_code in (200, 400, 500)
         data = r.json()
         assert "ok" in data or "error" in data
+
+
+class TestAICoachAPI:
+    """Test /api/ai/* endpoints (full integration routes)."""
+
+    def test_ai_status_returns_200(self, client):
+        r = client.get("/api/ai/status")
+        assert r.status_code == 200
+        data = r.json()
+        assert "ai_coach_enabled" in data
+
+    def test_ai_friel_prompts_returns_200(self, client):
+        r = client.get("/api/ai/friel-prompts")
+        assert r.status_code in (200, 400)
+
+    def test_ai_coach_query_requires_query(self, client):
+        r = client.post("/api/ai/coach-query", json={})
+        assert r.status_code in (200, 400)
+        data = r.json()
+        assert "ok" in data or "error" in data
+
+    def test_ai_health_returns_200(self, client):
+        r = client.get("/api/ai/health")
+        assert r.status_code in (200, 400, 503)
+        data = r.json()
+        assert "ok" in data or "error" in data
