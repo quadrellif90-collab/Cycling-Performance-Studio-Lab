@@ -596,6 +596,36 @@ window.CPSL = window.CPSL || {};
       }
     }
 
+    // ── v1.1.0: connect intervals.icu via API Key (OAuth needs a bundled secret) ──
+    async function connectIcuApiKey() {
+      const input = document.getElementById('icu-apikey-input');
+      const status = document.getElementById('icu-apikey-status');
+      if (!input || !input.value.trim()) {
+        if (status) status.innerHTML = '<span style="color:var(--red);">Inserisci la API Key.</span>';
+        return;
+      }
+      if (status) status.textContent = 'Verifica in corso…';
+      try {
+        const test = await apiPost('/api/setup/test-icu', { api_key: input.value.trim() });
+        if (test && test.ok) {
+          // Persist via the settings save path
+          const save = await apiPost('/api/setup/save', {
+            api_key: input.value.trim(),
+            athlete_id: test.athlete_id || ''
+          });
+          if (status) status.innerHTML = '<span style="color:var(--green);">✓ Connesso' +
+            (test.athlete_name ? ' come ' + esc(test.athlete_name) : '') + '</span>';
+          toast('Intervals.icu connesso', 'ok');
+          if (typeof loadIcuConnection === 'function') loadIcuConnection();
+        } else {
+          if (status) status.innerHTML = '<span style="color:var(--red);">✗ ' +
+            esc(test?.error || 'Autenticazione fallita. Controlla la API Key.') + '</span>';
+        }
+      } catch (e) {
+        if (status) status.innerHTML = '<span style="color:var(--red);">Errore: ' + esc(e) + '</span>';
+      }
+    }
+
     // Auto-load context + memory are triggered from the tab loader below.
     })();
 

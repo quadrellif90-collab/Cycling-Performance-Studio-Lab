@@ -3528,9 +3528,22 @@ window.addEventListener('unhandledrejection', function(e) {
       </div>
     </div>
 
-    <!-- v1.1.0 IMPL-HRV-RECOVERY — HRV4Training CSV import + manual HRV entry.
-         Locked CSV columns (PATCH G16): date, rmssd, hrv_baseline, recovery_points.
-         Rows missing date or rmssd are skipped server-side. -->
+    <!-- v1.1.0: API Key is the working connection method (OAuth requires a
+         registered client_secret not bundled in this build). Prefer API Key. -->
+    <div id="icu-apikey-block" style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px;">
+      <label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;">Connetti con API Key (metodo consigliato)</label>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">
+        Intervals.icu → Settings → Developer Settings → API Key. L'Athlete ID viene rilevato automaticamente dalla key.
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="width:100%;">
+          <input type="password" id="icu-apikey-input" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--surface2);color:var(--text);" placeholder="Incolla la tua API Key di intervals.icu">
+        </div>
+      </div>
+      <button class="btn btn-sm" onclick="connectIcuApiKey()">Verifica e collega</button>
+      <div id="icu-apikey-status" style="font-size:12px;margin-top:6px;"></div>
+    </div>
+    </div>
     <div style="padding:12px;border:1px solid var(--border);border-radius:8px;margin-top:12px;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
         <strong style="font-size:14px;">HRV4Training (CSV)</strong>
