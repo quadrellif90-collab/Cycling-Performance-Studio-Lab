@@ -56,7 +56,6 @@ jobs:
 
   build:
     name: Build for ${{ matrix.os }}
-    needs: test
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -79,6 +78,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install pyinstaller appimage-builder
           pip install -r requirements-linux.txt
+          # appimagetool is required by build_linux.sh
+          if ! command -v appimagetool &> /dev/null; then
+            wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O /usr/local/bin/appimagetool
+            chmod +x /usr/local/bin/appimagetool
+          fi
 
       - name: Install build dependencies (macOS)
         if: matrix.os == 'macos-latest'
