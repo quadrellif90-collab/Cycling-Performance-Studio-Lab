@@ -8,24 +8,37 @@
 <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
 <style>
 :root {
-  --bg: #0a0e14; --surface: #131a24; --surface2: #1a2332; --border: #2d3f52;
-  /* --card was referenced by .info-popover + 3 others but never defined →
-     var(--card) resolved to nothing → transparent popovers, text bleeding
-     through (settings-tab help was unreadable). Opaque elevated surface. */
-  --card: #1a2332;
-  --text: #e6edf3; --text2: #b8c8d8; --text3: #8a9bb0;
-  --accent: #4f9cf7; --accent2: #6366f1;
-  --green: #22c55e; --yellow: #eab308; --orange: #f97316; --red: #ef4444; --purple: #a855f7;
-  --z1: #64748b; --z2: #3b82f6; --z3: #22c55e; --z4: #eab308; --z5: #f97316; --z6: #ef4444; --z7: #e2e8f0;
-  --radius: 10px;
-}
-[data-theme="light"] {
   --bg: #f1f5f9; --surface: #ffffff; --surface2: #f8fafc; --border: #e2e8f0;
   --card: #ffffff;  /* opaque — see dark-theme note */
   --text: #1e293b; --text2: #475569; --text3: #64748b;
   --accent: #2563eb; --accent2: #4f46e5;
   --green: #16a34a; --yellow: #ca8a04; --orange: #ea580c; --red: #dc2626; --purple: #9333ea;
   --z1: #94a3b8; --z2: #3b82f6; --z3: #16a34a; --z4: #ca8a04; --z5: #ea580c; --z6: #dc2626; --z7: #475569;
+  --radius: 10px;
+}
+[data-theme="dark"] {
+  --bg: #0a0e14; --surface: #131a24; --surface2: #1a2332; --border: #2d3f52;
+  --card: #1a2332;
+  --text: #e6edf3; --text2: #b8c8d8; --text3: #8a9bb0;
+  --accent: #4f9cf7; --accent2: #6366f1;
+  --green: #22c55e; --yellow: #eab308; --orange: #f97316; --red: #ef4444; --purple: #a855f7;
+  --z1: #64748b; --z2: #3b82f6; --z3: #22c55e; --z4: #eab308; --z5: #f97316; --z6: #ef4444; --z7: #e2e8f0;
+}
+[data-theme="sepia"] {
+  --bg: #fefae0; --surface: #fdf6d9; --surface2: #f5f0c8; --border: #d4c49a;
+  --card: #fdf6d9;
+  --text: #2d2a22; --text2: #5a5444; --text3: #8a826c;
+  --accent: #8b6914; --accent2: #a8841a;
+  --green: #5a8a2a; --yellow: #b8860b; --orange: #c46a1a; --red: #c42a2a; --purple: #8a4a8a;
+  --z1: #8a826c; --z2: #3a6fb8; --z3: #5a8a2a; --z4: #b8860b; --z5: #c46a1a; --z6: #c42a2a; --z7: #5a5444;
+}
+[data-theme="high-contrast"] {
+  --bg: #000000; --surface: #1a1a1a; --surface2: #2a2a2a; --border: #ffffff;
+  --card: #1a1a1a;
+  --text: #ffffff; --text2: #cccccc; --text3: #aaaaaa;
+  --accent: #00ffff; --accent2: #ff00ff;
+  --green: #00ff00; --yellow: #ffff00; --orange: #ff8800; --red: #ff0000; --purple: #ff00ff;
+  --z1: #888888; --z2: #00ffff; --z3: #00ff00; --z4: #ffff00; --z5: #ff8800; --z6: #ff0000; --z7: #cccccc;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -1525,10 +1538,13 @@ window.addEventListener('unhandledrejection', function(e) {
       &#x2b06; Import FIT
     </button>
     <input type="file" id="import-fit-input" accept=".fit,application/octet-stream" style="display:none;" onchange="handleImportFit(this)">
-    <button onclick="toggleTheme()" id="theme-toggle" title="Toggle light/dark mode"
-      style="background:none;border:1px solid var(--border);border-radius:8px;padding:6px 8px;cursor:pointer;font-size:16px;color:var(--text2);transition:all 0.2s;">
-      &#x1f319;
-    </button>
+    <select id="theme-select" onchange="changeTheme(this.value)" title="Select theme"
+      style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 8px;cursor:pointer;font-size:13px;color:var(--text);min-width:140px;">
+      <option value="light">☀️ Light</option>
+      <option value="dark">🌙 Dark</option>
+      <option value="sepia">📜 Sepia</option>
+      <option value="high-contrast">⚫ High Contrast</option>
+    </select>
   </div>
 </header>
 
@@ -1572,16 +1588,19 @@ window.addEventListener('unhandledrejection', function(e) {
   <div class="tab active" data-tab="home">Home</div>
   <div class="tab" data-tab="picker">Workout Shuffle</div>
   <div class="tab" data-tab="library">Workout Library</div>
+  <div class="tab" data-tab="player">Workout Player</div>
   <div class="tab" data-tab="courses">Routes & Climbs</div>
   <div class="tab" data-tab="plan">Training Plan</div>
   <div class="tab" data-tab="analysis">Analysis</div>
   <div class="tab" data-tab="dfa">DFA α1</div>
   <div class="tab" data-tab="settings">Settings</div>
-<div class="tab" data-tab="hrv">HRV</div>
-<div class="tab" data-tab="nutrition">Alimentazione</div>
-<div class="tab" data-tab="bia">Composizione</div>
-<div class="tab" data-tab="profile">Profilo</div>
-<div class="tab" data-tab="whatsnew">Novità</div>
+  <div class="tab" data-tab="hrv">HRV</div>
+  <div class="tab" data-tab="nutrition">Alimentazione</div>
+  <div class="tab" data-tab="bia">Composizione</div>
+  <div class="tab" data-tab="profile">Profilo</div>
+  <div class="tab" data-tab="whatsnew">Novità</div>
+  <div class="tab" data-tab="ai_coach">AI Coach</div>
+
 </div>
 
 <!-- ═══ HOME ═══════════════════════════════════════════════════════════════ -->
@@ -3776,6 +3795,28 @@ window.addEventListener('unhandledrejection', function(e) {
   <div id="whatsnew-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;"></div>
 </div>
 
+<!-- ═══ AI COACH ═══ -->
+<div class="section" id="sec-ai_coach">
+  <h2 style="margin:0 0 4px;">AI Coach</h2>
+  <div style="font-size:13px;color:var(--text2);margin-bottom:14px;">Coach intelligente per l'analisi settimanale e la generazione di piani di allenamento.</div>
+  <div id="ai_coach_status" style="margin-bottom:12px;color:var(--text2);">Caricamento...</div>
+  <div id="ai_coach_chat" style="height:400px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;overflow:auto;min-height:300px;display:none;">
+    <div style="color:var(--text3);font-style:italic;padding:16px;text-align:center;">Nessuna chat attiva. Seleziona un'analisi o genera un piano.</div>
+  </div>
+  <div id="ai_coach_loading" style="color:var(--text3);display:none;padding:16px;text-align:center;">Analisi in corso...</div>
+  <form id="ai_coach_form" style="margin-top:16px;display:none;">
+    <div class="form-row">
+      <div class="form-group" style="width:100%;">
+        <label>Messaggio per l'AI Coach</label>
+        <input type="text" id="ai_coach_input" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--surface2);color:var(--text);" placeholder="Es. 'Analizza la mia settimana scorsa', 'Genera un piano per l'obiettivo performance'" required>
+      </div>
+    </div>
+    <button type="submit" class="btn-primary" style="margin-top:8px;">Invia</button>
+  </form>
+</div>
+
+<div style="clear:both;"></div>
+
 
 
 
@@ -3953,6 +3994,7 @@ window.addEventListener('unhandledrejection', function(e) {
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:16px;border-top:1px solid var(--border);">
       <button class="btn btn-secondary" id="ob-prev" onclick="prevOnboardingStep()" style="display:none;padding:10px 20px;font-size:13px;">Indietro</button>
       <div style="flex:1;"></div>
+      <button class="btn btn-secondary" id="ob-skip" onclick="skipOnboardingWizard()" style="padding:10px 20px;font-size:13px;color:var(--text2);background:var(--surface2);border-color:var(--border);">Salta</button>
       <button class="btn btn-primary" id="ob-next" onclick="nextOnboardingStep()" style="padding:10px 24px;font-size:13px;font-weight:600;">Avanti</button>
       <button class="btn btn-success" id="ob-finish" onclick="finishOnboarding()" style="display:none;padding:10px 24px;font-size:13px;font-weight:600;">Completa setup</button>
     </div>
@@ -4029,6 +4071,12 @@ async function onboardingSyncIcu(){
 }
 function onboardingGotoFirst(){ var d=window.__onboarding; var f=d&&d.gaps&&d.gaps[0]; onboardingGoto(f?f.goto:'settings'); }
 function dismissOnboarding(){ localStorage.setItem('onboarding-dismissed','1'); var b=document.getElementById('onboarding-banner'); if(b) b.style.display='none'; }
+function skipOnboardingWizard() {
+  localStorage.setItem('onboarding-dismissed', '1');
+  closeOnboardingWizard();
+  showToast('Setup saltato. Completa il profilo dalle Impostazioni.', 4000);
+}
+// ONBOARDING WIZARD JS (Phase 3)
 
 // ONBOARDING WIZARD JS (Phase 3)
 let _onboardingState = { step: 1, data: {} };
@@ -4542,28 +4590,37 @@ fetch('/api/settings').then(r=>r.json()).then(d=>{window._athleteFtp=d.ftp||250;
 const __ACTIVE_PROFILE_ID = '{{ active_profile_id }}';
 function _profileLsKey(base) { return base + ':' + __ACTIVE_PROFILE_ID; }
 
-// Theme toggle — safe wrapper for localStorage (unavailable in pywebview data: URLs)
+// Theme handling — safe wrapper for localStorage (unavailable in pywebview data: URLs)
 function _lsGet(k) { try { return localStorage.getItem(k); } catch(e) { return null; } }
 function _lsSet(k, v) { try { localStorage.setItem(k, v); } catch(e) {} }
-function toggleTheme() {
-  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-  if (isLight) {
-    document.documentElement.removeAttribute('data-theme');
-    _lsSet('theme', 'dark');
-    $('theme-toggle').textContent = '🌙';
-  } else {
-    document.documentElement.setAttribute('data-theme', 'light');
-    _lsSet('theme', 'light');
-    $('theme-toggle').textContent = '☀️';
+
+function changeTheme(theme) {
+  const html = document.documentElement;
+  const validThemes = ['light', 'dark', 'sepia', 'high-contrast'];
+  if (!validThemes.includes(theme)) return;
+  
+  // Remove all theme attributes
+  html.removeAttribute('data-theme');
+  if (theme !== 'light') {
+    html.setAttribute('data-theme', theme);
   }
+  _lsSet('theme', theme);
+  
+  // Update select element
+  const select = document.getElementById('theme-select');
+  if (select) select.value = theme;
 }
+
 // Restore saved theme on load
 (function() {
   const saved = _lsGet('theme');
-  if (saved === 'light') {
-    document.documentElement.setAttribute('data-theme', 'light');
-    const btn = document.getElementById('theme-toggle');
-    if (btn) btn.textContent = '☀️';
+  if (saved && saved !== 'light') {
+    document.documentElement.setAttribute('data-theme', saved);
+  }
+  // Set default to light if nothing saved
+  const select = document.getElementById('theme-select');
+  if (select && !saved) {
+    select.value = 'light';
   }
 })();
 
