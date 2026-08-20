@@ -1622,10 +1622,21 @@ window.addEventListener('unhandledrejection', function(e) {
 </div>
 
 <div class="tabs" id="tabs">
-  <!-- Tabs are rendered dynamically by renderTabs() from the per-profile
-       visibility config (see CPSL_TABS + tabConfig below). This lets the user
-       show/hide individual tabs via Settings → "Configura schede". -->
-
+  <div class="tab active" data-tab="home">Home</div>
+  <div class="tab" data-tab="picker">Workout Shuffle</div>
+  <div class="tab" data-tab="library">Workout Library</div>
+  <div class="tab" data-tab="player">Workout Player</div>
+  <div class="tab" data-tab="courses">Routes &amp; Climbs</div>
+  <div class="tab" data-tab="plan">Training Plan</div>
+  <div class="tab" data-tab="analysis">Analysis</div>
+  <div class="tab" data-tab="dfa">DFA α1</div>
+  <div class="tab" data-tab="settings">Settings</div>
+  <div class="tab" data-tab="hrv">HRV</div>
+  <div class="tab" data-tab="nutrition">Alimentazione</div>
+  <div class="tab" data-tab="bia">Composizione</div>
+  <div class="tab" data-tab="profile">Profilo</div>
+  <div class="tab" data-tab="whatsnew">Novità</div>
+  <div class="tab" data-tab="ai_coach">AI Coach</div>
 </div>
 
 <!-- ═══ HOME ═══════════════════════════════════════════════════════════════ -->
@@ -4741,7 +4752,7 @@ function gotoTab(tab) {
   const el = document.querySelector('.tab[data-tab="' + tab + '"]');
   if (el) el.classList.add('active');
   else { // hidden tab opened programmatically: reveal its section anyway
-    const cfg = tabConfig(); cfg[tab] = true; saveTabConfig(cfg); renderTabs();
+    const cfg = tabConfig(); cfg[tab] = true; saveTabConfig(cfg); applyTabVisibility();
     const el2 = document.querySelector('.tab[data-tab="' + tab + '"]'); if (el2) el2.classList.add('active');
   }
   section.classList.add('active');
@@ -4770,32 +4781,30 @@ function gotoTab(tab) {
   if (loaders[tab]) loaders[tab]();
 }
 
-// Render the tab bar from CPSL_TABS + per-profile visibility config.
-function renderTabs() {
-  const bar = $('tabs');
-  if (!bar) return;
-  bar.innerHTML = '';
-  let firstVisible = null;
+// Apply per-profile tab visibility to the STATIC tab bar (no DOM rebuild —
+// avoids dropping click listeners). Hidden tabs get display:none; visible ones
+// stay in the DOM so their click handlers keep working.
+function applyTabVisibility() {
   CPSL_TABS.forEach(t => {
-    if (!isTabVisible(t.id)) return;
-    if (!firstVisible) firstVisible = t.id;
-    const d = document.createElement('div');
-    d.className = 'tab';
-    d.dataset.tab = t.id;
-    d.textContent = t.label;
-    d.addEventListener('click', () => gotoTab(t.id));
-    bar.appendChild(d);
+    const el = document.querySelector('.tab[data-tab="' + t.id + '"]');
+    if (!el) return;
+    el.style.display = isTabVisible(t.id) ? '' : 'none';
   });
-  // Ensure something is active (default: Home, else first visible)
-  const active = document.querySelector('.tab[data-tab].active') || document.querySelector('.tab[data-tab="home"]') || document.querySelector('.tab[data-tab="' + firstVisible + '"]');
-  if (active) { active.classList.add('active'); }
-  // Activate the matching section if not already
-  const cur = document.querySelector('.section.active');
-  if (!cur && firstVisible) { const s = $('sec-' + firstVisible); if (s) s.classList.add('active'); }
 }
 
-// Tab navigation
-renderTabs();
+// Attach click listeners once to the static tabs.
+document.querySelectorAll('.tab[data-tab]').forEach(el => {
+  el.addEventListener('click', () => gotoTab(el.dataset.tab));
+});
+
+// Ensure something is active on load
+(function initTabs() {
+  applyTabVisibility();
+  if (!document.querySelector('.section.active')) {
+    const home = $('sec-home'); if (home) home.classList.add('active');
+    const ht = document.querySelector('.tab[data-tab="home"]'); if (ht) ht.classList.add('active');
+  }
+})();
 
 // ── Tab configurator UI (Settings → "Configura schede") ──
 function renderTabConfigUI() {
@@ -4815,7 +4824,7 @@ function renderTabConfigUI() {
       const cfg = tabConfig();
       if (t.core) { cfg[t.id] = true; } else { cfg[t.id] = cb.checked; }
       saveTabConfig(cfg);
-      renderTabs();
+      applyTabVisibility();
       if (typeof refreshOnboarding === 'function') refreshOnboarding();
     };
     const span = document.createElement('span');
@@ -4826,7 +4835,7 @@ function renderTabConfigUI() {
 }
 function resetTabConfig() {
   try { localStorage.removeItem(_TAB_CFG_KEY()); } catch (e) {}
-  renderTabs();
+  applyTabVisibility();
   renderTabConfigUI();
 }
 function openSetupWizard() {
