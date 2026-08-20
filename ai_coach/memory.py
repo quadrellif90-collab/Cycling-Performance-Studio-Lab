@@ -180,6 +180,34 @@ def build_rider_context(profile_id: Optional[str] = None) -> dict:
     except Exception:
         pass
 
+    # Real HRV / wellness pulled from intervals.icu (the data we just synced).
+    # This is the source of truth for "rider context" — always attempt it first.
+    try:
+        from ride_storage import load_recent_wellness
+        recs = load_recent_wellness(days=14)
+        if recs:
+            hrv_vals = [r.get("hrv") or r.get("hrvSDNN")
+                        for r in recs if (r.get("hrv") or r.get("hrvSDNN"))]
+            if hrv_vals:
+                ctx["hrv_recent_14d"] = {
+                    "count": len(hrv_vals),
+                    "latest": hrv_vals[-1],
+                    "avg": round(sum(hrv_vals) / len(hrv_vals), 1),
+                }
+            # weight trend if present
+            wt = [r.get("weight") for r in recs if r.get("weight")]
+            if wt:
+                ctx["weight_kg"] = wt[-1]
+            # resting HR + readiness as recovery signals
+            rhr = [r.get("restingHR") for r in recs if r.get("restingHR")]
+            if rhr:
+                ctx.setdefault("athlete", {})["resting_hr"] = rhr[-1]
+            rd = [r.get("readiness") for r in recs if r.get("readiness")]
+            if rd:
+                ctx["readiness_latest"] = rd[-1]
+    except Exception:
+        pass
+
     try:
         from hrv_engine import get_recent_hrv_trend
         trend = get_recent_hrv_trend(days=14)
@@ -201,6 +229,16 @@ def build_rider_context(profile_id: Optional[str] = None) -> dict:
         dur = compute_durability_score()
         if dur:
             ctx["durability"] = dur
+    except Exception:
+        pass
+
+    # eFTP from intervals.icu (already synced into config on connect)
+    try:
+        from config import ATHLETE_FTP_W, ATHLETE_WEIGHT_KG
+        if ATHLETE_FTP_W:
+            ctx.setdefault("athlete", {})["ftp"] = ATHLETE_FTP_W
+        if ATHLETE_WEIGHT_KG:
+            ctx.setdefault("athlete", {})["weight"] = ATHLETE_WEIGHT_KG
     except Exception:
         pass
 

@@ -9235,6 +9235,32 @@ def api_icu_connection():
     }
 
 
+@app.post("/api/icu/sync")
+def api_icu_sync(body: "dict | None" = None):
+    """Pull latest wellness/HRV + athlete numbers from intervals.icu NOW.
+
+    The frontend "Sync" button calls this endpoint (previously 404'd because
+    it was only wired in app.js but never registered server-side). Force-refreshes
+    wellness (HRV, weight, recovery) and athlete numbers so the dashboard, AI
+    Coach RAG context and planner all reflect the latest data.
+    """
+    try:
+        force = bool((body or {}).get("force", True))
+        try:
+            wellness = _sync_icu_wellness(force=force, days=90)
+        except Exception as e:
+            wellness = {"added": 0, "total": 0, "skipped": f"wellness_err:{type(e).__name__}"}
+        try:
+            from training import fetch_athlete_numbers
+            nums = fetch_athlete_numbers()
+        except Exception as e:
+            nums = {"skipped": f"nums_err:{type(e).__name__}"}
+        return {"ok": True, "wellness": wellness, "athlete_numbers": nums}
+    except Exception as e:
+        _log.exception("icu sync endpoint failed")
+        return {"ok": False, "error": f"internal:{type(e).__name__}"}
+
+
 # ── v3.0.1 (IP_ICU_PUSH) — calendar push: endpoints + debounced plan hook ────
 # One engine (icu_calendar_push.reconcile), two triggers: the plan-tab button
 # (POST below) and the atomic_write_plan post-write callback registered at
