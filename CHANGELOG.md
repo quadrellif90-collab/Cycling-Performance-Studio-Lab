@@ -5,7 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/).
 
-## [1.0.2] - 2026-08-20
+## [1.1.0] - 2026-08-20
+
+### Added
+- **AI Coach with persistent memory**: the coach now remembers every session across conversations (SQLite `ai_memory.db`, per-profile). New endpoints `/api/ai/memory` (GET/DELETE) and `/api/ai/rider-context`.
+- **RAG on real rider data**: coach responses are grounded in the rider's actual FTP, HRV trend, phenotype, durability and plan gaps (not generic LLM knowledge).
+- **AI Coach tab UX**: "Contesto Rider" panel (live grounded data) + "Memoria del Coach" panel (session history with clear button).
+- Single source of truth for version: `APP_VERSION` now derives from the `VERSION` file (no more `4.0.0-alpha` phantom).
+
+### Cleaned
+- Removed residual Domestique branding/version references that confused the app's identity (update-check still pointed at the upstream `platypus45/domestique` repo — fixed in 1.0.2; remaining inline references normalized).
+
+### Notes
+- intervals.icu **push** (plan → ICU calendar) and **HRV-guided auto-plan adaptation** were already present in the core (`/api/icu/push`, `daily_adapt_plan`); they are now surfaced and verified as part of the live workflow.
+
+
 
 ### Fixed
 - **False "Update available 3.10.1"**: update-check pointed to the upstream `platypus45/domestique` repo. Now targets `quadrellif90-collab/Cycling-Performance-Studio-Lab`; platform asset matching updated to CPSL asset names (`CyclingPerformanceStudioLab.exe`, `Cycling-Performance-Studio-Lab.dmg`/`-macOS.tar.gz`, `CyclingPerformanceStudioLab-v*-linux-x86_64.tar.gz`).
