@@ -5,7 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/).
 
-## [1.1.3] - 2026-08-20
+## [1.1.4] - 2026-08-20
+
+### Fixed
+- **Tabs not opening on click**: the dynamic `renderTabs()` rebuilt the tab bar with `innerHTML = ''`, dropping the click listeners. Reverted to static tabs in the HTML + a lightweight `applyTabVisibility()` that only toggles `display`, so click handlers stay attached. Tabs now open correctly.
+- **Intervals.icu "Connect" (login) failed**: the API-Key connect path posted `api_key`/`athlete_id` but the backend save endpoint expects `icu_api_key`/`icu_id`. Corrected the field names in `connectIcuApiKey()` so the Settings → Connections → API Key flow actually persists and connects (verified: `connected: true, method: apikey, write_ok: true`).
+
+### Changed
+- **New app icon** — racing-gradient disc with a cycling wheel, an analytics line chart and a lightning bolt (generated `assets/icon.ico` / `icon_512x512.png`).
+
+
 
 ### Added
 - **AI Coach chat is now functional**: new `/api/ai/settings` endpoint persists LLM provider + key (stored in gitignored `ai_config.json`, never committed) and toggles the coach on/off at runtime. Verified live with Google Gemini (`gemini-3-flash-preview`) and Groq.
