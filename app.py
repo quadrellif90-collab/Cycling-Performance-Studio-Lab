@@ -913,6 +913,12 @@ try:
     except Exception as _e:
         log.debug(f"ai_coach.register_routes failed: {_e}")
 
+    # Apply persisted AI Coach LLM settings (provider/key/model/enabled)
+    try:
+        _load_ai_config_at_boot()
+    except Exception as _e:
+        log.debug(f"ai config boot-load failed: {_e}")
+
     # PCC v2 routes (Huawei HRV, Terra, Custom Charts, Onboarding, etc.)
     try:
         from pcc_routes_v2 import register_pcc_routes as _reg_pcc_v2
@@ -23269,7 +23275,88 @@ from ai_coach.friel_coaching import build_friel_assessment, FRIEL_SYSTEM_PROMPT,
 # Dependency: gets LLM client from app state or config
 def _get_llm_client():
     from config import AI_LLM_PROVIDER, AI_LLM_API_KEY, AI_LLM_MODEL
-    return get_client(provider=AI_LLM_PROVIDER, api_key=AI_LLM_API_KEY, model=AI_LLM_MODEL)
+    return get_client(config_section={
+        "provider": AI_LLM_PROVIDER,
+        "api_key": AI_LLM_API_KEY,
+        "model": AI_LLM_MODEL,
+    })
+
+# ── 39b. POST /api/ai/settings ──────────────────────────────────────────
+_AI_CONFIG_PATH = BASE_DIR / "ai_config.json"
+
+
+def _load_ai_config_at_boot():
+    """Apply persisted AI Coach settings (provider/key/model/enabled) on boot."""
+    try:
+        if not _AI_CONFIG_PATH.exists():
+            return
+        import json as _json
+        cfg = _json.loads(_AI_CONFIG_PATH.read_text(encoding="utf-8"))
+        if cfg.get("enabled"):
+            config.AI_COACH_ENABLED = True
+        if cfg.get("provider"):
+            config.AI_LLM_PROVIDER = cfg["provider"]
+        if cfg.get("api_key"):
+            config.AI_LLM_API_KEY = cfg["api_key"]
+        if cfg.get("model"):
+            config.AI_LLM_MODEL = cfg["model"]
+    except Exception as e:
+        _log.debug(f"ai config boot-load failed: {e}")
+
+
+@app.post("/api/ai/settings")
+async def api_ai_settings(request: Request):
+    """Persist AI Coach configuration and enable/disable the coach.
+
+    Body: {provider, api_key, model, enabled}. The API key is stored ONLY in
+    ai_config.json (gitignored) — never committed to the repo.
+    """
+    import json as _json
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    provider = (body.get("provider") or "openai").strip()
+    api_key = (body.get("api_key") or "").strip()
+    model = (body.get("model") or "").strip()
+    enabled = bool(body.get("enabled", bool(api_key)))
+
+    if enabled and not api_key:
+        return JSONResponse({"ok": False, "error": "api_key required to enable"})
+
+    # Persist
+    cfg = {}
+    if _AI_CONFIG_PATH.exists():
+        try:
+            cfg = _json.loads(_AI_CONFIG_PATH.read_text(encoding="utf-8"))
+        except Exception:
+            cfg = {}
+    cfg.update({"provider": provider, "api_key": api_key, "model": model, "enabled": enabled})
+    _AI_CONFIG_PATH.write_text(_json.dumps(cfg, indent=2), encoding="utf-8")
+
+    # Apply at runtime
+    config.AI_LLM_PROVIDER = provider
+    config.AI_LLM_API_KEY = api_key
+    if model:
+        config.AI_LLM_MODEL = model
+    config.AI_COACH_ENABLED = enabled
+
+    # Validate the key with a cheap call if enabling (best-effort; skip if
+    # the client has no validate_key method)
+    if enabled:
+        try:
+            client = _get_llm_client()
+            if hasattr(client, "validate_key"):
+                ok = client.validate_key()
+                if not ok:
+                    return JSONResponse({"ok": False, "error": "API key rejected by provider"})
+        except Exception as e:
+            # Don't hard-fail on validation errors — the actual query will surface
+            # auth problems. This keeps provider-agnostic setup frictionless.
+            _log.debug(f"ai settings key validation skipped: {e}")
+
+    return {"ok": True, "enabled": enabled, "provider": provider, "model": config.AI_LLM_MODEL}
+
 
 # ── 40. GET /api/ai/status ──────────────────────────────────────────────
 @app.get("/api/ai/status")
