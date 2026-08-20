@@ -23228,28 +23228,28 @@ from ai_coach.friel_coaching import build_friel_assessment, FRIEL_SYSTEM_PROMPT,
 
 # Dependency: gets LLM client from app state or config
 def _get_llm_client():
-    from cpsl.config import AI_LLM_PROVIDER, AI_LLM_API_KEY, AI_LLM_MODEL
+    from config import AI_LLM_PROVIDER, AI_LLM_API_KEY, AI_LLM_MODEL
     return get_client(provider=AI_LLM_PROVIDER, api_key=AI_LLM_API_KEY, model=AI_LLM_MODEL)
 
 # ── 40. GET /api/ai/status ──────────────────────────────────────────────
 @app.get("/api/ai/status")
 async def api_ai_status():
     """Restituisce lo stato del AI Coach (abilitato/disabilitato + provider)."""
-    from cpsl.config import AI_COACH_ENABLED
+    from config import AI_COACH_ENABLED
     return {
         "ok": True,
         "ai_coach_enabled": bool(AI_COACH_ENABLED),
-        "provider": getattr(cpsl.config, "AI_LLM_PROVIDER", "openai"),
-        "model": getattr(cpsl.config, "AI_LLM_MODEL", "gpt-4o"),
+        "provider": getattr(config, "AI_LLM_PROVIDER", "openai"),
+        "model": getattr(config, "AI_LLM_MODEL", "gpt-4o"),
     }
 
 # ── 41. POST /api/ai/weekly-analysis ────────────────────────────────────
 @app.post("/api/ai/weekly-analysis")
 async def api_ai_weekly_analysis(request: Request):
     """Genera un'analisi settimanale usando LLM + dati nativi CPSL."""
-    from cpsl.config import AI_COACH_ENABLED
+    from config import AI_COACH_ENABLED
     if not AI_COACH_ENABLED:
-        return JSONContent({"ok": False, "error": "AI coach disabled"})
+        return JSONResponse({"ok": False, "error": "AI coach disabled"})
     try:
         body = await request.json()
         rides = body.get("rides", [])
@@ -23258,15 +23258,15 @@ async def api_ai_weekly_analysis(request: Request):
         analysis = generate_weekly_analysis(rides=rides, profile_data=profile_data, client=client)
         return {"ok": True, "analysis": analysis}
     except Exception as e:
-        return JSONContent({"ok": False, "error": str(e)})
+        return JSONResponse({"ok": False, "error": str(e)})
 
 # ── 42. POST /api/ai/generate-plan ──────────────────────────────────────
 @app.post("/api/ai/generate-plan")
 async def api_ai_generate_plan(request: Request):
     """Genera un piano di allenamento personalizzato usando LLM + dati CPSL."""
-    from cpsl.config import AI_COACH_ENABLED
+    from config import AI_COACH_ENABLED
     if not AI_COACH_ENABLED:
-        return JSONContent({"ok": False, "error": "AI coach disabled"})
+        return JSONResponse({"ok": False, "error": "AI coach disabled"})
     try:
         body = await request.json()
         analysis = body.get("analysis", {})
@@ -23278,15 +23278,15 @@ async def api_ai_generate_plan(request: Request):
                                     days_per_week=days_per_week, client=client)
         return {"ok": True, "plan": plan}
     except Exception as e:
-        return JSONContent({"ok": False, "error": str(e)})
+        return JSONResponse({"ok": False, "error": str(e)})
 
 # ── 43. POST /api/ai/friel-assessment ────────────────────────────────────
 @app.post("/api/ai/friel-assessment")
 async def api_ai_friel_assessment(request: Request):
     """Restituisce un assessment in stile Friel basato su CTL/ATL/TSB e dati."""
-    from cpsl.config import AI_COACH_ENABLED
+    from config import AI_COACH_ENABLED
     if not AI_COACH_ENABLED:
-        return JSONContent({"ok": False, "error": "AI coach disabled"})
+        return JSONResponse({"ok": False, "error": "AI coach disabled"})
     try:
         body = await request.json()
         total_tss = body.get("total_tss", 0)
@@ -23300,21 +23300,72 @@ async def api_ai_friel_assessment(request: Request):
         assessment = build_friel_assessment(total_tss, ctl, atl, tsb, pi, phenotype, phase, durability)
         return {"ok": True, "assessment": assessment}
     except Exception as e:
-        return JSONContent({"ok": False, "error": str(e)})
+        return JSONResponse({"ok": False, "error": str(e)})
 
-# ── 44. POST /api/ai/friel-prompts ──────────────────────────────────────
+# ── 44. GET /api/ai/friel-prompts ──────────────────────────────────────
 @app.get("/api/ai/friel-prompts")
 async def api_ai_friel_prompts():
     """Restituisce i system prompt e i template prompt Friel per l'AI Coach."""
-    from cpsl.config import AI_COACH_ENABLED
+    from config import AI_COACH_ENABLED
     if not AI_COACH_ENABLED:
-        return JSONContent({"ok": False, "error": "AI coach disabled"})
+        return JSONResponse({"ok": False, "error": "AI coach disabled"})
     return {
         "ok": True,
         "friel_system_prompt": FRIEL_SYSTEM_PROMPT,
         "weekly_analysis_prompt": WEEKLY_ANALYSIS_PROMPT,
         "generate_plan_prompt": GENERATE_PLAN_PROMPT,
     }
+
+# ── 45. POST /api/ai/coach-query ────────────────────────────────────────
+@app.post("/api/ai/coach-query")
+async def api_ai_coach_query(request: Request):
+    """Query contestuale all'AI Coach usando i dati analytics correnti.
+
+    Accetta una query utente e un contesto opzionale (profile_id, metrics,
+    workout_summary) e restituisce un parere di coaching generato dall'LLM.
+    """
+    from config import AI_COACH_ENABLED
+    if not AI_COACH_ENABLED:
+        return JSONResponse({"ok": False, "error": "AI coach disabled"})
+    try:
+        body = await request.json()
+        query = body.get("query", "")
+        context = body.get("context", {}) or {}
+        if not query:
+            return JSONResponse({"ok": False, "error": "Query is required"})
+        client = _get_llm_client()
+        prompt_parts = [FRIEL_SYSTEM_PROMPT]
+        if context.get("profile_id"):
+            prompt_parts.append(f"Profile ID: {context['profile_id']}")
+        if context.get("metrics"):
+            import json as _json
+            prompt_parts.append(f"Recent metrics: {_json.dumps(context['metrics'])}")
+        if context.get("workout_summary"):
+            prompt_parts.append(f"Workout summary: {context['workout_summary']}")
+        prompt_parts.append(f"User query: {query}")
+        full_prompt = "\n\n".join(prompt_parts)
+        response = client.chat(messages=[{"role": "user", "content": full_prompt}])
+        return {
+            "ok": True,
+            "response": response,
+            "query": query,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        return JSONResponse({"ok": False, "error": str(e)})
+
+# ── 46. GET /api/ai/health ──────────────────────────────────────────────
+@app.get("/api/ai/health")
+async def api_ai_health():
+    """Health check del modulo AI Coach."""
+    from config import AI_COACH_ENABLED
+    if not AI_COACH_ENABLED:
+        return JSONResponse({"ok": False, "error": "AI coach disabled"})
+    try:
+        client = _get_llm_client()
+        return {"ok": True, "status": "healthy", "provider": client.provider}
+    except Exception as e:
+        return JSONResponse({"ok": False, "error": str(e)})
 
 # ════════════════════════════════════════════════════════════════════════════════
 # HTML
