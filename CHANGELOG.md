@@ -5,7 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/).
 
-## [1.1.0] - 2026-08-20
+## [1.1.2] - 2026-08-20
+
+### Fixed
+- **`/api/icu/sync` 404**: the frontend "Sync" button called an endpoint that was never registered server-side. Added the route — now pulls wellness/HRV + athlete numbers from intervals.icu on demand.
+- **AI Coach RAG read empty data**: `build_rider_context` now pulls the rider's REAL HRV, weight and FTP from the intervals.icu sync store (`ride_storage.load_recent_wellness`) instead of modules that returned nothing. The coach is now grounded in actual measured data (verified: FTP 200W, HRV avg 57ms, weight 70kg).
+
+### Verified live (with real athlete data)
+- intervals.icu connect (API Key) ✅
+- Wellness/HRV sync (91 records) ✅
+- Plan generation (deterministic, no LLM needed) ✅
+- **Plan → intervals.icu calendar push** (2 workouts pushed) ✅
+- AI Coach memory + rider-context panels ✅
+
+### Notes
+- AI Coach *chat* (coach-query / weekly-analysis / generate-plan AI) still requires an LLM API key (`AI_COACH_ENABLED`); set it in Settings → AI Coach. The RAG context and memory layers work independently.
+
+
 
 ### Added
 - **AI Coach with persistent memory**: the coach now remembers every session across conversations (SQLite `ai_memory.db`, per-profile). New endpoints `/api/ai/memory` (GET/DELETE) and `/api/ai/rider-context`.
