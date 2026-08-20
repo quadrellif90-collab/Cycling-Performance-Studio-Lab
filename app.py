@@ -23,9 +23,107 @@ _startup_log(f"app.py loading, frozen={getattr(_sys, 'frozen', False)}")
 import collections
 import functools
 import hashlib
-import json
 import os
 import re
+import subprocess
+import sys
+import threading
+import time
+import uuid
+import xml.etree.ElementTree as ET
+from contextlib import asynccontextmanager
+from datetime import date, datetime, timedelta, timezone
+from pathlib import Path
+
+# ═══════════════════════════════════════════
+# 🤖 BOOTSTRAPPER AUTOMATICO ALL'AVVIO
+# Verifica e installa automaticamente i modulo critici se mancanti
+# Garantisce che l'exe funzioni "out of the box" senza require installazione manuale
+# ════════════════════════════════════════════
+
+# Moduli critici che DEVONO essere disponibili per far partire l'app
+_CRITICAL_MODULES = {
+    "fastapi": "fastapi",
+    "uvicorn": "uvicorn",
+    "starlette": "starlette",
+    "pydantic": "pydantic",
+    "sqlalchemy": "sqlalchemy",
+    "PIL": "Pillow",
+    "numpy": "numpy",
+    "jinja2": "jinja2",
+    "python_multipart": "python-multipart",
+}
+
+_Installed_today = False
+
+
+def _ensure_critical_modules() -> None:
+    """Ensure all critical modules are importable, installing them if needed.
+
+    This runs at startup and:
+    1. Tries to import each critical module
+    2. If import fails, installs it via the bundled Python pip
+    3. Retries the import
+    4. Raises only if installation fails after user notification
+    """
+    global _Installed_today
+
+    # Avoid re-running if already successful today (prevents infinite loops)
+    import datetime as _dt
+    today_str = _dt.date.today().isoformat()
+    if getattr(_ensure_critical_modules, "_last_run", None) == today_str:
+        return
+    _ensure_critical_modules._last_run = today_str
+
+    failed: list[str] = []
+
+    for alias, pip_name in _CRITICAL_MODULES.items():
+        try:
+            # Try import using the module's actual name (some differ from pip name)
+            __import__(alias)
+        except ImportError:
+            # Module not installed — try to install it
+            try:
+                import pip as _pip_mod
+                _pip_mod.main(["install", pip_name])
+                # Retry import
+                __import__(alias)
+                print(f"[CPSL Bootstrap] Installed missing dependency: {pip_name} (alias: {alias})")
+            except Exception as e:
+                failed.append((alias, pip_name, str(e)))
+                print(f"[CPSL Bootstrap] WARNING: Could not install {pip_name}: {e}")
+
+    if failed:
+        # Show summary but don't crash — app may still function with reduced features
+        error_msg = (
+            "CPSL startup encountered missing dependencies:\n"
+            + "\n".join(
+                [f"  - {alias} (pip: {pip_name})" for alias, pip_name, _ in failed]
+            )
+            + "\n\nSome features may be limited. "
+            "Run 'pip install -r requirements-win.txt' for full functionality."
+        )
+        # Log to file
+        try:
+            _lp = Path.home() / ".cpsl" / "bootstrap_error.log"
+            _lp.parent.mkdir(parents=True, exist_ok=True)
+            with open(_lp, "a") as _f:
+                _f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {error_msg}\n")
+        except Exception:
+            pass
+        print("[CPSL] Startup warnings above. Check " + str(_lp) + " for details.")
+
+
+# Esegui il bootstrap prima di qualsiasi import 'pesante'
+_ensure_critical_modules()
+
+# ════════════════════════════════════════════
+# 📦 IMPORTS POST-BOOTSTRAP (sicuri ora)
+# ════════════════════════════════════════════
+
+import collections
+import functools
+import json
 import sys
 import threading
 import time
