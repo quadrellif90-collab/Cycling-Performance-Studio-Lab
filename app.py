@@ -8765,7 +8765,7 @@ def api_migrations_last_run_result():
 #   { current, latest, update_available, release_url, download_url,
 #     asset_name, platform, checked_at, cached, error, release_body }
 _UPDATE_CHECK_CACHE_TTL_S = 6 * 60 * 60  # 6 hours
-_GITHUB_RELEASES_LATEST_URL = "https://api.github.com/repos/platypus45/domestique/releases/latest"
+_GITHUB_RELEASES_LATEST_URL = "https://api.github.com/repos/quadrellif90-collab/Cycling-Performance-Studio-Lab/releases/latest"
 _RELEASE_BODY_MAX_CHARS = 8192
 _RELEASE_BODY_TRUNCATION_SUFFIX = "\n\n… (full release notes on GitHub)"
 
@@ -8797,8 +8797,12 @@ def _select_platform_asset(assets, plat):
     if plat == "darwin":
         dmgs = [a for a in assets if _name(a).lower().endswith(".dmg")]
         if not dmgs:
+            # Fallback to the macOS tar.gz bundle if no .dmg was published.
+            tars = [a for a in assets if "macos" in _name(a).lower() and _name(a).lower().endswith(".tar.gz")]
+            if tars:
+                return _url(tars[0]) or None, _name(tars[0]) or None
             return None, None
-        canonical = [a for a in dmgs if _name(a) == "Domestique.dmg"]
+        canonical = [a for a in dmgs if _name(a) == "Cycling-Performance-Studio-Lab.dmg"]
         chosen = canonical[0] if canonical else dmgs[0]
         return _url(chosen) or None, _name(chosen) or None
 
@@ -8812,13 +8816,14 @@ def _select_platform_asset(assets, plat):
         return None, None
 
     if plat == "linux":
-        # One AppImage per release, and it always carries the version token —
-        # unlike the DMG, whose bare name caused the v1.8.8 mix-up. No
-        # canonical-name preference is needed because there is only ever one.
+        # CPSL publishes a versioned .tar.gz (e.g. CyclingPerformanceStudioLab-v1.0.0-linux-x86_64.tar.gz).
+        tars = [a for a in assets if _name(a).lower().endswith(".tar.gz") and "linux" in _name(a).lower()]
+        if tars:
+            return _url(tars[0]) or None, _name(tars[0]) or None
         imgs = [a for a in assets if _name(a).lower().endswith(".appimage")]
-        if not imgs:
-            return None, None
-        return _url(imgs[0]) or None, _name(imgs[0]) or None
+        if imgs:
+            return _url(imgs[0]) or None, _name(imgs[0]) or None
+        return None, None
 
     return None, None
 
@@ -9708,7 +9713,7 @@ def api_update_check(force: int = Query(0)):
             "current": _VERSION,
             "latest": tag,
             "update_available": bool(update_available),
-            "release_url": rel.get("html_url") or ("https://github.com/platypus45/domestique/releases/tag/v" + tag),
+            "release_url": rel.get("html_url") or ("https://github.com/quadrellif90-collab/Cycling-Performance-Studio-Lab/releases/tag/v" + tag),
             "download_url": download_url,
             "asset_name": asset_name,
             "platform": plat,

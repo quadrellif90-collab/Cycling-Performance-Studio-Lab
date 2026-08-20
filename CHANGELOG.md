@@ -5,9 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/).
 
-## [1.0.0] - 2026-08-20
+## [1.0.2] - 2026-08-20
+
+### Fixed
+- **False "Update available 3.10.1"**: update-check pointed to the upstream `platypus45/domestique` repo. Now targets `quadrellif90-collab/Cycling-Performance-Studio-Lab`; platform asset matching updated to CPSL asset names (`CyclingPerformanceStudioLab.exe`, `Cycling-Performance-Studio-Lab.dmg`/`-macOS.tar.gz`, `CyclingPerformanceStudioLab-v*-linux-x86_64.tar.gz`).
 
 ### Added
+- **Tab configurator**: show/hide individual dashboard tabs via Settings → "Configura schede". Per-profile, persisted in localStorage. Core tabs (Home, Settings) are always visible. "Ripristina default" resets.
+- **Setup wizard launcher**: Settings → "Apri il Wizard di setup" opens `/setup` in a new tab (wizard was already auto-triggered on first run / fresh profile).
+- **New curated themes**: Ocean, Forest, Sunset, Nord (plus refined Dark & Sepia palettes) — selectable from the header theme dropdown.
+
 - **AI Coach full integration**: new `/api/ai/coach-query` (contextual coaching query using current analytics) and `/api/ai/health` (module health check) routes. AI Coach now exposes 7 endpoints: status, weekly-analysis, generate-plan, friel-assessment, friel-prompts, coach-query, health.
 - **Automatic bootstrapper**: `app.py` verifies and pip-installs critical dependencies (fastapi, uvicorn, starlette, pydantic, sqlalchemy, Pillow, numpy, jinja2, python-multipart) at startup if missing — zero manual install for the end user.
 - **CI/CD multi-platform**: GitHub Actions workflow builds and publishes Windows `.exe`, macOS `.dmg` and Linux `.AppImage` automatically on tag push.

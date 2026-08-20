@@ -20,17 +20,17 @@
   --bg: #0a0e14; --surface: #131a24; --surface2: #1a2332; --border: #2d3f52;
   --card: #1a2332;
   --text: #e6edf3; --text2: #b8c8d8; --text3: #8a9bb0;
-  --accent: #4f9cf7; --accent2: #6366f1;
-  --green: #22c55e; --yellow: #eab308; --orange: #f97316; --red: #ef4444; --purple: #a855f7;
-  --z1: #64748b; --z2: #3b82f6; --z3: #22c55e; --z4: #eab308; --z5: #f97316; --z6: #ef4444; --z7: #e2e8f0;
+  --accent: #38bdf8; --accent2: #818cf8;
+  --green: #34d399; --yellow: #fbbf24; --orange: #fb923c; --red: #f87171; --purple: #c084fc;
+  --z1: #64748b; --z2: #38bdf8; --z3: #34d399; --z4: #fbbf24; --z5: #fb923c; --z6: #f87171; --z7: #e2e8f0;
 }
 [data-theme="sepia"] {
-  --bg: #fefae0; --surface: #fdf6d9; --surface2: #f5f0c8; --border: #d4c49a;
-  --card: #fdf6d9;
-  --text: #2d2a22; --text2: #5a5444; --text3: #8a826c;
-  --accent: #8b6914; --accent2: #a8841a;
-  --green: #5a8a2a; --yellow: #b8860b; --orange: #c46a1a; --red: #c42a2a; --purple: #8a4a8a;
-  --z1: #8a826c; --z2: #3a6fb8; --z3: #5a8a2a; --z4: #b8860b; --z5: #c46a1a; --z6: #c42a2a; --z7: #5a5444;
+  --bg: #f4ecd8; --surface: #fbf5e3; --surface2: #f1e7c6; --border: #d8c79a;
+  --card: #fbf5e3;
+  --text: #3a3220; --text2: #6b5f44; --text3: #968a6c;
+  --accent: #c08552; --accent2: #b5894b;
+  --green: #6a9a3a; --yellow: #c79a2e; --orange: #cf7a2e; --red: #c2492f; --purple: #9a5a8a;
+  --z1: #968a6c; --z2: #3a6fb8; --z3: #6a9a3a; --z4: #c79a2e; --z5: #cf7a2e; --z6: #c2492f; --z7: #6b5f44;
 }
 [data-theme="high-contrast"] {
   --bg: #000000; --surface: #1a1a1a; --surface2: #2a2a2a; --border: #ffffff;
@@ -39,6 +39,39 @@
   --accent: #00ffff; --accent2: #ff00ff;
   --green: #00ff00; --yellow: #ffff00; --orange: #ff8800; --red: #ff0000; --purple: #ff00ff;
   --z1: #888888; --z2: #00ffff; --z3: #00ff00; --z4: #ffff00; --z5: #ff8800; --z6: #ff0000; --z7: #cccccc;
+}
+/* ── New curated themes (v1.0.2) ── */
+[data-theme="ocean"] {
+  --bg: #0b1f2a; --surface: #10293a; --surface2: #16354b; --border: #1f4965;
+  --card: #10293a;
+  --text: #e3f3fb; --text2: #a9cfe0; --text3: #76a3ba;
+  --accent: #22d3ee; --accent2: #38bdf8;
+  --green: #2dd4bf; --yellow: #fde047; --orange: #fb923c; --red: #f87171; --purple: #a78bfa;
+  --z1: #76a3ba; --z2: #22d3ee; --z3: #2dd4bf; --z4: #fde047; --z5: #fb923c; --z6: #f87171; --z7: #e3f3fb;
+}
+[data-theme="forest"] {
+  --bg: #0f1a0f; --surface: #162415; --surface2: #1d301c; --border: #2b422a;
+  --card: #162415;
+  --text: #e6f5e3; --text2: #b3d4ad; --text3: #7fa079;
+  --accent: #4ade80; --accent2: #22c55e;
+  --green: #4ade80; --yellow: #facc15; --orange: #fb923c; --red: #f87171; --purple: #c084fc;
+  --z1: #7fa079; --z2: #4ade80; --z3: #4ade80; --z4: #facc15; --z5: #fb923c; --z6: #f87171; --z7: #e6f5e3;
+}
+[data-theme="sunset"] {
+  --bg: #1f1410; --surface: #2a1a14; --surface2: #38221a; --border: #523425;
+  --card: #2a1a14;
+  --text: #fde9e0; --text2: #e0b3a3; --text3: #b88470;
+  --accent: #fb7185; --accent2: #f59e0b;
+  --green: #34d399; --yellow: #fbbf24; --orange: #fb923c; --red: #f87171; --purple: #c084fc;
+  --z1: #b88470; --z2: #fb7185; --z3: #34d399; --z4: #fbbf24; --z5: #fb923c; --z6: #f87171; --z7: #fde9e0;
+}
+[data-theme="nord"] {
+  --bg: #242933; --surface: #2e3440; --surface2: #3b4252; --border: #434c5e;
+  --card: #2e3440;
+  --text: #eceff4; --text2: #d8dee9; --text3: #aeb6c4;
+  --accent: #88c0d0; --accent2: #81a1c1;
+  --green: #a3be8c; --yellow: #ebcb8b; --orange: #d08770; --red: #bf616a; --purple: #b48ead;
+  --z1: #aeb6c4; --z2: #88c0d0; --z3: #a3be8c; --z4: #ebcb8b; --z5: #d08770; --z6: #bf616a; --z7: #eceff4;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -1544,6 +1577,10 @@ window.addEventListener('unhandledrejection', function(e) {
       <option value="dark">🌙 Dark</option>
       <option value="sepia">📜 Sepia</option>
       <option value="high-contrast">⚫ High Contrast</option>
+      <option value="ocean">🌊 Ocean</option>
+      <option value="forest">🌲 Forest</option>
+      <option value="sunset">🌅 Sunset</option>
+      <option value="nord">❄️ Nord</option>
     </select>
   </div>
 </header>
@@ -1585,21 +1622,9 @@ window.addEventListener('unhandledrejection', function(e) {
 </div>
 
 <div class="tabs" id="tabs">
-  <div class="tab active" data-tab="home">Home</div>
-  <div class="tab" data-tab="picker">Workout Shuffle</div>
-  <div class="tab" data-tab="library">Workout Library</div>
-  <div class="tab" data-tab="player">Workout Player</div>
-  <div class="tab" data-tab="courses">Routes & Climbs</div>
-  <div class="tab" data-tab="plan">Training Plan</div>
-  <div class="tab" data-tab="analysis">Analysis</div>
-  <div class="tab" data-tab="dfa">DFA α1</div>
-  <div class="tab" data-tab="settings">Settings</div>
-  <div class="tab" data-tab="hrv">HRV</div>
-  <div class="tab" data-tab="nutrition">Alimentazione</div>
-  <div class="tab" data-tab="bia">Composizione</div>
-  <div class="tab" data-tab="profile">Profilo</div>
-  <div class="tab" data-tab="whatsnew">Novità</div>
-  <div class="tab" data-tab="ai_coach">AI Coach</div>
+  <!-- Tabs are rendered dynamically by renderTabs() from the per-profile
+       visibility config (see CPSL_TABS + tabConfig below). This lets the user
+       show/hide individual tabs via Settings → "Configura schede". -->
 
 </div>
 
@@ -3343,6 +3368,24 @@ window.addEventListener('unhandledrejection', function(e) {
 
 <!-- ═══ SETTINGS ═══════════════════════════════════════════════════════════ -->
 <div class="section" id="sec-settings">
+  <!-- v1.0.2 — Tab configurator + Setup wizard launcher -->
+  <div class="grid g2">
+    <div class="card">
+      <h3>Configura schede (Tabs)</h3>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">Mostra o nascondi le schede della dashboard. Le modifiche si applicano per-profilo e sono salvate localmente.</p>
+      <div id="tab-config-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <button class="btn btn-sm" onclick="renderTabConfigUI()">Aggiorna</button>
+        <button class="btn btn-sm" onclick="resetTabConfig()">Ripristina default</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Configurazione iniziale (Wizard)</h3>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">Riavvia la procedura guidata di configurazione del profilo e della connessione Intervals.icu.</p>
+      <button class="btn btn-primary" onclick="openSetupWizard()">Apri il Wizard di setup</button>
+      <p style="font-size:11px;color:var(--text3);margin-top:8px;">Il wizard si apre in una nuova scheda. Se non parte al primo avvio, usa questo pulsante.</p>
+    </div>
+  </div>
   <div class="grid g2">
     <div class="card">
       <h3>Athlete Profile</h3>
@@ -4596,7 +4639,7 @@ function _lsSet(k, v) { try { localStorage.setItem(k, v); } catch(e) {} }
 
 function changeTheme(theme) {
   const html = document.documentElement;
-  const validThemes = ['light', 'dark', 'sepia', 'high-contrast'];
+  const validThemes = ['light', 'dark', 'sepia', 'high-contrast', 'ocean', 'forest', 'sunset', 'nord'];
   if (!validThemes.includes(theme)) return;
   
   // Remove all theme attributes
@@ -4624,57 +4667,139 @@ function changeTheme(theme) {
   }
 })();
 
-// Tab navigation
-document.querySelectorAll('.tab[data-tab]').forEach(t => {
-  t.addEventListener('click', () => {
-    // v4.0.0-alpha: live-ride tab removed; legacy guard dropped.
-    const tab = t.dataset.tab;
-    const section = $('sec-' + tab);
-    if (!section) return;
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.tab[data-tab]').forEach(t2 => t2.classList.remove('active'));
-    t.classList.add('active');
-    section.classList.add('active');
-    const loaders = {courses:()=>{
-                       // Default to the currently-selected source (All Routes on first visit)
-                       if (_courseSource === 'virtual') loadVirtualRoutes();
-                       else if (_courseSource === 'all') loadAllRoutes();
-                       else loadCourses();
-                       if (typeof loadWorldCards === 'function') loadWorldCards();
-                     },
-                     picker:()=>{ if (typeof loadRoutePickerRegionChips === 'function') loadRoutePickerRegionChips(); },
-                     plan:async()=>{
-                       // v1.8.25 — ONE visible "catching up your plan" sequence on
-                       // open, behind a greyed overlay: reads prescribed → reconciles
-                       // actuals (sync + rematch) → checks recovery/HRV → adapts the
-                       // plan (the v1.8.24 tier-dispatch). It OWNS loadPlan +
-                       // loadCalendar and folds the old silent triggerPlanAutoRecalc
-                       // (now inside step 4) + checkPlanGaps into one visible flow.
-                       // Awaited so window._planData is populated
-                       // before initAvailCalendar reads the availability dict (the
-                       // v1.6.4 ordering requirement).
-                       await runPlanOpenSequence();
-                       // 3.4.3 (owner): the calendar spans months of past
-                       // weeks — opening the tab used to land at the top and
-                       // demand a long scroll. Jump straight to today once
-                       // the rows exist ('auto' = instant on open; the
-                       // header button keeps its smooth scroll).
-                       calJumpToToday('auto');
-                       loadPlanMetrics();
-                       initAvailCalendar();
-                       loadCapabilityProjection();
-                       icuPushRefreshButton();
-                     }, settings:()=>{loadSettings();loadIcuConnection();icuCalSyncRefresh();}, library:loadWorkouts,
-                     analysis:()=>{ if (typeof loadAnalysisTab === 'function') loadAnalysisTab(); },
-                      dfa:()=>{ if (typeof loadDfaTab === 'function') loadDfaTab(); },
-                      hrv:()=>{ if (typeof loadHrvTab === 'function') loadHrvTab(); },
-                      nutrition:()=>{ if (typeof loadNutriTab === 'function') loadNutriTab(); },
-                      bia:()=>{ if (typeof loadBIATab === 'function') loadBIATab(); },
-                      profile:()=>{ if (typeof loadProfileTab === 'function') loadProfileTab(); },
-                      whatsnew:()=>{ if (typeof loadWhatsNew === 'function') loadWhatsNew(); }};
-    if (loaders[tab]) loaders[tab]();
+// ── Tab configuration (v1.0.2): dynamic, per-profile visibility ──
+// Master list of every tab. `id` must match a `data-tab` attribute and a
+// `sec-<id>` section. `label` is the display name. `core:true` tabs cannot be
+// hidden (kept always visible so the app stays usable).
+const CPSL_TABS = [
+  { id: 'home',     label: 'Home',              core: true },
+  { id: 'picker',   label: 'Workout Shuffle',   core: false },
+  { id: 'library',  label: 'Workout Library',   core: false },
+  { id: 'player',   label: 'Workout Player',    core: false },
+  { id: 'courses',  label: 'Routes & Climbs',   core: false },
+  { id: 'plan',     label: 'Training Plan',     core: false },
+  { id: 'analysis', label: 'Analysis',          core: false },
+  { id: 'dfa',      label: 'DFA α1',       core: false },
+  { id: 'settings', label: 'Settings',          core: true },
+  { id: 'hrv',      label: 'HRV',               core: false },
+  { id: 'nutrition',label: 'Alimentazione',     core: false },
+  { id: 'bia',      label: 'Composizione',      core: false },
+  { id: 'profile',  label: 'Profilo',           core: false },
+  { id: 'whatsnew', label: 'Novità',            core: false },
+  { id: 'ai_coach', label: 'AI Coach',          core: false },
+];
+
+const _TAB_CFG_KEY = () => 'cpsl_tabs_' + (__ACTIVE_PROFILE_ID || 'default');
+function tabConfig() {
+  try { return JSON.parse(_lsGet(_TAB_CFG_KEY())) || {}; } catch (e) { return {}; }
+}
+function saveTabConfig(cfg) { _lsSet(_TAB_CFG_KEY(), JSON.stringify(cfg)); }
+function isTabVisible(id) {
+  const cfg = tabConfig();
+  if (id in cfg) return !!cfg[id];
+  return true; // default: visible
+}
+
+// Switch to a tab by id (also used by internal links like onboardingGoto).
+function gotoTab(tab) {
+  const section = $('sec-' + tab);
+  if (!section) return;
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab[data-tab]').forEach(t2 => t2.classList.remove('active'));
+  const el = document.querySelector('.tab[data-tab="' + tab + '"]');
+  if (el) el.classList.add('active');
+  else { // hidden tab opened programmatically: reveal its section anyway
+    const cfg = tabConfig(); cfg[tab] = true; saveTabConfig(cfg); renderTabs();
+    const el2 = document.querySelector('.tab[data-tab="' + tab + '"]'); if (el2) el2.classList.add('active');
+  }
+  section.classList.add('active');
+  const loaders = {courses:()=>{
+                     if (_courseSource === 'virtual') loadVirtualRoutes();
+                     else if (_courseSource === 'all') loadAllRoutes();
+                     else loadCourses();
+                     if (typeof loadWorldCards === 'function') loadWorldCards();
+                   },
+                   picker:()=>{ if (typeof loadRoutePickerRegionChips === 'function') loadRoutePickerRegionChips(); },
+                   plan:async()=>{
+                     await runPlanOpenSequence();
+                     calJumpToToday('auto');
+                     loadPlanMetrics();
+                     initAvailCalendar();
+                     loadCapabilityProjection();
+                     icuPushRefreshButton();
+                   }, settings:()=>{loadSettings();loadIcuConnection();icuCalSyncRefresh();renderTabConfigUI();}, library:loadWorkouts,
+                   analysis:()=>{ if (typeof loadAnalysisTab === 'function') loadAnalysisTab(); },
+                    dfa:()=>{ if (typeof loadDfaTab === 'function') loadDfaTab(); },
+                    hrv:()=>{ if (typeof loadHrvTab === 'function') loadHrvTab(); },
+                    nutrition:()=>{ if (typeof loadNutriTab === 'function') loadNutriTab(); },
+                    bia:()=>{ if (typeof loadBIATab === 'function') loadBIATab(); },
+                    profile:()=>{ if (typeof loadProfileTab === 'function') loadProfileTab(); },
+                    whatsnew:()=>{ if (typeof loadWhatsNew === 'function') loadWhatsNew(); }};
+  if (loaders[tab]) loaders[tab]();
+}
+
+// Render the tab bar from CPSL_TABS + per-profile visibility config.
+function renderTabs() {
+  const bar = $('tabs');
+  if (!bar) return;
+  bar.innerHTML = '';
+  let firstVisible = null;
+  CPSL_TABS.forEach(t => {
+    if (!isTabVisible(t.id)) return;
+    if (!firstVisible) firstVisible = t.id;
+    const d = document.createElement('div');
+    d.className = 'tab';
+    d.dataset.tab = t.id;
+    d.textContent = t.label;
+    d.addEventListener('click', () => gotoTab(t.id));
+    bar.appendChild(d);
   });
-});
+  // Ensure something is active (default: Home, else first visible)
+  const active = document.querySelector('.tab[data-tab].active') || document.querySelector('.tab[data-tab="home"]') || document.querySelector('.tab[data-tab="' + firstVisible + '"]');
+  if (active) { active.classList.add('active'); }
+  // Activate the matching section if not already
+  const cur = document.querySelector('.section.active');
+  if (!cur && firstVisible) { const s = $('sec-' + firstVisible); if (s) s.classList.add('active'); }
+}
+
+// Tab navigation
+renderTabs();
+
+// ── Tab configurator UI (Settings → "Configura schede") ──
+function renderTabConfigUI() {
+  const list = $('tab-config-list');
+  if (!list) return;
+  list.innerHTML = '';
+  CPSL_TABS.forEach(t => {
+    const visible = isTabVisible(t.id);
+    const row = document.createElement('label');
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;font-size:13px;padding:5px 8px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);cursor:' + (t.core ? 'not-allowed' : 'pointer') + ';';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = visible;
+    cb.disabled = !!t.core;
+    cb.style.cssText = t.core ? 'opacity:0.5;' : '';
+    cb.onchange = () => {
+      const cfg = tabConfig();
+      if (t.core) { cfg[t.id] = true; } else { cfg[t.id] = cb.checked; }
+      saveTabConfig(cfg);
+      renderTabs();
+      if (typeof refreshOnboarding === 'function') refreshOnboarding();
+    };
+    const span = document.createElement('span');
+    span.textContent = t.label + (t.core ? '  (fissa)' : '');
+    row.appendChild(cb); row.appendChild(span);
+    list.appendChild(row);
+  });
+}
+function resetTabConfig() {
+  try { localStorage.removeItem(_TAB_CFG_KEY()); } catch (e) {}
+  renderTabs();
+  renderTabConfigUI();
+}
+function openSetupWizard() {
+  window.open('/setup', '_blank');
+}
 
 // ═══ MODAL SYSTEM ═════════════════════════════════════════════════════════
 
