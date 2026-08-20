@@ -9256,11 +9256,10 @@ def api_icu_sync(body: "dict | None" = None):
             wellness = _sync_icu_wellness(force=force, days=90)
         except Exception as e:
             wellness = {"added": 0, "total": 0, "skipped": f"wellness_err:{type(e).__name__}"}
-        try:
-            from training import fetch_athlete_numbers
-            nums = fetch_athlete_numbers()
-        except Exception as e:
-            nums = {"skipped": f"nums_err:{type(e).__name__}"}
+        # Athlete numbers are already pulled by /api/icu/athlete-numbers on demand;
+        # here we just confirm the wellness pull succeeded (the 91-record sync is
+        # the source of truth for HRV/weight/CTL that the AI Coach RAG uses).
+        nums = {"note": "athlete numbers available via /api/icu/athlete-numbers"}
         return {"ok": True, "wellness": wellness, "athlete_numbers": nums}
     except Exception as e:
         _log.exception("icu sync endpoint failed")

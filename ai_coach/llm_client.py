@@ -234,14 +234,25 @@ class LLMClient:
         payload = {"contents": [{"role": "user", "parts": [{"text": text}]}]}
         if system:
             payload["systemInstruction"] = {"parts": [{"text": system}]}
-        with httpx.Client(timeout=30.0) as client:
-            resp = client.post(url, json=payload)
-            resp.raise_for_status()
-            data = resp.json()
-        try:
-            return data["candidates"][0]["content"]["parts"][0]["text"]
-        except Exception:
-            return str(data)
+        last_err = None
+        for attempt in range(3):  # retry on transient 503/429 from preview models
+            try:
+                with httpx.Client(timeout=30.0) as client:
+                    resp = client.post(url, json=payload)
+                    if resp.status_code in (503, 429):
+                        import time as _t
+                        _t.sleep(1.5 * (attempt + 1))
+                        last_err = f"{resp.status_code}"
+                        continue
+                    resp.raise_for_status()
+                    data = resp.json()
+                try:
+                    return data["candidates"][0]["content"]["parts"][0]["text"]
+                except Exception:
+                    return str(data)
+            except Exception as e:
+                last_err = str(e)
+        return f"[AI Coach error: Gemini unavailable after retries ({last_err})]"
 
     def _chat_cohere(self, messages, system=None) -> str:
         """API Cohere."""
