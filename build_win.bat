@@ -40,4 +40,4 @@ if %errorlevel% neq 0 (
 echo Build completed successfully!
 echo Executable created in dist/CyclingPerformanceStudioLab/
 
-pause
+@echo Build finished.
