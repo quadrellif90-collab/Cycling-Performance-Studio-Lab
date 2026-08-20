@@ -548,5 +548,54 @@ window.CPSL = window.CPSL || {};
             inputEl.value = '';
         }
     
-    };
-})();
+    // ── v1.1.0: AI Coach memory + grounded rider context ──
+    async function loadRiderContext() {
+      const box = document.getElementById('rider-context-box');
+      if (!box) return;
+      box.textContent = 'Caricamento…';
+      try {
+        const r = await api('/api/ai/rider-context?profile_id=' + encodeURIComponent(window.CPSL_PROFILE_ID || 'default'));
+        if (r && r.ok) {
+          box.textContent = r.prompt_block || JSON.stringify(r.context, null, 2);
+        } else {
+          box.textContent = 'Non disponibile: ' + (r?.error || 'errore');
+        }
+      } catch (e) {
+        box.textContent = 'Errore: ' + e;
+      }
+    }
+
+    async function loadCoachMemory() {
+      const box = document.getElementById('coach-memory-box');
+      if (!box) return;
+      box.innerHTML = 'Caricamento…';
+      try {
+        const r = await api('/api/ai/memory?profile_id=' + encodeURIComponent(window.CPSL_PROFILE_ID || 'default'));
+        if (r && r.ok && r.memory && r.memory.length) {
+          box.innerHTML = r.memory.map(m =>
+            '<div style="border-bottom:1px solid var(--border);padding:6px 0;">' +
+            '<span style="font-size:10px;color:var(--text3);text-transform:uppercase;">' + esc(m.role) + '</span> ' +
+            '<span style="font-size:11px;color:var(--text3);">' + esc(m.created_at || '') + '</span>' +
+            '<div style="margin-top:2px;">' + esc(m.content) + '</div></div>'
+          ).join('');
+        } else {
+          box.textContent = 'Nessuna sessione memorizzata.';
+        }
+      } catch (e) {
+        box.textContent = 'Errore: ' + e;
+      }
+    }
+
+    async function clearCoachMemory() {
+      try {
+        const r = await api('/api/ai/memory?profile_id=' + encodeURIComponent(window.CPSL_PROFILE_ID || 'default'), {method: 'DELETE'});
+        toast(r && r.ok ? 'Memoria cancellata' : 'Errore cancellazione', r && r.ok ? 'ok' : 'error');
+        loadCoachMemory();
+      } catch (e) {
+        toast('Errore: ' + e, 'error');
+      }
+    }
+
+    // Auto-load context + memory are triggered from the tab loader below.
+    })();
+
