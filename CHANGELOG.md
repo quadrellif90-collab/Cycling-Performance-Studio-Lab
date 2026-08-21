@@ -5,7 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/).
 
-## [1.2.0] - 2026-08-21
+## [1.2.1] - 2026-08-21
+
+### Added
+- **Per-user LLM API keys**: the AI Coach configuration panel now makes clear every end user must supply **their own** provider API key (no shared/bundled keys). Each provider shows a contextual **"Crea API Key su …"** link pointing to that provider's key-signup page, so users without a key can get one in one click.
+- **Build hardening**: `ai_config.json` and `*.env` are now explicitly excluded from the PyInstaller build, guaranteeing no local secrets ship inside the distributed `.exe`/`.app`/`.tar.gz`.
+
+
 
 ### Added
 - **AI Coach LLM settings UI** (Settings → AI Coach tab): choose provider (Google Gemini / OpenAI / Anthropic / Groq / DeepSeek / Mistral / OpenRouter / xAI / Ollama), model, API key, and an optional **fallback provider** for rate-limit resilience. Key is stored only in gitignored `ai_config.json`.
