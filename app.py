@@ -23852,6 +23852,312 @@ def _derive_ai_plan_action(response_text: str) -> str | None:
         return "none"
     return None
 
+
+# ── 45b. GET /api/notifications/digest (v1.3.4 DAILY-DIGEST) ────────────
+@app.get("/api/notifications/digest")
+def api_notifications_digest():
+    """Digest giornaliero: aggrega i renderer di notifications.py con i dati
+    reali del rider (readiness, TSB, HRV vs baseline, monotonia, sessione di
+    oggi, countdown gara). Restituisce solo le notifiche applicabili — ogni
+    blocco è best-effort con try/except così un dato mancante non uccide il
+    digest. Il motore notifications.py esisteva da v1.x ma era cablato al 6%.
+    """
+    import notifications as _notif
+    from datetime import date as _date, timedelta as _td
+
+    items: list[dict] = []
+    day_st = None
+
+    # 1) Readiness composita + RLGL day status
+    readiness = None
+    try:
+        today_iso = _date.today().isoformat()
+        readiness = cached(f"digest_readiness_{today_iso}",
+                           lambda: compute_readiness_composite("default", today_iso)) or {}
+    except Exception:
+        readiness = {}
+    try:
+        tsb_now = None
+        try:
+            w = ride_storage.load_recent_wellness(days=3) or []
+            if w and w[-1].get("tsb") is not None:
+                tsb_now = float(w[-1]["tsb"])
+        except Exception:
+            pass
+        hrv_band = None
+        try:
+            hrv_band = (readiness or {}).get("hrv_band")
+        except Exception:
+            pass
+        day_st = _notif.day_status(tsb=tsb_now,
+                                   readiness_status=(readiness or {}).get("status"),
+                                   hrv_band=hrv_band)
+        msg = _notif.render_morning_readiness(readiness or {}, day_st)
+        if msg:
+            items.append(msg)
+        flag = _notif.render_rlgl_flag(day_st, tsb=tsb_now)
+        if flag:
+            items.append(flag)
+    except Exception:
+        pass
+
+    # 2) Sessione di oggi + consiglio swap + fueling
+    try:
+        sess = _api_today_session_impl()
+        wod = _notif.render_workout_of_day(sess if isinstance(sess, dict) else None)
+        if wod:
+            items.append(wod)
+        swap = _notif.render_workout_swap((readiness or {}).get("status"),
+                                          sess if isinstance(sess, dict) else None)
+        if swap:
+            items.append(swap)
+        fuel = _notif.render_fueling_reminder(sess if isinstance(sess, dict) else None)
+        if fuel:
+            items.append(fuel)
+    except Exception:
+        pass
+
+    # 3) HRV trend: deviazioni firmate vs baseline profilo (ultimi 7 gg)
+    try:
+        base = getattr(config, "HRV_BASELINE_MEAN", None)
+        w = ride_storage.load_recent_wellness(days=10) or []
+        series = []
+        for rec in w[-7:]:
+            v = rec.get("hrv")
+            if v is None:
+                series.append(None)
+            elif base:
+                series.append((float(v) - float(base)) / float(base) * 100.0)
+            else:
+                series.append(float(v))
+        hrv_msg = _notif.render_hrv_trend(series)
+        if hrv_msg:
+            items.append(hrv_msg)
+    except Exception:
+        pass
+
+    # 4) Monotonia (Foster) sugli ultimi 7 giorni di TSS
+    try:
+        rides = _load_all_rides_safe()
+        mono = cpol.foster_monotony(_daily_tss_last7(rides, _date.today()))
+        ma = _notif.render_monotony_alert(mono)
+        if ma:
+            items.append(ma)
+    except Exception:
+        pass
+
+    # 5) Weekly review: carico 7g + n° uscite
+    try:
+        rides = _load_all_rides_safe()
+        today = _date.today()
+        week_ago = today - _td(days=7)
+        tss7 = 0.0
+        hours7 = 0.0
+        n_rides = 0
+        for r in rides:
+            d = str(r.get("started_at") or "")[:10]
+            try:
+                if d and _date.fromisoformat(d) >= week_ago:
+                    n_rides += 1
+                    tss7 += float(r.get("tss") or 0)
+                    hours7 += float(r.get("duration_min") or 0) / 60.0
+            except ValueError:
+                continue
+        wr = _notif.render_weekly_review({
+            "tss": round(tss7), "hours": round(hours7, 1), "rides": n_rides,
+        })
+        if wr:
+            items.append(wr)
+    except Exception:
+        pass
+
+    # 6) Countdown gara (dal goal del piano)
+    try:
+        pj = _plan_dir() / "current_plan.json"
+        if pj.exists():
+            pdata = json.loads(pj.read_text(encoding="utf-8"))
+            goal = pdata.get("goal") or {}
+            if isinstance(goal, str):
+                goal = json.loads(goal)
+            ev_date = goal.get("event_date")
+            if ev_date:
+                days_to = (_date.fromisoformat(str(ev_date)[:10]) - _date.today()).days
+                if 0 <= days_to <= 60:
+                    cd = _notif.render_prerace_countdown(days_to, None, None)
+                    if cd:
+                        items.append(cd)
+    except Exception:
+        pass
+
+    return {"ok": True, "day_status": day_st or "unknown", "items": items,
+            "count": len(items), "generated_at": datetime.now().isoformat()}
+
+
+# ── 45c. POST /api/export/gpx-to-gc (v1.3.4 — cabla gpx_to_gc.py) ───────
+@app.post("/api/export/gpx-to-gc")
+async def api_export_gpx_to_gc(request: Request):
+    """Converte un file GPX in formato Golden Cheetah (.crs).
+
+    Il modulo gpx_to_gc.py esisteva nel progetto ma non aveva alcun endpoint.
+    Accetta multipart 'file' (+ opzionali smooth_window). Restituisce il .crs
+    come download o JSON di errore.
+    """
+    form = await request.form()
+    f = form.get("file")
+    if not f:
+        return JSONResponse({"error": "No file uploaded"}, status_code=400)
+    try:
+        smooth = int(form.get("smooth_window", 5))
+    except (TypeError, ValueError):
+        smooth = 5
+    import tempfile
+    import gpx_to_gc as _g2g
+    tmp_in = None
+    try:
+        data = await f.read()
+        with tempfile.TemporaryDirectory() as td:
+            tmp_in = Path(td) / (f.filename or "ride.gpx")
+            tmp_in.write_bytes(data)
+            stats = _g2g.convert_gpx(tmp_in, Path(td), smooth_window=max(3, smooth))
+            if not stats:
+                return JSONResponse({"error": "GPX parse failed"}, status_code=400)
+            # convert_gpx restituisce 'file' (path assoluto del .crs scritto)
+            crs_path = Path(stats.get("file") or "")
+            if not crs_path.exists():
+                return JSONResponse({"error": "CRS not produced"}, status_code=500)
+            content = crs_path.read_bytes()
+        out_name = (Path(f.filename or "ride").stem or "ride") + ".crs"
+        return Response(
+            content=content,
+            media_type="application/octet-stream",
+            headers={"Content-Disposition": f"attachment; filename={out_name}"},
+        )
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"}, status_code=500)
+
+
+# ── 45d. GET /api/export-plan-pdf (v1.3.4) ──────────────────────────────
+@app.get("/api/export-plan-pdf")
+def api_export_plan_pdf():
+    """Esporta il piano corrente in PDF (testo impaginato dal markdown).
+
+    Usa PyMuPDF (già dipendenza per BIA/OCR): converte il markdown del piano
+    in testo leggibile e lo compone in pagine A4. Nessuna nuova dipendenza.
+    """
+    try:
+        # _plan_json è un PATH (non un dict): leggi sempre il file corrente.
+        pj = _plan_dir() / "current_plan.json"
+        if not pj.exists():
+            return JSONResponse({"error": "No active plan"}, status_code=404)
+        data = json.loads(pj.read_text(encoding="utf-8"))
+        md = data.get("plan") or ""
+        # strip markdown minimale → testo pulito
+        txt = re.sub(r"\*\*([^*]+)\*\*", r"\1", md)
+        txt = re.sub(r"^#{1,6}\s*", "", txt, flags=re.M)
+        txt = re.sub(r"^\s*[-*]\s+", "• ", txt, flags=re.M)
+        txt = re.sub(r"\n{3,}", "\n\n", txt)
+
+        stamp = datetime.now().strftime("%Y%m%d")
+        fname = f"cpsl-plan-{stamp}.pdf"
+
+        # Tentativo PyMuPDF; su macchine senza VC++ Redistributable la DLL
+        # fallisce → fallback con writer PDF minimale a mano (zero dipendenze).
+        try:
+            import fitz  # PyMuPDF
+            doc = fitz.open()
+            page_w, page_h = fitz.paper_size("a4")
+            margin = 50
+            rect = fitz.Rect(margin, margin, page_w - margin, page_h - margin)
+            lines = txt.split("\n")
+            per_page = 88
+            for start in range(0, len(lines), per_page):
+                chunk = "\n".join(lines[start:start + per_page])
+                page = doc.new_page(width=page_w, height=page_h)
+                page.insert_textbox(rect, chunk, fontsize=9, fontname="helv",
+                                    align=fitz.TEXT_ALIGN_LEFT)
+            pdf_bytes = doc.tobytes()
+            doc.close()
+        except Exception as _fitz_err:
+            log.debug(f"fitz unavailable ({_fitz_err}); using minimal PDF writer")
+            pdf_bytes = _minimal_text_pdf(txt)
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={fname}"},
+        )
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"}, status_code=500)
+
+
+def _minimal_text_pdf(text: str) -> bytes:
+    """Writer PDF minimale (Helvetica, A4, multi-pagina) senza dipendenze.
+
+    Sufficiente per un piano di allenamento testuale: niente immagini né
+    font custom. Ogni riga >95 caratteri viene wrappata.
+    """
+    import zlib as _zlib
+
+    def _esc(s: str) -> str:
+        return s.replace("\\", r"\\").replace("(", r"\(").replace(")", r"\)")
+
+    # wrap a ~95 col
+    wrapped: list[str] = []
+    for raw in text.split("\n"):
+        while len(raw) > 95:
+            wrapped.append(raw[:95])
+            raw = " " + raw[95:]
+        wrapped.append(raw)
+
+    lines_per_page = 66
+    pages = [wrapped[i:i + lines_per_page]
+             for i in range(0, len(wrapped), lines_per_page)] or [[""]]
+
+    objects: list[bytes] = []
+
+    def _stream_page(lines: list[str]) -> bytes:
+        parts = ["BT", "/F1 9 Tf", "50 800 Td", "14 TL"]
+        for ln in lines:
+            parts.append(f"({_esc(ln)}) Tj T*")
+        parts.append("ET")
+        content = "\n".join(parts).encode("latin-1", errors="replace")
+        comp = _zlib.compress(content)
+        return comp
+
+    # 1: catalog, 2: pages tree, poi per pagina: page obj + content obj, fonts
+    n_pages = len(pages)
+    kids = " ".join(f"{3 + i * 2} 0 R" for i in range(n_pages))
+    objects.append(b"<< /Type /Catalog /Pages 2 0 R >>")                       # 1
+    objects.append(f"<< /Type /Pages /Kids [{kids}] /Count {n_pages} >>".encode())  # 2
+    next_obj = 3
+    for pg_lines in pages:
+        content_comp = _stream_page(pg_lines)
+        page_obj_num = next_obj
+        content_obj_num = next_obj + 1
+        objects.append(
+            f"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] "
+            f"/Resources << /Font << /F1 {3 + n_pages * 2} 0 R >> >> "
+            f"/Contents {content_obj_num} 0 R >>".encode())
+        objects.append(
+            b"<< /Length " + str(len(content_comp)).encode() +
+            b" /Filter /FlateDecode >>\nstream\n" + content_comp + b"\nendstream")
+        next_obj += 2
+    objects.append(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>")
+
+    out = bytearray(b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n")
+    offsets = [0]
+    for idx, obj in enumerate(objects, 1):
+        offsets.append(len(out))
+        out += f"{idx} 0 obj\n".encode() + obj + b"\nendobj\n"
+    xref_pos = len(out)
+    out += f"xref\n0 {len(objects) + 1}\n".encode()
+    out += b"0000000000 65535 f \n"
+    for off in offsets[1:]:
+        out += f"{off:010d} 00000 n \n".encode()
+    out += (f"trailer\n<< /Size {len(objects) + 1} /Root 1 0 R >>\n"
+            f"startxref\n{xref_pos}\n%%EOF").encode()
+    return bytes(out)
+
+
 # ── 46. GET /api/ai/health ──────────────────────────────────────────────
 @app.get("/api/ai/health")
 async def api_ai_health():

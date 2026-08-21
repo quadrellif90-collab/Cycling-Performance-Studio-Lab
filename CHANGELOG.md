@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/).
 
+## [1.3.4] - 2026-08-21
+
+### Added — funzionalità dalla roadmap (post deepscan)
+
+- **📋 "Il tuo giorno" (Daily Digest)** — nuova card in Home che aggrega il motore notifiche di `notifications.py` con i dati reali del rider: Morning Readiness + stato RLGL del giorno, Workout del giorno, consiglio swap per readiness bassa, reminder fueling, trend HRV vs baseline, alert monotonia (Foster), weekly review e countdown gara. Il motore esisteva da v1.x con 13 renderer ma era cablato al 6%: ora tutti sono alimentati via `GET /api/notifications/digest` (ogni blocco best-effort, un dato mancante non uccide il digest).
+- **Export piano PDF** (`GET /api/export-plan-pdf`) + bottone nel tab Plan. Usa PyMuPDF quando disponibile; su macchine senza VC++ Redistributable (dove la DLL di PyMuPDF non carica) degrada a un writer PDF minimale scritto a mano — zero dipendenze aggiuntive, output sempre valido.
+- **Conversione GPX → Golden Cheetah** (`POST /api/export/gpx-to-gc`): il modulo `gpx_to_gc.py` (14 KB) esisteva nel progetto da sempre ma non aveva alcun endpoint; ora carichi un .gpx e scarichi il .crs.
+- **Esito ultimo push ICU visibile**: la UI chiamava `GET /api/icu/push` ma ignorava `last_result`; ora sotto il bottone push compare "✓ Ultimo push <data>: N inviati, N aggiornati, N rimossi" (o l'errore) anche per i push background giornalieri.
+
+### Investigazione (esito negativo = buona notizia)
+- Verificato che i 7 moduli sospetti come "orfani" (adaptive_planner, breakthrough_detector, custom_alerts, durability_score, phenotype, power_duration_model, training_phase_detector) sono in realtà cablati via import lazy dentro le route — solo notifications era sottoutilizzato.
+
 ## [1.3.3] - 2026-08-21
 
 ### Deepscan A→Z (108 moduli Python, 23.2k righe frontend, 273 endpoint)

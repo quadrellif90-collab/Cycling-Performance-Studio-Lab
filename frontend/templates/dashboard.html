@@ -1655,6 +1655,21 @@ window.addEventListener('unhandledrejection', function(e) {
 
 <!-- ═══ HOME ═══════════════════════════════════════════════════════════════ -->
 <div class="section active" id="sec-home">
+  <!-- v1.3.4 DAILY-DIGEST — "Il tuo giorno": aggrega il motore notifiche
+       (readiness, RLGL, workout del giorno, swap, HRV trend, monotonia,
+       weekly review, countdown gara). Renderer esistevano da v1.x ma erano
+       cablati al 6%; ora alimentati dai dati reali via /api/notifications/digest. -->
+  <div class="card" id="daily-digest-card" style="margin-bottom:12px;">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <h3 style="margin:0;">📋 Il tuo giorno</h3>
+      <span id="digest-status-badge" class="badge b-good" style="display:none;"></span>
+      <span style="flex:1;"></span>
+      <button class="btn btn-sm" onclick="loadDailyDigest()" title="Ricarica" style="font-size:11px;">↻</button>
+    </div>
+    <div id="digest-items" style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
+      <div style="font-size:12px;color:var(--text3);font-style:italic;">Caricamento…</div>
+    </div>
+  </div>
   <!-- P3.1 — compact Fitness & Form sparkline. The full chart card (+ energy-
        system / τ-fit / model-accuracy panels) and the Power Curve card moved
        to the Analysis tab; this strip keeps CTL/TSB glanceable on Home.
@@ -1941,7 +1956,9 @@ window.addEventListener('unhandledrejection', function(e) {
     </label>
     <button class="btn" style="font-size:11px;padding:3px 10px;" onclick="loadStrength()">Genera piano</button>
     <button class="btn btn-primary" style="font-size:11px;padding:3px 10px;" onclick="busyButton(this, injectMultidiscipline, 'Inietto…')" title="Inserisce forza+mobilità + running/MTB (se nei discipline) nel piano, affine al ciclismo">⚡ Inietta multi</button>
-    <a class="btn" style="font-size:11px;padding:3px 10px;" href="/api/export-plan-html?athlete=Atleta&phase=base" target="_blank" rel="noopener">⤓ Esporta piano (PDF/HTML)</a>
+    <a class="btn" style="font-size:11px;padding:3px 10px;" href="/api/export-plan-html?athlete=Atleta&phase=base"
+       target="_blank" rel="noopener">⬇ Esporta HTML</a>
+    <a class="btn" style="font-size:11px;padding:3px 10px;" href="/api/export-plan-pdf">⬇ PDF</a>
   </div>
   <div id="strength-summary" style="font-size:12px;color:var(--text2);margin-bottom:8px;"></div>
   <div id="strength-weeks" style="display:flex;flex-direction:column;gap:6px;"></div>
@@ -8189,6 +8206,8 @@ async function loadHome() {
   try { loadMigrationToast(); } catch (_) {}
   // v3.1.0 PART A: fire-and-forget adoption-toast check (non-blocking).
   try { loadPlanAdoptionToast(); } catch (_) {}
+  // v1.3.4 DAILY-DIGEST: "Il tuo giorno" (fire-and-forget, non blocca Home).
+  try { loadDailyDigest(); } catch (_) {}
   try {
     // v1.6.1 — fine-grained fetch + parse instrumentation. Each /api/* call
     // gets its own try-around-fetch and try-around-json so a single failed
@@ -17557,6 +17576,42 @@ async function icuDisconnect() {
 // ═══ v3.0.1 IP_ICU_PUSH — calendar push button + keep-in-sync toggle ═══════
 
 // Plan-tab button state: hidden (no connection) / normal / reconnect-link.
+// ── v1.3.4 DAILY-DIGEST: "Il tuo giorno" ─────────────────────────────────
+const _DIGEST_EMOJI = {
+  morning_readiness: '🌅', rlgl_flag: '🚦', workout_of_day: '🎯',
+  workout_swap: '🔁', fueling_reminder: '🍎', hrv_trend: '📉',
+  monotony_alert: '🔁', weekly_review: '📅', prerace_countdown: '🏁',
+  pr_detect: '🏆', etftp_drift: '📈', missed_workout: '⏭️',
+};
+async function loadDailyDigest() {
+  const host = document.getElementById('digest-items');
+  const badge = document.getElementById('digest-status-badge');
+  if (!host) return;
+  try {
+    const r = await fetch('/api/notifications/digest');
+    const d = await r.json();
+    if (!d.ok) { host.innerHTML = '<i style="color:var(--text3);">Digest non disponibile.</i>'; return; }
+    // badge stato giorno (RLGL)
+    if (badge) {
+      const st = d.day_status || 'unknown';
+      badge.style.display = 'inline-block';
+      badge.textContent = st.toUpperCase();
+      badge.className = 'badge ' + (st === 'green' ? 'b-gold' : st === 'yellow' ? 'b-med' : 'b-low');
+    }
+    if (!d.items || !d.items.length) {
+      host.innerHTML = '<div style="font-size:12px;color:var(--green);">✓ Nessun avviso: tutto sotto controllo oggi.</div>';
+      return;
+    }
+    host.innerHTML = d.items.map(it => `
+      <div style="padding:8px 10px;border-radius:8px;background:var(--surface2);border-left:3px solid var(--accent);">
+        <div style="font-size:12px;font-weight:600;">${_DIGEST_EMOJI[it.type] || '•'} ${esc(it.title || it.type)}</div>
+        <div style="font-size:11.5px;color:var(--text2);white-space:pre-wrap;margin-top:2px;">${esc(it.body || '')}</div>
+      </div>`).join('');
+  } catch (_) {
+    host.innerHTML = '<i style="color:var(--text3);">Digest non raggiungibile.</i>';
+  }
+}
+
 async function icuPushRefreshButton() {
   const btn = $('btn-icu-push');
   if (!btn) return;
@@ -17574,6 +17629,28 @@ async function icuPushRefreshButton() {
       btn.textContent = 'Push to intervals.icu calendar';
       btn.onclick = icuPushNow;
       btn.title = 'Send the next 14 days of planned workouts to your intervals.icu calendar. Garmin & MyWhoosh pull workouts from there. Your own calendar entries are never touched.';
+    }
+    // v1.3.4 — mostra l'esito dell'ultimo reconcile (anche background): il
+    // risultato esisteva lato server (last_result) ma la UI non lo mostrava mai.
+    let note = document.getElementById('icu-push-last-note');
+    if (!note) {
+      note = document.createElement('div');
+      note.id = 'icu-push-last-note';
+      note.style.cssText = 'font-size:11px;color:var(--text3);margin-top:4px;';
+      btn.parentElement && btn.parentElement.appendChild(note);
+    }
+    const lr = s.last_result;
+    if (lr && lr.at) {
+      const when = new Date(lr.at).toLocaleString();
+      if (lr.error) {
+        note.textContent = `⚠ Ultimo push (${when}): errore ${lr.error}`;
+        note.style.color = 'var(--red)';
+      } else {
+        note.textContent = `✓ Ultimo push ${when}: ${lr.pushed || 0} inviati, ${lr.updated || 0} aggiornati, ${lr.deleted || 0} rimossi`;
+        note.style.color = 'var(--text3)';
+      }
+    } else {
+      note.textContent = 'Nessun push ancora eseguito.';
     }
   } catch (_) { btn.style.display = 'none'; }
 }
