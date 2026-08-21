@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <title>CPSL · Opzioni Intervals.icu</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 520px; margin: 32px auto; color: #222; }
+    label { display: block; font-weight: 600; margin: 14px 0 6px; }
+    input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+    button { margin-top: 16px; padding: 9px 16px; border: 0; border-radius: 6px; background: #2563eb; color: #fff; cursor: pointer; }
+    .hint { font-size: 12px; color: #666; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <h2>🔧 CPSL per Intervals.icu</h2>
+  <p class="hint">Incolla la tua <b>Intervals.icu API Key</b> personale (la stessa che usi in CPSL → Settings → Connections). Viene salvata solo in locale, nel browser. La key non viene mai inviata a server esterni se non a intervals.icu stesso.</p>
+  <label for="key">Intervals.icu API Key</label>
+  <input type="password" id="key" placeholder="incolla qui la tua API key" autocomplete="off">
+  <button id="save">Salva</button>
+  <p id="status" class="hint"></p>
+  <script src="options.js"></script>
+</body>
+</html>
