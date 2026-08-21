@@ -1,0 +1,32 @@
+/* CPSL for Intervals.icu — stili pannello iniettato */
+.cpsl-panel {
+  position: sticky;
+  top: 8px;
+  z-index: 9999;
+  margin: 8px 0 16px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  font-family: system-ui, sans-serif;
+  box-shadow: 0 4px 16px rgba(0,0,0,.25);
+}
+.cpsl-head { font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+.cpsl-src { font-weight: 400; font-size: 11px; color: #94a3b8; }
+.cpsl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 14px; }
+.cpsl-grid > div { display: flex; flex-direction: column; }
+.cpsl-grid span { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: .04em; }
+.cpsl-grid b { font-size: 16px; color: #38bdf8; }
+.cpsl-actions { margin-top: 10px; display: flex; gap: 8px; }
+.cpsl-actions button {
+  padding: 6px 12px; border: 0; border-radius: 6px; cursor: pointer;
+  background: #2563eb; color: #fff; font-size: 12px;
+}
+.cpsl-actions button:last-child { background: #475569; }
+.cpsl-body { font-size: 13px; color: #cbd5e1; }
+.cpsl-body a { color: #38bdf8; }
+.cpsl-sub { margin-top: 10px; font-size: 12px; }
+.cpsl-sub b { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: #94a3b8; margin-bottom: 4px; }
+.cpsl-sub ul { margin: 0; padding-left: 16px; }
+.cpsl-sub li { margin-bottom: 2px; }
