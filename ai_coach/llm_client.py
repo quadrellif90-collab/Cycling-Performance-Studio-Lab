@@ -113,6 +113,7 @@ class LLMClient:
         model: Optional[str] = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
+        fallback: Optional[dict] = None,
     ):
         provider = provider or "openai"
         if provider not in PROVIDERS:
@@ -127,6 +128,8 @@ class LLMClient:
         self.base_url = cfg["base_url"]
         self.chat_endpoint = cfg["chat_endpoint"]
         self.native = cfg["native"]
+        # Optional fallback config: {"provider":..., "api_key":..., "model":...}
+        self.fallback = fallback
 
     # ── Helpers ──────────────────────────────────────────────────────────
 
@@ -169,7 +172,27 @@ class LLMClient:
         messages: list[dict],
         system: Optional[str] = None,
     ) -> str:
-        """Invia una chat al provider LLM e restituisce la risposta testuale."""
+        """Invia una chat al provider LLM e restituisce la risposta testuale.
+
+        In caso di errore sul provider primario, prova il provider di fallback
+        (se configurato in self.fallback) prima di propagare l'errore.
+        """
+        try:
+            return self._chat_primary(messages, system)
+        except Exception as primary_err:
+            if self.fallback:
+                try:
+                    fb = LLMClient(
+                        provider=self.fallback.get("provider", "groq"),
+                        api_key=self.fallback.get("api_key") or self.api_key,
+                        model=self.fallback.get("model"),
+                    )
+                    return f"[fallback:{fb.provider}] " + fb._chat_primary(messages, system)
+                except Exception:
+                    pass
+            return f"[AI Coach error: {primary_err}]"
+
+    def _chat_primary(self, messages, system=None) -> str:
         if self.provider == "anthropic":
             return self._chat_anthropic(messages, system)
         if self.provider == "google":
@@ -192,15 +215,24 @@ class LLMClient:
             "max_tokens": self.max_tokens,
         }
         url = f"{self.base_url}{self.chat_endpoint}"
-        with httpx.Client(timeout=30.0) as client:
-            resp = client.post(url, headers=self._headers(), json=payload)
-            resp.raise_for_status()
-            data = resp.json()
-        # Estrazione contenuto (stesso path per tutti i provider OpenAI-compatible)
-        if self.provider == "openrouter":
-            # OpenRouter usa structure diversa: choices[0].message.content
-            return data["choices"][0]["message"]["content"]
-        return data["choices"][0]["message"]["content"]
+        last_err = None
+        for attempt in range(3):  # retry on transient 429/503 (rate-limit)
+            try:
+                with httpx.Client(timeout=30.0) as client:
+                    resp = client.post(url, headers=self._headers(), json=payload)
+                    if resp.status_code in (429, 503):
+                        import time as _t
+                        _t.sleep(1.5 * (attempt + 1))
+                        last_err = f"{resp.status_code}"
+                        continue
+                    resp.raise_for_status()
+                    data = resp.json()
+                if self.provider == "openrouter":
+                    return data["choices"][0]["message"]["content"]
+                return data["choices"][0]["message"]["content"]
+            except Exception as e:
+                last_err = str(e)
+        return f"[AI Coach error: provider unavailable after retries ({last_err})]"
 
     def _chat_anthropic(self, messages, system=None) -> str:
         """API nativo Anthropic."""
@@ -300,6 +332,7 @@ class LLMClient:
                 "temperature": float(getattr(config, "AI_LLM_TEMPERATURE", 0.7)),
                 "max_tokens": int(getattr(config, "AI_LLM_MAX_TOKENS", 2000)),
             }
+            fb = getattr(config, "AI_LLM_FALLBACK", None)
         else:
             cs = {
                 "provider": config_section.get("provider", "openai"),
@@ -308,7 +341,13 @@ class LLMClient:
                 "temperature": float(config_section.get("temperature", 0.7)),
                 "max_tokens": int(config_section.get("max_tokens", 2000)),
             }
-            return cls(**cs)
+            fb = config_section.get("fallback")
+        if isinstance(fb, str):
+            # shorthand: "provider:model"
+            parts = fb.split(":", 1)
+            fb = {"provider": parts[0], "model": parts[1] if len(parts) > 1 else None}
+        cs["fallback"] = fb
+        return cls(**cs)
 
 
 def get_client(config_section: dict = None) -> LLMClient:

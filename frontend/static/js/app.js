@@ -485,6 +485,8 @@ window.CPSL = window.CPSL || {};
             statusEl.textContent = 'Errore stato AI Coach';
             statusEl.style.color = 'var(--red)';
         }
+        // v1.2.0 — populate the LLM settings form with current config
+        if (typeof loadAiSettingsForm === 'function') loadAiSettingsForm();
     }
 
     async function toggleAiCoachChat(show) {
@@ -593,6 +595,104 @@ window.CPSL = window.CPSL || {};
         loadCoachMemory();
       } catch (e) {
         toast('Errore: ' + e, 'error');
+      }
+    }
+
+    // ── v1.2.0: AI Coach LLM provider settings (UI) ──
+    async function saveAiSettings() {
+      const provider = document.getElementById('ai_provider').value;
+      const model = document.getElementById('ai_model').value.trim();
+      const apiKey = document.getElementById('ai_api_key').value.trim();
+      const fallback = document.getElementById('ai_fallback').value;
+      const status = document.getElementById('ai_settings_status');
+      if (!apiKey) { status.textContent = 'Inserisci la API Key.'; status.style.color = 'var(--red)'; return; }
+      status.textContent = 'Salvataggio...';
+      try {
+        const r = await apiPost('/api/ai/settings', {
+          provider, api_key: apiKey, model: model || undefined,
+          fallback: fallback || null, enabled: true
+        });
+        if (r && r.ok) {
+          status.textContent = '✓ Abilitato (' + provider + (fallback ? ' + fallback ' + fallback : '') + ')';
+          status.style.color = 'var(--green)';
+          toast('AI Coach configurato', 'ok');
+          if (typeof refreshAiStatus === 'function') refreshAiStatus();
+        } else {
+          status.textContent = '✗ ' + ((r && r.error) || 'errore');
+          status.style.color = 'var(--red)';
+        }
+      } catch (e) {
+        status.textContent = 'Errore: ' + e; status.style.color = 'var(--red)';
+      }
+    }
+
+    async function disableAiSettings() {
+      const status = document.getElementById('ai_settings_status');
+      try {
+        const r = await apiPost('/api/ai/settings', { enabled: false });
+        if (r && r.ok) {
+          status.textContent = '✓ Disabilitato';
+          status.style.color = 'var(--text2)';
+          if (typeof refreshAiStatus === 'function') refreshAiStatus();
+        }
+      } catch (e) {
+        status.textContent = 'Errore: ' + e;
+      }
+    }
+
+    // Load current settings into the form (read-only key masked)
+    async function loadAiSettingsForm() {
+      try {
+        const r = await api('/api/ai/status');
+        if (r && r.ok !== undefined) {
+          const prov = document.getElementById('ai_provider');
+          const mdl = document.getElementById('ai_model');
+          if (prov && r.provider) { for (const o of prov.options) if (o.value === r.provider) o.selected = true; }
+          if (mdl && r.model) mdl.value = r.model;
+        }
+      } catch (_) {}
+    }
+
+    async function exportAiConfig() {
+      try {
+        const r = await api('/api/ai/config/export');
+        if (r && r.ok) {
+          const blob = new Blob([JSON.stringify(r.config, null, 2)], {type: 'application/json'});
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'cpsl-ai-config.json';
+          a.click();
+          URL.revokeObjectURL(a.href);
+          toast('Config AI esportata', 'ok');
+        }
+      } catch (e) {
+        toast('Errore export: ' + e, 'error');
+      }
+    }
+
+    async function importAiConfig() {
+      try {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/json';
+        input.onchange = async () => {
+          const file = input.files[0];
+          if (!file) return;
+          const text = await file.text();
+          let cfg;
+          try { cfg = JSON.parse(text); } catch (_) { toast('File non valido', 'error'); return; }
+          const r = await apiPost('/api/ai/config/import', {config: cfg});
+          if (r && r.ok) {
+            toast('Config AI importata', 'ok');
+            loadAiSettingsForm();
+            if (typeof refreshAiStatus === 'function') refreshAiStatus();
+          } else {
+            toast('Errore import: ' + ((r && r.error) || ''), 'error');
+          }
+        };
+        input.click();
+      } catch (e) {
+        toast('Errore import: ' + e, 'error');
       }
     }
 

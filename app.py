@@ -9252,13 +9252,17 @@ def api_icu_sync(body: "dict | None" = None):
     """
     try:
         force = bool((body or {}).get("force", True))
+        # Verify connection first — surface a clear error instead of a silent failure
+        _token = getattr(config, "ICU_ACCESS_TOKEN", "") or ""
+        _key = getattr(config, "ICU_API_KEY", "") or ""
+        if not (_token or _key):
+            return {"ok": False, "error": "not_connected",
+                    "detail": "Intervalli.icu non connesso. Configura la API Key in Settings → Connections."}
         try:
             wellness = _sync_icu_wellness(force=force, days=90)
         except Exception as e:
-            wellness = {"added": 0, "total": 0, "skipped": f"wellness_err:{type(e).__name__}"}
-        # Athlete numbers are already pulled by /api/icu/athlete-numbers on demand;
-        # here we just confirm the wellness pull succeeded (the 91-record sync is
-        # the source of truth for HRV/weight/CTL that the AI Coach RAG uses).
+            _log.warning(f"icu wellness sync failed: {type(e).__name__}: {e}")
+            wellness = {"added": 0, "total": 0, "skipped": f"wellness_err:{type(e).__name__}:{e}"}
         nums = {"note": "athlete numbers available via /api/icu/athlete-numbers"}
         return {"ok": True, "wellness": wellness, "athlete_numbers": nums}
     except Exception as e:
@@ -23328,9 +23332,19 @@ async def api_ai_settings(request: Request):
     api_key = (body.get("api_key") or "").strip()
     model = (body.get("model") or "").strip()
     enabled = bool(body.get("enabled", bool(api_key)))
+    fallback = body.get("fallback")  # str "provider:model" or dict or None
 
     if enabled and not api_key:
         return JSONResponse({"ok": False, "error": "api_key required to enable"})
+
+    # Normalize fallback to a dict or None
+    if isinstance(fallback, str) and fallback:
+        parts = fallback.split(":", 1)
+        fallback = {"provider": parts[0], "model": parts[1] if len(parts) > 1 else None}
+    elif isinstance(fallback, dict):
+        pass
+    else:
+        fallback = None
 
     # Persist
     cfg = {}
@@ -23339,7 +23353,8 @@ async def api_ai_settings(request: Request):
             cfg = _json.loads(_AI_CONFIG_PATH.read_text(encoding="utf-8"))
         except Exception:
             cfg = {}
-    cfg.update({"provider": provider, "api_key": api_key, "model": model, "enabled": enabled})
+    cfg.update({"provider": provider, "api_key": api_key, "model": model,
+                "enabled": enabled, "fallback": fallback})
     _AI_CONFIG_PATH.write_text(_json.dumps(cfg, indent=2), encoding="utf-8")
 
     # Apply at runtime
@@ -23347,6 +23362,7 @@ async def api_ai_settings(request: Request):
     config.AI_LLM_API_KEY = api_key
     if model:
         config.AI_LLM_MODEL = model
+    config.AI_LLM_FALLBACK = fallback
     config.AI_COACH_ENABLED = enabled
 
     # Validate the key with a cheap call if enabling (best-effort; skip if
@@ -23364,6 +23380,48 @@ async def api_ai_settings(request: Request):
             _log.debug(f"ai settings key validation skipped: {e}")
 
     return {"ok": True, "enabled": enabled, "provider": provider, "model": config.AI_LLM_MODEL}
+
+
+# ── 39c. AI config export / import (backup & restore) ─────────────────────
+@app.get("/api/ai/config/export")
+async def api_ai_config_export():
+    """Return the persisted AI Coach config (with the API key) for backup."""
+    import json as _json
+    if not _AI_CONFIG_PATH.exists():
+        return {"ok": True, "config": {}}
+    try:
+        cfg = _json.loads(_AI_CONFIG_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        cfg = {}
+    return {"ok": True, "config": cfg}
+
+
+@app.post("/api/ai/config/import")
+async def api_ai_config_import(request: Request):
+    """Restore AI Coach config from a backup (re-applies at runtime)."""
+    import json as _json
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    cfg = body.get("config", {})
+    if not isinstance(cfg, dict):
+        return JSONResponse({"ok": False, "error": "invalid config payload"})
+    # Keep only known keys
+    allowed = {"provider", "api_key", "model", "enabled", "fallback"}
+    cfg = {k: v for k, v in cfg.items() if k in allowed}
+    _AI_CONFIG_PATH.write_text(_json.dumps(cfg, indent=2), encoding="utf-8")
+    # Apply at runtime
+    if cfg.get("provider"):
+        config.AI_LLM_PROVIDER = cfg["provider"]
+    if cfg.get("api_key"):
+        config.AI_LLM_API_KEY = cfg["api_key"]
+    if cfg.get("model"):
+        config.AI_LLM_MODEL = cfg["model"]
+    if "fallback" in cfg:
+        config.AI_LLM_FALLBACK = cfg.get("fallback")
+    config.AI_COACH_ENABLED = bool(cfg.get("enabled", False))
+    return {"ok": True, "enabled": config.AI_COACH_ENABLED, "provider": config.AI_LLM_PROVIDER}
 
 
 # ── 40. GET /api/ai/status ──────────────────────────────────────────────

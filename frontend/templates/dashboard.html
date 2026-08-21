@@ -3866,6 +3866,54 @@ window.addEventListener('unhandledrejection', function(e) {
 <div class="section" id="sec-ai_coach">
   <h2 style="margin:0 0 4px;">AI Coach</h2>
   <div style="font-size:13px;color:var(--text2);margin-bottom:14px;">Coach intelligente per l'analisi settimanale e la generazione di piani di allenamento.</div>
+
+  <!-- v1.2.0 — LLM provider configuration -->
+  <div class="card" style="margin-bottom:14px;">
+    <h3>Configurazione LLM</h3>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">Configura il provider di intelligenza artificiale. La chiave viene salvata solo localmente (mai nel repository).</p>
+    <div class="grid g2">
+      <div class="form-group">
+        <label>Provider</label>
+        <select id="ai_provider" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);">
+          <option value="google">Google Gemini</option>
+          <option value="openai">OpenAI</option>
+          <option value="anthropic">Anthropic</option>
+          <option value="groq">Groq</option>
+          <option value="deepseek">DeepSeek</option>
+          <option value="mistral">Mistral</option>
+          <option value="openrouter">OpenRouter</option>
+          <option value="xai">xAI (Grok)</option>
+          <option value="ollama">Ollama (locale)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Modello</label>
+        <input type="text" id="ai_model" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);" placeholder="es. gemini-3-flash-preview">
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:10px;">
+      <label>API Key</label>
+      <input type="password" id="ai_api_key" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);" placeholder="Incolla la API Key del provider">
+    </div>
+    <div class="form-group" style="margin-top:10px;">
+      <label>Provider di fallback (opzionale, per rate-limit)</label>
+      <select id="ai_fallback" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);">
+        <option value="">Nessuno</option>
+        <option value="groq">Groq</option>
+        <option value="openai">OpenAI</option>
+        <option value="deepseek">DeepSeek</option>
+        <option value="openrouter">OpenRouter</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px;align-items:center;">
+      <button type="button" class="btn-primary" id="ai_save_btn" onclick="saveAiSettings()">Salva e abilita</button>
+      <button type="button" class="btn" id="ai_disable_btn" onclick="disableAiSettings()">Disabilita</button>
+      <button type="button" class="btn" id="ai_export_btn" onclick="exportAiConfig()">Esporta</button>
+      <button type="button" class="btn" id="ai_import_btn" onclick="importAiConfig()">Importa</button>
+      <span id="ai_settings_status" style="font-size:12px;color:var(--text2);"></span>
+    </div>
+  </div>
+
   <div id="ai_coach_status" style="margin-bottom:12px;color:var(--text2);">Caricamento...</div>
   <div id="ai_coach_chat" style="height:400px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;overflow:auto;min-height:300px;display:none;">
     <div style="color:var(--text3);font-style:italic;padding:16px;text-align:center;">Nessuna chat attiva. Seleziona un'analisi o genera un piano.</div>
