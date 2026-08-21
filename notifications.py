@@ -199,6 +199,45 @@ def render_hrv_trend(hrv_7d_series: Optional[list]) -> Optional[dict]:
     return None
 
 
+def render_hrv_cv_alert(cv_recent: Optional[float], cv_baseline: Optional[float],
+                        baseline_direction: Optional[str] = None) -> Optional[dict]:
+    """Allarme precoce da coefficiente di variazione HRV (evidenze 2024-2026).
+
+    Un CV in crescita con baseline in calo è l'indicatore più sensibile di
+    affaticamento accumulato; deviazioni in ENTRAMBE le direzioni contano
+    (HRV paradossalmente alta = possibile saturazione parasimpatica / detraining,
+    Plews). Vedi docs/SCIENCE_UPDATES_2025.md §3.
+
+    Args:
+        cv_recent: CV (%) delle ultime 7 misurazioni.
+        cv_baseline: CV (%) delle 4 settimane precedenti.
+        baseline_direction: 'up' | 'down' | None (trend della media 7g vs 28g).
+    """
+    if cv_recent is None or cv_baseline is None or cv_baseline <= 0:
+        return None
+    cv_delta = cv_recent - cv_baseline
+    # soglia: +30% relativo di CV (es. 8% -> 10.4%) = instabilità crescente
+    if cv_delta < cv_baseline * 0.30:
+        return None
+    body = (f"HRV instability rising: CV {cv_recent:.1f}% vs {cv_baseline:.1f}% "
+            f"baseline (+{cv_delta:.1f} pts).")
+    if baseline_direction == "down":
+        body += (" Baseline also falling — classic early-warning pattern of "
+                 "accumulated fatigue. Consider 1-2 easy days now rather than "
+                 "forced recovery later.")
+    elif baseline_direction == "up" and cv_delta > cv_baseline * 0.5:
+        body += (" Baseline rising with high variability can signal parasympathetic "
+                 "saturation — check for incomplete recovery, not just fitness.")
+    else:
+        body += " Monitor closely and favor lower intensity until it settles."
+    return {
+        "type": "hrv_cv_alert",
+        "title": "📶 HRV instability alert",
+        "body": body,
+        "channels": [CHANNEL_EMAIL],
+    }
+
+
 def render_missed_workout(session_date: str) -> dict:
     return {
         "type": "missed_workout",

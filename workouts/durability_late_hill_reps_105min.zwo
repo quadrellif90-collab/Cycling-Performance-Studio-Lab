@@ -1,0 +1,15 @@
+<workout_file>
+  <author>Cycling Performance Studio Lab</author>
+  <name>Durability B - Late Hill Reps 105</name>
+  <description>Durability session #2: 60 min Z2 + ripetute in salita tardive 4x5 min @100% FTP (rec 3 min). Insegna a produrre potenza alta con glicogeno basso e fatica centrale accumulata. docs/SCIENCE_UPDATES_2025.md §2.</description>
+  <sporttype>bike</sporttype>
+  <tags>durability,climbing,threshold</tags>
+  <workout>
+    <Warmup Duration="600" PowerLow="0.50" PowerHigh="0.70"/>
+    <SteadyState Duration="300" Power="0.65"/>
+    <SteadyState Duration="2400" Power="0.62"/>
+    <IntervalsT Repeat="4" OnDuration="300" OffDuration="180" OnPower="1.00" OffPower="0.55"/>
+    <SteadyState Duration="600" Power="0.55"/>
+    <Cooldown Duration="300" PowerLow="0.60" PowerHigh="0.40"/>
+  </workout>
+</workout_file>

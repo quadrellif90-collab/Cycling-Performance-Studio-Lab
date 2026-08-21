@@ -5,6 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/).
 
+## [1.4.0] - 2026-08-21 — Science Update
+
+Release basata sulla sintesi delle evidenze 2024-2026 in endurance, nutrizione,
+recupero e allenamento della forza: `docs/SCIENCE_UPDATES_2025.md`.
+
+### Added
+- **Fueling Planner** (`fueling.py`, `GET /api/fueling/session`): piano CHO/h per
+  sessione secondo la "fueling revolution" (tabella per durata fino a 90-120 g/h,
+  miscele multi-trasportatore), tracker **gut training** progressivo (+10-15 g/h
+  ogni 2 settimane, Costa 2017) e protocollo recupero **3:1** entro 45 min.
+- **4 workout Durability** in libreria (`durability_*.zwo`): negative split 120',
+  late hill reps @FTP 105', pre-fatigued intervals 150', muscular endurance 90'
+  (Muriel 2022; Spragg 2023).
+- **Alert instabilità HRV da CV** (`render_hrv_cv_alert` + digest): coefficiente di
+  variazione 7g vs 28g con direzione baseline — l'allarme precoce più sensibile di
+  affaticamento accumulato; deviazioni bidirezionali (saturazione parasimpatica, Plews).
+- **Calibrazione livello atleta** nell'adaptive planner (`athlete_level`):
+  Rivera-Köfler 2025 (JSCR scoping review) mostra che il vantaggio polarizzato è
+  élite-only → amatori default pyramidal equipollente; elite/trained mantengono polarized.
+- **Protocollo heat training** nel countdown gara: per eventi in clima caldo a 14-30
+  giorni suggerisce acclimatazione 10 giorni (VO2max +5-8%, TT +6-8% — meta-analisi
+  Springer 2021). Attivabile con flag `event_hot_climate` nel goal.
+- **Cronologia versioni piano** (`GET /api/plan/versions`, `POST /api/plan/restore` +
+  UI "🕘 Cronologia" nel tab Plan): elenco snapshot .bak con metadata, restore validato
+  (JSON+weeks) via atomic_write_plan — il piano attuale viene ruotato, mai perso.
+- **Documentazione**: `docs/SCIENCE_UPDATES_2025.md` (sintesi citata) + porting dei doc
+  tecnici dal lignaggio PCC (SCIENCE, SCIENCE_REVIEW, SYSTEM, DEBUGGING, HUAWEI_HRV,
+  OCR_SETUP, RESEARCH_TRAINING_PLANNER, windows_build, workout_sources) con indice.
+
+### Changed
+- Test `test_general_fitness` aggiornato alla calibrazione amateur→pyramidal;
+  aggiunto `test_general_fitness_elite_keeps_polarized`.
+- README riscritto: presentazione completa, architettura, FAQ, link documentazione.
+
+### Verified
+- Fueling endpoint live: 180' moderate → target 75 g/h, effettivo 60 (gut-limited),
+  blend 2:1, recupero 86 g CHO + 29 g PROT, progressione gut 60→75.
+- Adaptive: amateur→pyramidal, elite→polarized ✓
+- Digest con CV alert: nessun crash su dati parziali ✓
+- 4 ZWO durability validi (XML + parser CPSL) ✓
+- Suite completa verde (246 test) · JS 5/5 blocchi validi (node --check)
+
 ## [1.3.4] - 2026-08-21
 
 ### Added — funzionalità dalla roadmap (post deepscan)

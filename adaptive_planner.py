@@ -330,6 +330,7 @@ def generate_adaptive_recommendation(
     monotony: Optional[float] = None,
     current_weekly_tss: float = 300.0,
     current_weekly_hours: float = 6.0,
+    athlete_level: str = "amateur",
 ) -> AdaptiveRecommendation:
     """Generate an adaptive training recommendation.
 
@@ -346,12 +347,26 @@ def generate_adaptive_recommendation(
         monotony:            Training monotony (weekly TSS / max daily TSS).
         current_weekly_tss:  Current weekly TSS.
         current_weekly_hours: Current weekly training hours.
+        athlete_level:       'amateur' | 'trained' | 'elite'. Rivera-Köfler 2025
+                             (JSCR scoping review): il vantaggio del polarizzato
+                             emerge solo in élite; negli amatori i modelli non si
+                             separano e soglia/piramidale sono equipollenti (spesso
+                             più aderibili). Per amateur il metodo raccomandato
+                             viene ricalibrato di conseguenza.
 
     Returns:
         AdaptiveRecommendation with full analysis.
     """
     goal_profile = GOAL_PROFILES.get(goal, GOAL_PROFILES["general_fitness"])
     recommended_method = goal_profile["recommended_method"]
+
+    # v1.4.0 SCIENCE-2025 §4 — calibrazione per livello atleta
+    level = (athlete_level or "amateur").lower()
+    if level == "amateur" and recommended_method == "polarized":
+        # Rivera-Köfler 2025: polarized advantage is elite-only. Per amatori la
+        # piramidale offre stimoli equivalenti con maggiore aderenza e volume
+        # tollerabile; resta possibile forzarla via preferenza esplicita.
+        recommended_method = "pyramidal"
     method_def = TRAINING_METHODS[recommended_method]
 
     # Detect current method

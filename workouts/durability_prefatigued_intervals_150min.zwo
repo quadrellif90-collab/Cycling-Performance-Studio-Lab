@@ -1,0 +1,15 @@
+<workout_file>
+  <author>Cycling Performance Studio Lab</author>
+  <name>Durability C - Prefatigued Intervals 150</name>
+  <description>Durability session #3 (pre-fatiguing intervals): intervalli VO2max ALL'INIZIO (3x8 min @106%) per creare deplezione di glicogeno, poi 15 min di transizione e lunga Z2 finale nelle condizioni ottimali di ossidazione grassi. docs/SCIENCE_UPDATES_2025.md §2.</description>
+  <sporttype>bike</sporttype>
+  <tags>durability,vo2max,endurance</tags>
+  <workout>
+    <Warmup Duration="600" PowerLow="0.50" PowerHigh="0.70"/>
+    <SteadyState Duration="180" Power="0.65"/>
+    <IntervalsT Repeat="3" OnDuration="480" OffDuration="240" OnPower="1.06" OffPower="0.50"/>
+    <SteadyState Duration="900" Power="0.55"/>
+    <SteadyState Duration="4200" Power="0.62"/>
+    <Cooldown Duration="600" PowerLow="0.60" PowerHigh="0.40"/>
+  </workout>
+</workout_file>

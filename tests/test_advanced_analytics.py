@@ -363,8 +363,15 @@ class TestAdaptivePlanner:
         from adaptive_planner import generate_adaptive_recommendation
         result = generate_adaptive_recommendation("general_fitness")
         assert result.goal == "general_fitness"
-        assert result.recommended_method == "polarized"
+        # v1.4.0 SCIENCE-2025 §4: default level è 'amateur' → Rivera-Köfler 2025
+        # (vantaggio polarizzato solo élite) ricalibra su pyramidal.
+        assert result.recommended_method == "pyramidal"
         assert result.weekly_load.target_weekly_tss > 0
+
+    def test_general_fitness_elite_keeps_polarized(self):
+        from adaptive_planner import generate_adaptive_recommendation
+        result = generate_adaptive_recommendation("general_fitness", athlete_level="elite")
+        assert result.recommended_method == "polarized"
 
     def test_ftp_improvement(self):
         from adaptive_planner import generate_adaptive_recommendation

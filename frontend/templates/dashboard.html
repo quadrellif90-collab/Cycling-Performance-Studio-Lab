@@ -2708,6 +2708,9 @@ window.addEventListener('unhandledrejection', function(e) {
              automatically after each ride sync and on every plan-tab open
              (runPlanOpenSequence → /api/plan/update). -->
         <button class="btn btn-primary" onclick="generatePlan()" id="btn-generate-plan" title="Create your plan — or rebuild it from your current settings + fitness. After that it updates itself automatically after each ride sync and whenever you open this tab.">Generate Plan</button>
+        <!-- v1.4.0 PLAN-VERSIONS: cronologia snapshot .bak con restore sicuro
+             (il piano attuale viene ruotato a .bak prima del restore, mai perso). -->
+        <button class="btn" onclick="openPlanVersions()" id="btn-plan-versions" title="Cronologia delle versioni precedenti del piano — ripristina una versione in un click.">🕘 Cronologia</button>
         <!-- v3.0.1 IP_ICU_PUSH: mirror the next 14 days onto the intervals.icu
              calendar (Garmin/MyWhoosh pull workouts from there). States set by
              icuPushRefreshButton(): hidden (not connected) / normal / spinner
@@ -17609,6 +17612,61 @@ async function loadDailyDigest() {
       </div>`).join('');
   } catch (_) {
     host.innerHTML = '<i style="color:var(--text3);">Digest non raggiungibile.</i>';
+  }
+}
+
+// ── v1.4.0 PLAN-VERSIONS: cronologia + restore ───────────────────────────
+async function openPlanVersions() {
+  const rows = [];
+  try {
+    const r = await fetch('/api/plan/versions');
+    const d = await r.json();
+    if (!d.ok) { showToast('Cronologia non disponibile', 4000, 'error'); return; }
+    if (!d.count) {
+      openModal('<h2>🕘 Cronologia piano</h2><div style="font-size:13px;color:var(--text2);margin-top:8px;">Nessuna versione precedente. Le snapshot vengono create automaticamente ad ogni modifica del piano (fino a 7).</div>');
+      return;
+    }
+    for (const v of d.versions) {
+      const when = v.mtime ? new Date(v.mtime).toLocaleString() : '—';
+      const goal = v.goal_type ? esc(v.goal_type) : '—';
+      const ev = v.event_name ? ` · ${esc(v.event_name)}` : '';
+      if (v.restorable) {
+        rows.push(`
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);">
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:600;">${esc(v.version)} · ${when}</div>
+              <div style="font-size:11px;color:var(--text3);">${v.weeks} settimane · goal: ${goal}${ev}</div>
+            </div>
+            <button class="btn btn-primary" style="font-size:11px;" onclick="restorePlanVersion('${escJs(v.version)}')">Ripristina</button>
+          </div>`);
+      } else {
+        rows.push(`
+          <div style="padding:10px;border:1px dashed var(--border);border-radius:8px;font-size:12px;color:var(--text3);">
+            ${esc(v.version)} · ${when} — snapshot corrotto, non ripristinabile
+          </div>`);
+      }
+    }
+    openModal(`
+      <h2>🕘 Cronologia piano</h2>
+      <div class="modal-meta">Le ultime ${d.count} versioni (le più recenti prima). Il ripristino è sicuro: il piano attuale viene ruotato in .bak e resta recuperabile.</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">${rows.join('')}</div>`);
+  } catch (e) {
+    showToast('Errore: ' + e, 4000, 'error');
+  }
+}
+async function restorePlanVersion(version) {
+  if (!confirm(`Ripristinare la versione "${version}" del piano?\n\nIl piano attuale verrà salvato come .bak (recuperabile dalla stessa cronologia).`)) return;
+  try {
+    const r = await apiPost('/api/plan/restore', {version});
+    if (r && r.ok) {
+      showToast(`Piano ripristinato (${r.weeks} settimane) ✓`, 4500);
+      closeModal();
+      if (typeof loadPlan === 'function') loadPlan();
+    } else {
+      showToast((r && r.error) || 'Restore fallito', 5000, 'error');
+    }
+  } catch (e) {
+    showToast('Errore: ' + e, 4000, 'error');
   }
 }
 

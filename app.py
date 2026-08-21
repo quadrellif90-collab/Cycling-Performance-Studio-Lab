@@ -14517,6 +14517,120 @@ def _apply_plan_update(
     return plan, "rebalanced", info, status
 
 
+# ── v1.4.0 PLAN-VERSIONS — cronologia snapshot + restore sicuro ──────────
+_PLAN_BAK_DEPTH = 7  # deve specchiare la rotazione di atomic_write_plan
+
+
+def _plan_versions_dir() -> Path:
+    return _plan_dir()
+
+
+def _plan_snapshot_paths() -> list[tuple[str, Path]]:
+    """Snapshot in ordine di età (più recente prima): .bak, .bak2 … .bak7."""
+    base = _plan_versions_dir() / "current_plan.json"
+    out = []
+    for n in range(0, _PLAN_BAK_DEPTH + 1):
+        suffix = ".bak" if n == 0 else f".bak{n}"
+        p = base.with_suffix(base.suffix + suffix)
+        if p.exists():
+            out.append((f"bak{n}" if n else "bak", p))
+    return out
+
+
+def _plan_snapshot_meta(label: str, p: Path) -> dict | None:
+    """Metadata leggibili di uno snapshot; None se corrotto/vuoto."""
+    try:
+        if p.stat().st_size == 0:
+            return None
+        data = json.loads(p.read_text(encoding="utf-8"))
+        weeks = data.get("weeks") or []
+        goal = data.get("goal") or {}
+        if isinstance(goal, str):
+            try:
+                goal = json.loads(goal)
+            except Exception:
+                goal = {}
+        return {
+            "version": label,
+            "file": p.name,
+            "mtime": datetime.fromtimestamp(p.stat().st_mtime).isoformat(timespec="seconds"),
+            "size_bytes": p.stat().st_size,
+            "weeks": len(weeks),
+            "goal_type": goal.get("type") or goal.get("goal_type"),
+            "event_name": goal.get("event_name") or None,
+            "generated": data.get("generated"),
+        }
+    except Exception:
+        return None
+
+
+@app.get("/api/plan/versions")
+def api_plan_versions():
+    """Elenca gli snapshot .bak* del piano corrente (i più recenti prima).
+
+    La rotazione è gestita da training_planner.atomic_write_plan (live → .bak
+    → … → .bak7 ad ogni scrittura), quindi ogni voce è una versione precedente
+    ripristinabile. Gli snapshot corrotti/vuoti sono elencati come non
+    ripristinabili invece di essere nascosti, così l'utente sa perché.
+    """
+    versions = []
+    for label, p in _plan_snapshot_paths():
+        meta = _plan_snapshot_meta(label, p)
+        if meta is None:
+            meta = {"version": label, "file": p.name, "restorable": False,
+                    "mtime": datetime.fromtimestamp(p.stat().st_mtime).isoformat(timespec="seconds")}
+        else:
+            meta["restorable"] = True
+        versions.append(meta)
+    live = _plan_versions_dir() / "current_plan.json"
+    return {
+        "ok": True,
+        "live_exists": live.exists(),
+        "live_mtime": (datetime.fromtimestamp(live.stat().st_mtime).isoformat(timespec="seconds")
+                       if live.exists() else None),
+        "versions": versions,
+        "count": len(versions),
+    }
+
+
+@app.post("/api/plan/restore")
+async def api_plan_restore(request: Request):
+    """Ripristina uno snapshot del piano (.bak | .bak2 | …) come piano attivo.
+
+    Sicurezza:
+      - lo snapshot viene validato (JSON + chiave 'weeks' lista) PRIMA;
+      - il restore passa da training_planner.atomic_write_plan, quindi il
+        piano attuale viene RUOTATO a .bak (mai perso) e la scrittura è
+        atomica sotto plan_write_lock;
+      - post_write_callback (push ICU debounce) parte come per ogni write.
+    """
+    body = await _get_json_body(request)
+    label = str(body.get("version") or "").strip()
+    if not re.fullmatch(r"bak[0-7]?", label):
+        return JSONResponse({"error": "version must be one of bak, bak2..bak7"}, status_code=400)
+
+    base = _plan_versions_dir() / "current_plan.json"
+    suffix = ".bak" if label == "bak" else f".{label}"
+    snap = base.with_suffix(base.suffix + suffix)
+    if not snap.exists():
+        return JSONResponse({"error": f"snapshot {label} not found"}, status_code=404)
+
+    # Validazione preventiva
+    try:
+        data = json.loads(snap.read_text(encoding="utf-8"))
+    except Exception as e:
+        return JSONResponse({"error": f"snapshot unreadable: {e}"}, status_code=422)
+    if not isinstance(data, dict) or not isinstance(data.get("weeks"), list) or not data["weeks"]:
+        return JSONResponse({"error": "snapshot has no usable weeks — refusing restore"},
+                            status_code=422)
+
+    import training_planner as _tp_restore
+    _tp_restore.atomic_write_plan(base, data)
+    _log.info("EVENT=plan_restored version=%s weeks=%s", label, len(data["weeks"]))
+    return {"ok": True, "restored": label, "weeks": len(data["weeks"]),
+            "note": "Il piano precedente è stato ruotato in .bak ed è recuperabile."}
+
+
 @app.post("/api/plan/regenerate")
 async def api_plan_regenerate_dynamic(request: Request):
     """Regenerate plan from today after missed training/injury/holiday.
@@ -23853,6 +23967,26 @@ def _derive_ai_plan_action(response_text: str) -> str | None:
     return None
 
 
+# ── 45a-bis. Fueling planner (v1.4.0 SCIENCE-2025) ──────────────────────
+@app.get("/api/fueling/session")
+def api_fueling_session(duration_min: float = Query(90),
+                        intensity: str = Query("moderate"),
+                        weight_kg: float = Query(70.0),
+                        gut_trained_to: float = Query(60.0),
+                        gut_goal: float = Query(90.0),
+                        gut_weeks: int = Query(0)):
+    """Piano di rifornimento per sessione + progressione gut training.
+
+    Evidenze 2024-2026 ("fueling revolution"): tabella CHO/h per durata,
+    miscele multi-trasportatore, gut training progressivo (+10-15 g/h ogni
+    2 settimane), recupero 3:1 entro 45 min. Vedi docs/SCIENCE_UPDATES_2025.md §1.
+    """
+    import fueling as _fuel
+    plan = _fuel.session_fueling_plan(duration_min, intensity, weight_kg, gut_trained_to)
+    gt = _fuel.gut_training_phase(gut_trained_to, goal_cho_h=gut_goal, weeks_done=gut_weeks)
+    return {"ok": True, "plan": plan, "gut_training": gt}
+
+
 # ── 45b. GET /api/notifications/digest (v1.3.4 DAILY-DIGEST) ────────────
 @app.get("/api/notifications/digest")
 def api_notifications_digest():
@@ -23920,7 +24054,7 @@ def api_notifications_digest():
     # 3) HRV trend: deviazioni firmate vs baseline profilo (ultimi 7 gg)
     try:
         base = getattr(config, "HRV_BASELINE_MEAN", None)
-        w = ride_storage.load_recent_wellness(days=10) or []
+        w = ride_storage.load_recent_wellness(days=35) or []
         series = []
         for rec in w[-7:]:
             v = rec.get("hrv")
@@ -23933,6 +24067,30 @@ def api_notifications_digest():
         hrv_msg = _notif.render_hrv_trend(series)
         if hrv_msg:
             items.append(hrv_msg)
+
+        # 3b) CV alert (evidenze 2024-2026): CV ultimi 7g vs 28g precedenti
+        #     + direzione della baseline. Vedi docs/SCIENCE_UPDATES_2025.md §3.
+        def _cv(vals):
+            vals = [float(v) for v in vals if v is not None]
+            if len(vals) < 4:
+                return None
+            m = sum(vals) / len(vals)
+            if m <= 0:
+                return None
+            var = sum((x - m) ** 2 for x in vals) / len(vals)
+            return (var ** 0.5) / m * 100.0
+        hr_all = [rec.get("hrv") for rec in w if rec.get("hrv") is not None]
+        cv_recent = _cv(hr_all[-7:])
+        cv_base = _cv(hr_all[-35:-7]) if len(hr_all) >= 11 else None
+        dir_now = None
+        if len(hr_all) >= 11:
+            m7 = sum(hr_all[-7:]) / 7
+            m28 = sum(hr_all[-35:-7]) / max(1, len(hr_all[-35:-7]))
+            if m28 > 0:
+                dir_now = "up" if m7 > m28 * 1.02 else ("down" if m7 < m28 * 0.98 else None)
+        cv_msg = _notif.render_hrv_cv_alert(cv_recent, cv_base, dir_now)
+        if cv_msg:
+            items.append(cv_msg)
     except Exception:
         pass
 
@@ -23971,7 +24129,7 @@ def api_notifications_digest():
     except Exception:
         pass
 
-    # 6) Countdown gara (dal goal del piano)
+    # 6) Countdown gara (dal goal del piano) + heat protocol (v1.4.0)
     try:
         pj = _plan_dir() / "current_plan.json"
         if pj.exists():
@@ -23986,6 +24144,21 @@ def api_notifications_digest():
                     cd = _notif.render_prerace_countdown(days_to, None, None)
                     if cd:
                         items.append(cd)
+                # Heat acclimation: VO2max +5-8% e TT +6-8% anche al fresco
+                # (meta-analisi Springer 2021; BMC 2024). Protocollo 10 giorni
+                # se l'evento è in clima caldo e mancano 14-30 giorni.
+                if goal.get("event_hot_climate") and 14 <= days_to <= 30:
+                    items.append({
+                        "type": "heat_acclimation",
+                        "title": "🌡️ Protocollo heat training",
+                        "body": ("Evento in clima caldo tra " + str(days_to) +
+                                 " giorni: inizia ora il protocollo di acclimatazione "
+                                 "(10 giorni: 60 min/giorno a 35-40°C o sauna 20-30 min "
+                                 "post-allenamento). Mantieni con 1-2 esposizioni/"
+                                 "settimana. Guadagno atteso: VO2max +5-8%, TT +6-8% "
+                                 "anche in condizioni temperate."),
+                        "channels": ["email"],
+                    })
     except Exception:
         pass
 
