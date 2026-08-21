@@ -5,7 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/).
 
-## [1.1.5] - 2026-08-21
+## [1.1.6] - 2026-08-21
+
+### Fixed
+- **AI Coach not auto-enabling on boot**: persisted settings in `ai_config.json` were only applied inside the `lifespan()` hook, which didn't reliably re-enable the coach after a restart (status stayed `ai_coach_enabled: false`). Moved the load to **module-import time** so the coach is enabled immediately on startup, reading provider/key/model from `ai_config.json`. Verified: `GET /api/ai/status` now returns `enabled: true` right after launch.
+
+
 
 ### Fixed
 - **AI Coach 503 on Gemini preview models**: `gemini-3-flash-preview` intermittently returns `503 Service Unavailable` (rate-limited preview model). Added a 3-attempt retry with backoff in `ai_coach/llm_client._chat_google()` so coach queries no longer fail transiently.
