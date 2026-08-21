@@ -66,3 +66,8 @@ ai_config.json
 
 # Build artifacts (allegati alle GitHub Releases, non al repo)
 CyclingPerformanceStudioLab-v*.zip
+
+# Dati personali utente (mai nel repo)
+plans/*.json
+plans/*.md
+!plans/.gitkeep;
