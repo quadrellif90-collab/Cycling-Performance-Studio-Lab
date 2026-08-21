@@ -1766,9 +1766,13 @@ window.addEventListener('unhandledrejection', function(e) {
     </div>
   </div>
 
-  <div class="grid g2">
+  <!-- v1.4.1 DASHBOARD-CUSTOM — griglia unificata 12 colonne: card
+       trascinabili, ridimensionabili (span 1-12 con snap automatico),
+       layout persistito per profilo, click-to-navigate fuori da edit mode.
+       Motore in /static/js/dashboard_layout.js; toolbar iniettata dal JS. -->
+  <div class="grid" id="home-grid" style="display:grid;grid-template-columns:repeat(12,1fr);gap:12px;margin-bottom:12px;">
     <!-- Left: Readiness -->
-    <div class="card">
+    <div class="card" id="readiness-factors-card" data-span="6" data-nav="plan" title="Apri Training Plan">
       <h3>Readiness — factors &amp; trend</h3>
       <div style="display:flex;gap:20px;align-items:center;">
         <div class="gauge" id="gauge"></div>
@@ -1779,24 +1783,22 @@ window.addEventListener('unhandledrejection', function(e) {
       </div>
     </div>
     <!-- Right: Training load -->
-    <div class="card">
+    <div class="card" id="training-load-card" data-span="6" data-nav="analysis" title="Apri Analysis">
       <h3>Training Load</h3>
       <div class="metrics-row" id="training-metrics"></div>
     </div>
-  </div>
-
-  <div class="grid g3" style="margin-top:12px;">
-    <div class="card">
+    <div class="card" id="sleep-hrv-card" data-span="4" data-nav="hrv" title="Apri HRV">
       <h3>Sleep &amp; HRV</h3>
       <div class="metrics-row" id="sleep-metrics"></div>
       <div style="margin-top:10px;display:flex;gap:16px;" id="sleep-sparklines"></div>
     </div>
-    <div class="card">
+    <div class="card" id="eftp-progress-card" data-span="4" data-nav="settings" title="Apri Settings">
       <h3>eFTP Progress</h3>
       <div id="eftp-card" class="loading">Loading...</div>
     </div>
-    <div class="card">
+    <div class="card" id="body-perf-card-wrap" data-span="4" data-nav="profile" title="Apri Profilo">
       <h3>Body &amp; Performance</h3>
+      <!-- NB: id="body-perf-card" appartiene al contenuto (writer JS) -->
       <div id="body-perf-card" class="loading">Loading...</div>
     </div>
   </div>
@@ -23374,5 +23376,7 @@ window.skipAssessment = async function() {
   } catch(e) { showToast('Connessione al server assente. Verifica e riprova.', 4000); }
 };
 </script>
+<!-- v1.4.1 DASHBOARD-CUSTOM: layout personalizzabile (drag/resize/snap/nav) -->
+<script src="/static/js/dashboard_layout.js?v=1"></script>
 </body>
 </html>

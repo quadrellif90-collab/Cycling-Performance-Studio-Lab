@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/).
 
+## [1.4.1] - 2026-08-21 — Dashboard personalizzabile
+
+### Added — Dashboard-Custom
+- **Griglia Home unificata a 12 colonne** (`#home-grid`): le 5 card analitiche
+  (Readiness, Training Load, Sleep & HRV, eFTP Progress, Body & Performance) vivono
+  ora in una sola griglia CSS con span configurabili (le due griglie g2/g3 precedenti
+  diventano default span 6/6/4/4/4).
+- **✏️ Modalità "Personalizza layout"** (toolbar in cima a Home):
+  - **Drag & drop**: riordino live delle card trascinandole (auto-sistemazione,
+    inserimento before/after per riga e colonna);
+  - **Ridimensionamento con snap**: maniglia ⌟ su ogni card — la larghezza scatta
+    sulle colonne della griglia (span 1-12, clamp responsive: ≤1100px max 6, ≤760px full-width);
+  - **↺ Ripristina** torna a ordine e dimensioni di default;
+  - In edit mode il contenuto delle card è non-interattivo (pointer-events none)
+    così il drag non confligge con bottoni/link interni.
+- **Click-to-navigate**: fuori da edit mode, le card informative rimandano al tab di
+  competenza con un click — today/daily-adapt/my-cal/strength/last-week → Plan,
+  card-hrv → HRV, tid-heatmap → Analysis, readiness → Plan, training-load → Analysis,
+  sleep-hrv → HRV, eftp → Settings, body-perf → Profilo. I click su elementi
+  interattivi interni (bottoni/link/input/canvas) sono preservati.
+- **Persistenza per profilo**: ordine e span salvati in localStorage
+  (`homeLayout:<profile_id>`), ripristinati al caricamento.
+- Nuovo modulo `frontend/static/js/dashboard_layout.js` (~280 righe vanilla JS,
+  zero dipendenze; HTML5 DnD + Pointer Events + CSS Grid; stile auto-iniettato).
+
+### Fixed
+- `body-perf-card`: l'id apparteneva al div di contenuto usato dal writer JS —
+  la card wrapper usa ora `body-perf-card-wrap` per non rompere il lookup.
+
+### Verified (live browser automation)
+- Griglia + toolbar + 5 resize handle in edit mode ✓
+- Riordino simulato → persistenza attraversa il reload ✓
+- Click su today-card → naviga al tab Plan ✓
+- Reset → ordine e span di default ripristinati ✓
+- 0 page error · JS validato Node (--check) ✓ · suite completa verde ✓
+
 ## [1.4.0] - 2026-08-21 — Science Update
 
 Release basata sulla sintesi delle evidenze 2024-2026 in endurance, nutrizione,
