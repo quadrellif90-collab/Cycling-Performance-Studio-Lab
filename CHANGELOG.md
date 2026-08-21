@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/).
 
+## [1.3.3] - 2026-08-21
+
+### Deepscan A→Z (108 moduli Python, 23.2k righe frontend, 273 endpoint)
+
+### Fixed
+- **Card qualità HRV del tab sempre "—"**: `id="hrv-quality"` duplicato tra card Home e tab HRV — `getElementById` restituiva quello di Home, quindi il writer di `loadHrvTab()` aggiornava la scheda sbagliata. Rinominato in `hrv-quality-tab` con writer aggiornati.
+- **5 variabili CSS usate ma mai definite** (`--text1`, `--bg2`, `--accent-bg`, `--amber`, `--dev-red`): risolvevano a "inherited" producendo colori imprevedibili. Aggiunte a `:root` + override tema dark.
+- **Dipendenze mancanti da requirements-common.txt**: `certifi`, `bleak` (trainer BLE), `fitparse` (import FIT), `garminconnect` — usate a runtime ma non dichiarate (su installazioni pulite il pip le avrebbe saltate).
+
+### Removed
+- **`frontend/static/js/app.js` e `analytics.js`**: 25 KB di dead code totale — nessuna pagina li carica (verificato su tutte le 6 template); erano la vecchia UI pre-fork ed erano già stati fonte di un bug (sintassi Python in JS). Tutti i loro endpoint "fantasma" (`/api/icu/test`, `/api/injuries`, …) non erano mai raggiungibili.
+
+### Verified (deepscan completo)
+- Sintassi: 108/108 file OK · Import locali: tutti risolvibili · 0 TODO/FIXME aperti
+- API sweep: 159 GET + 114 POST = **zero 5xx** (incluse parametriche chiave)
+- Frontend: 0 ID duplicati reali, 0 tab orfani, asset statici tutti presenti, variabili CSS tutte definite
+- Sicurezza: nessun segreto nel repo, nessun .env tracciato, ai_config gitignored, origin-check + security headers attivi
+- **Push ICU confermato funzionante**: log reale `icu_calendar_push pushed=6 skipped=7 horizon=14d`
+- Parità moduli: CPSL ⊇ PCC ∪ Domestique (0 gap) + 21 moduli esclusivi
+
 ## [1.3.2] - 2026-08-21
 
 ### Added — AI Coach nel pianificatore (PLANNER-AI)

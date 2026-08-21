@@ -11,6 +11,13 @@
   --bg: #f1f5f9; --surface: #ffffff; --surface2: #f8fafc; --border: #e2e8f0;
   --card: #ffffff;  /* opaque — see dark-theme note */
   --text: #1e293b; --text2: #475569; --text3: #64748b;
+  /* v1.3.3 FIX: variabili referenziate ma mai definite (risolvevano a
+     "inherited"/nothing). Alias + tinte usate da card HRV/BIA/deviazioni. */
+  --text1: #1e293b;
+  --bg2: #eef2f7;
+  --accent-bg: rgba(37, 99, 235, 0.10);
+  --amber: #d97706;
+  --dev-red: #dc2626;
   --accent: #2563eb; --accent2: #4f46e5;
   --green: #16a34a; --yellow: #ca8a04; --orange: #ea580c; --red: #dc2626; --purple: #9333ea;
   --z1: #94a3b8; --z2: #3b82f6; --z3: #16a34a; --z4: #ca8a04; --z5: #ea580c; --z6: #dc2626; --z7: #475569;
@@ -20,6 +27,11 @@
   --bg: #0a0e14; --surface: #131a24; --surface2: #1a2332; --border: #2d3f52;
   --card: #1a2332;
   --text: #e6edf3; --text2: #b8c8d8; --text3: #8a9bb0;
+  --text1: #e6edf3;
+  --bg2: #0f1620;
+  --accent-bg: rgba(56, 189, 248, 0.12);
+  --amber: #fbbf24;
+  --dev-red: #f87171;
   --accent: #38bdf8; --accent2: #818cf8;
   --green: #34d399; --yellow: #fbbf24; --orange: #fb923c; --red: #f87171; --purple: #c084fc;
   --z1: #64748b; --z2: #38bdf8; --z3: #34d399; --z4: #fbbf24; --z5: #fb923c; --z6: #f87171; --z7: #e2e8f0;
@@ -3670,7 +3682,10 @@ window.addEventListener('unhandledrejection', function(e) {
     </div>
     <div class="card" id="hrv-card-quality">
       <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;">Qualità & dettaglio</div>
-      <div id="hrv-quality" style="font-size:18px;font-weight:700;">—</div>
+      <!-- v1.3.3 FIX: era id="hrv-quality", duplicato della card Home —
+           getElementById restituiva quella di Home e la qualità nel tab HRV
+           restava sempre "—". Rinominato + writer aggiornati. -->
+      <div id="hrv-quality-tab" style="font-size:18px;font-weight:700;">—</div>
       <div id="hrv-detail" style="font-size:11px;color:var(--text3);"></div>
     </div>
   </div>
@@ -22294,7 +22309,7 @@ async function loadHrvTab() {
     if (!d.ok || !d.has_data) {
       document.getElementById('hrv-today-rmssd').textContent = '—';
       document.getElementById('hrv-baseline').textContent = '—';
-      document.getElementById('hrv-quality').textContent = '—';
+      document.getElementById('hrv-quality-tab').textContent = '—';
       document.getElementById('hrv-metrics-body').innerHTML =
         '<tr><td colspan="4" style="padding:8px;color:var(--text3);">'
         + (d.message || 'Nessun dato HRV. Usa "Importa e calcola" con un export Huawei.') + '</td></tr>';
@@ -22320,7 +22335,7 @@ async function loadHrvTab() {
       devEl.textContent = (up ? '▲ +' : '▼ ') + dev.deviation_pct + '% vs 7g';
     } else { devEl.textContent = ''; }
 
-    document.getElementById('hrv-quality').textContent =
+    document.getElementById('hrv-quality-tab').textContent =
       (L.quality_category || '—') + ' (' + (L.quality_score != null ? L.quality_score.toFixed(2) : '—') + ')';
     document.getElementById('hrv-detail').textContent =
       'n=' + (L.sample_count != null ? L.sample_count : '—') + ' · '
