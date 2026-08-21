@@ -5,7 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/).
 
-## [1.1.4] - 2026-08-20
+## [1.1.5] - 2026-08-21
+
+### Fixed
+- **AI Coach 503 on Gemini preview models**: `gemini-3-flash-preview` intermittently returns `503 Service Unavailable` (rate-limited preview model). Added a 3-attempt retry with backoff in `ai_coach/llm_client._chat_google()` so coach queries no longer fail transiently.
+- **`/api/icu/sync` ImportError (silent)**: the endpoint called `training.fetch_athlete_numbers`, which doesn't exist → `athlete_numbers: {"skipped":"nums_err:ImportError"}`. Removed the bad call; athlete numbers are already served by `/api/icu/athlete-numbers`. Sync now returns clean data.
+- **Security**: removed live API keys (Intervals.icu + Gemini) from `test_smoke.py` and purged the file from git history (GitHub push-protection compliant). Test credentials now come from env vars.
+
+
 
 ### Fixed
 - **Tabs not opening on click**: the dynamic `renderTabs()` rebuilt the tab bar with `innerHTML = ''`, dropping the click listeners. Reverted to static tabs in the HTML + a lightweight `applyTabVisibility()` that only toggles `display`, so click handlers stay attached. Tabs now open correctly.
