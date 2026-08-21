@@ -2355,6 +2355,38 @@ window.addEventListener('unhandledrejection', function(e) {
 
 <!-- ═══ NUTRITION ══════════════════════════════════════════════════════════ -->
 <div class="section" id="sec-plan">
+  <!-- v1.3.2 PLANNER-AI — "Chiedi all'AI Coach": parere LLM groundato sui dati
+       rider (RAG + memoria) con azione applicabile al piano in un click.
+       suggested_action -> endpoint: auto_adjust->/api/plan/auto-adjust,
+       reforecast->/api/plan/reforecast, regenerate->/api/plan/regenerate. -->
+  <div class="card" id="ai-plan-card" style="margin-bottom:12px;">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <h3 style="margin:0;">🤖 Chiedi all'AI Coach</h3>
+      <span style="font-size:11px;color:var(--text3);">parere groundato su FTP, HRV, fenotipo e stato piano — puo' suggerire e applicare modifiche</span>
+      <span style="flex:1;"></span>
+      <button class="btn btn-sm" onclick="toggleAiPlanPanel()" style="font-size:11px;" id="ai-plan-toggle">Apri</button>
+    </div>
+    <div id="ai-plan-body" hidden style="margin-top:10px;">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input id="ai-plan-input" type="text" placeholder="Es. 'Sono stanco questa settimana, conviene ridurre?' o 'Il piano sta funzionando?'"
+               style="flex:1;min-width:260px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:13px;"
+               onkeydown="if(event.key==='Enter'){askAiCoach();}">
+        <button class="btn btn-primary" id="ai-plan-ask-btn" onclick="askAiCoach()">Chiedi</button>
+      </div>
+      <div id="ai-plan-chips" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">
+        <button class="btn btn-sm" style="font-size:11px;" onclick="askAiCoach('Sto accumulando fatica, devo ridurre il carico di oggi?')">Sono stanco</button>
+        <button class="btn btn-sm" style="font-size:11px;" onclick="askAiCoach('Come sta andando il mio piano finora?')">Come sto?</button>
+        <button class="btn btn-sm" style="font-size:11px;" onclick="askAiCoach('La mia HRV e in calo, cambio qualcosa?')">HRV in calo</button>
+        <button class="btn btn-sm" style="font-size:11px;" onclick="askAiCoach('Devo fare il test FTP?')">Test FTP?</button>
+      </div>
+      <div id="ai-plan-response" style="display:none;margin-top:12px;padding:12px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);font-size:13px;line-height:1.55;white-space:pre-wrap;"></div>
+      <div id="ai-plan-apply-row" style="display:none;margin-top:10px;align-items:center;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" id="ai-plan-apply-btn" onclick="applyAiPlanAction()" style="font-size:12px;">Applica suggerimento</button>
+        <span id="ai-plan-action-note" style="font-size:11px;color:var(--text3);"></span>
+      </div>
+    </div>
+  </div>
+
   <!-- Current Metrics Banner -->
   <div id="plan-metrics-banner" style="display:flex;gap:16px;margin-bottom:12px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--text2);flex-wrap:wrap;"></div>
 
@@ -15208,6 +15240,100 @@ function togglePlanConfig() {
   const open = !!body.hidden;          // hidden now → we are opening
   _planCfgSet(open);
   _lsSet(_profileLsKey('planCfgOpen'), open ? '1' : '0');
+}
+
+// ── v1.3.2 PLANNER-AI: "Chiedi all'AI Coach" nel tab Plan ────────────────
+// Parere LLM groundato (rider-context RAG + memoria persistente lato server)
+// con azione applicabile al piano in un click. suggested_action deriva dalla
+// risposta e viene mappata sugli endpoint piano esistenti.
+let _aiPlanAction = null;
+function toggleAiPlanPanel() {
+  const body = document.getElementById('ai-plan-body');
+  const btn = document.getElementById('ai-plan-toggle');
+  if (!body) return;
+  body.hidden = !body.hidden;
+  if (btn) btn.textContent = body.hidden ? 'Apri' : 'Chiudi';
+}
+async function askAiCoach(preset) {
+  const input = document.getElementById('ai-plan-input');
+  const respBox = document.getElementById('ai-plan-response');
+  const askBtn = document.getElementById('ai-plan-ask-btn');
+  const applyRow = document.getElementById('ai-plan-apply-row');
+  if (!input || !respBox) return;
+  const q = (preset || input.value || '').trim();
+  if (!q) { showToast('Scrivi una domanda per il coach', 3000, 'warning'); return; }
+  askBtn.disabled = true;
+  respBox.style.display = 'block';
+  respBox.textContent = 'Il coach sta analizzando i tuoi dati…';
+  applyRow.style.display = 'none';
+  _aiPlanAction = null;
+  try {
+    const r = await apiPost('/api/ai/coach-query', {
+      query: q,
+      context: { profile_id: window.CPSL_PROFILE_ID || 'default' }
+    });
+    if (r && r.ok) {
+      respBox.textContent = r.response || '(risposta vuota)';
+      _aiPlanAction = r.suggested_action || null;
+      const labels = {
+        auto_adjust: 'Adatta la sessione di oggi (riduzione/scarico)',
+        reforecast: 'Ricalcola il piano da oggi (riprevisione)',
+        regenerate: 'Rigenera il piano da zero',
+        none: null
+      };
+      if (_aiPlanAction && labels[_aiPlanAction]) {
+        applyRow.style.display = 'flex';
+        document.getElementById('ai-plan-apply-btn').textContent = '⚡ ' + labels[_aiPlanAction];
+        document.getElementById('ai-plan-action-note').textContent =
+          'L\'azione userà gli endpoint nativi del planner — potrai sempre annullare rigenerando.';
+      }
+      addMemoryToChat(q, r.response);
+    } else {
+      respBox.textContent = 'Errore: ' + ((r && r.error) || 'coach non disponibile');
+    }
+  } catch (e) {
+    respBox.textContent = 'Errore di rete: ' + e;
+  } finally {
+    askBtn.disabled = false;
+  }
+}
+function addMemoryToChat(_q, _r) { /* memoria persistita lato server */ }
+async function applyAiPlanAction() {
+  const endpoints = {
+    auto_adjust: '/api/plan/auto-adjust',
+    reforecast: '/api/plan/reforecast',
+    regenerate: '/api/plan/regenerate'
+  };
+  const ep = endpoints[_aiPlanAction];
+  if (!ep) return;
+  const btn = document.getElementById('ai-plan-apply-btn');
+  btn.disabled = true;
+  btn.textContent = 'Applico…';
+  try {
+    let r;
+    if (_aiPlanAction === 'regenerate') {
+      // Rigenera confermato: il backend ricostruisce dalle impostazioni correnti.
+      if (!confirm('Rigenerare il piano da zero? Sostituisce quello attuale.')) {
+        btn.disabled = false; btn.textContent = '⚡ Applica suggerimento'; return;
+      }
+      r = await apiPost(ep, {});
+    } else {
+      r = await apiPost(ep, {});
+    }
+    if (r && (r.ok || r.status === 'ok' || r.plan)) {
+      showToast('Piano aggiornato dal suggerimento AI ✓', 4000);
+      if (typeof loadPlan === 'function') loadPlan();
+      const row = document.getElementById('ai-plan-apply-row');
+      if (row) row.style.display = 'none';
+    } else {
+      showToast((r && (r.error || r.detail)) || 'Azione non completata', 4500, 'error');
+    }
+  } catch (e) {
+    showToast('Errore: ' + e, 4000, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⚡ Applica suggerimento';
+  }
 }
 
 // Called by the plan loader once it knows whether a plan exists. Honours a

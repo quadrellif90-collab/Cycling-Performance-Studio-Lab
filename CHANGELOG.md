@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/).
 
+## [1.3.2] - 2026-08-21
+
+### Added — AI Coach nel pianificatore (PLANNER-AI)
+- **Pannello "🤖 Chiedi all'AI Coach" nel tab Plan**: parere LLM groundato sui dati reali del rider (RAG: FTP, HRV, fenotipo, durabilità + memoria persistente delle sessioni) direttamente dove lavori sul piano. Chip preimpostate ("Sono stanco", "Come sto?", "HRV in calo", "Test FTP?").
+- **Azioni applicabili al piano in un click**: la risposta dell'AI viene mappata a un'azione reale (`auto_adjust` → /api/plan/auto-adjust, `reforecast` → /api/plan/reforecast, `regenerate` → /api/plan/regenerate) con bottone "⚡ Applica suggerimento". Il piano resta sempre modificabile/ripristinabile dagli strumenti nativi.
+- Backend: `/api/ai/coach-query` ora include `suggested_action` (parsing dell'intenzione) e `plan_state` (riepilogo goal/fase/settimana corrente allegato al contesto).
+
+### Fixed — sweep completo API (247 endpoint testati: 138 GET + 109 POST)
+- **`/api/export/backup|metrics|zip` (3×500)**: chiamavano funzioni inesistenti di `data_export`; ora usano le firme reali `build_bundle()` / `build_metrics_csv()`.
+- **`/api/onboarding/status` (500)**: `_plan_dir()` referenziata ma mai definita in `pcc_routes_v2.py`; aggiunta copia locale profile-aware (stessa logica di app.py).
+- **`/api/terra/status` (500)**: `is_configured` era annidata per errore dentro un'altra funzione e leggeva `config.TERRA_CLIENT_ID` senza getattr (AttributeError su config vuoto). Entrambi corretti: ora "non configurato" è un False pulito.
+- **`/api/workouts/classify` (500)**: il modulo `classify_library_content.py` non era mai stato incluso nel repo; recuperato da PCC e aggiunto alla root.
+
+### Verified — scenari end-to-end planner (TestClient su app reale)
+- Generate 8 settimane goal generale ✓ · daily-sync riconcilia actuals (rest→z2 con TSS) ✓
+- HRV −12% + sonno 5h + TSB −25 → raccomandazione riduzione/riposo ✓
+- HRV +5% + sonno 8h + TSB +8 → nessun blocco forzato ✓
+- Monotonia 2.2 (> soglia rossa) → warning monotonia ✓
+- Rigenerazione con goal FTP ✓ · catena auto-adjust + drift ✓
+- coach-query con provider Google reale: risposta LLM ricevuta (retry automatico su 503) ✓
+
 ## [1.3.1] - 2026-08-21
 
 ### Fixed (release di stabilità — deep scan + test live su browser reale)

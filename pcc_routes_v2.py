@@ -27,6 +27,28 @@ from starlette.background import BackgroundTask
 # HELPER FUNCTIONS (dependencies for the routes below)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+def _plan_dir() -> Path:
+    """v1.3.1 FIX: this helper was referenced but never defined here (NameError
+    on /api/onboarding/status and 3 other routes). Mirrors app.py::_plan_dir:
+    profile-aware plans dir via training_planner.PLAN_DIR, fallback to
+    ~/.cpsl/plans. Local copy avoids a circular import from app."""
+    try:
+        import training_planner as _tp
+        d = getattr(_tp, 'PLAN_DIR', None)
+        if d:
+            d = Path(d)
+            d.mkdir(parents=True, exist_ok=True)
+            return d
+    except Exception:
+        pass
+    try:
+        from user_home import cpsl_home
+        d = cpsl_home() / "plans"
+    except Exception:
+        d = Path.home() / ".cpsl" / "plans"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
 def _local_training_load() -> dict:
     """v4.4.2 — single helper that returns CTL/ATL/TSB derived from the
     local rides archive.

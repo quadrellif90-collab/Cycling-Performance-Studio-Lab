@@ -56,7 +56,9 @@ def _prune_flows(now: float | None = None) -> None:
 def is_configured() -> bool:
     """True when the global Terra app credentials are present."""
     import config
-    return bool(config.TERRA_CLIENT_ID and config.TERRA_CLIENT_SECRET)
+    # v1.3.1 FIX: config.__getattr__ raises AttributeError for unknown
+    # names — use getattr so "not configured" is a clean False, not a 500.
+    return bool(getattr(config, 'TERRA_CLIENT_ID', None) and getattr(config, 'TERRA_CLIENT_SECRET', None))
 
 
 def get_connected(profile_env: dict) -> bool:

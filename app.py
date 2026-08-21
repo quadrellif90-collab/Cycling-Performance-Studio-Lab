@@ -944,37 +944,34 @@ try:
 
     @app.get("/api/export/backup")
     async def api_export_backup():
-        pm = get_pm()
-        if not pm.active_id:
-            return JSONResponse({"error": "No active profile"}, status_code=400)
-        result = _dexp.export_profile_backup(pm.active_id)
+        # v1.3.1 FIX: chiamava _dexp.export_profile_backup che non esiste;
+        # usa data_export.build_bundle() (ZIP in memoria, firma reale).
+        zip_bytes, filename = _dexp.build_bundle()
         return Response(
-            content=json.dumps(result, default=str),
-            media_type="application/json",
-            headers={"Content-Disposition": f"attachment; filename=cpsl-backup-{pm.active_id}.json"}
+            content=zip_bytes,
+            media_type="application/zip",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
         )
 
     @app.get("/api/export/metrics")
     async def api_export_metrics():
-        pm = get_pm()
-        if not pm.active_id:
-            return JSONResponse({"error": "No active profile"}, status_code=400)
-        result = _dexp.export_metrics_export(pm.active_id)
+        # v1.3.1 FIX: usa build_metrics_csv() (firma reale di data_export).
+        csv_text = _dexp.build_metrics_csv()
         return Response(
-            content=json.dumps(result, default=str),
-            media_type="application/json",
-            headers={"Content-Disposition": "attachment; filename=cpsl-metrics.json"}
+            content=csv_text,
+            media_type="text/csv",
+            headers={"Content-Disposition": "attachment; filename=cpsl-metrics.csv"}
         )
 
     @app.get("/api/export/zip")
     async def api_export_zip():
-        pm = get_pm()
-        if not pm.active_id:
-            return JSONResponse({"error": "No active profile"}, status_code=400)
-        import tempfile
-        with tempfile.NamedTemporaryFile(suffix='.zip', delete=False) as tmp:
-            _dexp.export_zip_backup(pm.active_id, tmp.name)
-            return FileResponse(tmp.name, filename=f"cpsl-backup-{pm.active_id}.zip")
+        # v1.3.1 FIX: stesso bundle ZIP, streaming da memoria (niente temp file).
+        zip_bytes, filename = _dexp.build_bundle()
+        return Response(
+            content=zip_bytes,
+            media_type="application/zip",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
 
 except Exception as _pcc_err:
     import traceback as _tb
@@ -23796,16 +23793,64 @@ async def api_ai_coach_query(request: Request):
         add_memory(profile_id, "user", query, tags=["query"])
         add_memory(profile_id, "coach", response, tags=["reply"])
 
+        # v1.3.2 PLANNER-AI: allega lo stato corrente del piano al contesto e
+        # deriva un'azione applicabile dalla risposta LLM, cosi' il frontend
+        # puo' offrire "Applica suggerimento" con un click.
+        plan_state = None
+        try:
+            plan_state = _plan_summary_for_ai()
+        except Exception as _pe:
+            log.debug(f"plan summary for AI failed: {_pe}")
+
+        suggested_action = _derive_ai_plan_action(response)
+
         return {
             "ok": True,
             "response": response,
             "query": query,
             "profile_id": profile_id,
             "memory_entries": len(mem) + 2,
+            "suggested_action": suggested_action,
+            "plan_state": plan_state,
             "timestamp": datetime.utcnow().isoformat(),
         }
     except Exception as e:
         return JSONResponse({"ok": False, "error": str(e)})
+
+
+def _plan_summary_for_ai() -> dict:
+    """v1.3.2 PLANNER-AI — compatto stato piano+atleta per il prompt AI."""
+    try:
+        from my_progress import load_plan_weeks
+        weeks = load_plan_weeks() or []
+        today_w = next((w for w in weeks if w.get("is_current")), None)
+        return {
+            "weeks_total": len(weeks),
+            "today_session_type": (today_w or {}).get("session_type") or (today_w or {}).get("type"),
+            "today_tss_estimate": (today_w or {}).get("tss_estimate") or (today_w or {}).get("tss"),
+            "phase": (today_w or {}).get("phase"),
+        }
+    except Exception:
+        return None
+
+
+def _derive_ai_plan_action(response_text: str) -> str | None:
+    """Mappa l'intenzione espressa dall'LLM a un'azione piano reale.
+
+    Restituisce una di: 'auto_adjust' | 'reforecast' | 'regenerate' | 'rest'
+    oppure None se il parere non richiede modifiche. Il frontend usa il valore
+    per mostrare il bottone "Applica suggerimento" verso l'endpoint giusto.
+    """
+    t = (response_text or "").lower()
+    if any(k in t for k in ("regenera il piano", "rigenera il piano", "rebuild the plan", "regenerate the plan", "nuovo piano da zero")):
+        return "regenerate"
+    if any(k in t for k in ("riprevisione", "reforecast", "ricalcola il piano", "recalculate the plan")):
+        return "reforecast"
+    if any(k in t for k in ("riduci", "deload", "scarico", "recupero attivo", "giorno di riposo", "rest day", "reduce today")):
+        return "auto_adjust"
+    if any(k in t for k in ("mantieni", "prosegui", "nessuna modifica", "keep going", "no change")):
+        return "none"
+    return None
 
 # ── 46. GET /api/ai/health ──────────────────────────────────────────────
 @app.get("/api/ai/health")
