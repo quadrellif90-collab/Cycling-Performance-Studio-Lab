@@ -23303,6 +23303,15 @@ def _load_ai_config_at_boot():
         _log.debug(f"ai config boot-load failed: {e}")
 
 
+# Apply persisted AI Coach settings at import time (before the server starts
+# serving requests) so the coach is enabled immediately on boot, independent
+# of whether the lifespan hook has run yet.
+try:
+    _load_ai_config_at_boot()
+except Exception as _e:
+    _log.debug(f"ai config module-level boot-load failed: {_e}")
+
+
 @app.post("/api/ai/settings")
 async def api_ai_settings(request: Request):
     """Persist AI Coach configuration and enable/disable the coach.
