@@ -163,12 +163,22 @@ No: i suggerimenti AI passano dagli stessi endpoint sicuri del planner e ogni mo
 
 ## 📜 Licenza
 
-Distribuito sotto **Apache License 2.0** — vedi [LICENSE](LICENSE).
+Distribuito sotto **Apache License 2.0** — vedi [LICENSE](LICENSE), [NOTICE](NOTICE) e [TRADEMARKS.md](TRADEMARKS.md).
 
-### Attribuzioni
-- **Domestique** — [platypus45/domestique](https://github.com/platypus45/domestique) — Apache 2.0
-- **PCC** — moduli matematici condivisi — Apache 2.0
-- **Chart.js** — MIT · **PyWebview** — BSD · **FastAPI** — MIT · **PyMuPDF** — AGPL (server-side use)
+## 🙏 Acknowledgments
+
+CPSL è costruito sulle spalle di giganti — il riconoscimento completo (contributori, calcolatori→fonti scientifiche, software, dati, ricerche) è in **[ACKNOWLEDGMENTS.md](ACKNOWLEDGMENTS.md)**.
+
+### Progetti d'origine
+| Progetto | Contributo | Contributori |
+|----------|-----------|--------------|
+| **[Domestique](https://github.com/platypus45/domestique)** — Apache 2.0 | Codebase originale, build system, motore training science, 4.232 workout | [platypus45](https://github.com/platypus45) (649 commit), claude |
+| **PCC** — Programming Cycling Coach | Moduli BIA/nutrizione/diet/HRV-Huawei/metabolic + route API | quadrellif90-collab |
+
+### Fonti scientifiche principali
+Coggan & Allen · Banister · Skiba (W'bal) · Seiler · Helgerud · Rønnestad · Mujika · Gabbett (ACWR) · Foster (monotony) · Treff (PI) · Rogers (DFA α1) · Jeukendrup (fueling) · Costa (gut training) · Muriel & Spragg (durability) · Rivera-Köfler 2025 (TID élite-only) · Llanos-Lagos 2025 (forza concorrente) · Warneke 2025 (mobilità) · Périard/Springer (heat)
+
+→ Mappatura completa calcolatore→formula→fonte in [ACKNOWLEDGMENTS.md](ACKNOWLEDGMENTS.md).
 
 ---
 

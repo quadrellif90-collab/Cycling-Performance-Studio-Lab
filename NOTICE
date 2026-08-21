@@ -1,0 +1,70 @@
+Cycling Performance Studio Lab (CPSL)
+Copyright 2026 CPSL Contributors
+https://github.com/quadrellif90-collab/Cycling-Performance-Studio-Lab
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+================================================================================
+UPSTREAM LINEAGE (retained per Apache-2.0 redistribution practice)
+================================================================================
+
+This product is a fusion of two Apache-2.0 lineages:
+
+1) Domestique — Copyright 2026 Domestique Contributors (formerly ChickenCycling)
+   https://github.com/platypus45/domestique
+   Original codebase, build system and much of the training-science engine.
+   Primary contributor: platypus45. Its NOTICE (third-party software list,
+   data attributions for Open Food Facts / routes / workouts, and scientific
+   references Coggan, Friel, Skiba, Rogers, Helgerud, Rønnestad, Seiler, Mujika,
+   Coyle, Jeukendrup) is retained verbatim in ACKNOWLEDGMENTS.md.
+
+2) PCC / PPC — Programming Cycling Coach — Copyright 2024-2026 PPC Contributors
+   https://github.com/quadrellif90-collab/ppc-cycling-coach (itself a Domestique fork)
+   BIA/nutrition/diet/HRV-Huawei/metabolic modules and their scientific
+   attributions (Llanos-Lagos 2025 concurrent training; Vikmoen 2021; Warneke 2025
+   mobility; GSSI SSE 231 carbohydrate periodization; Jeukendrup & UCI 2026 race
+   fueling; supplement evidence tiers; Mujika & Padilla tapering; Gabbett ACWR;
+   Banister CTL/TSB; Seiler polarized).
+
+Full merged attribution: see ACKNOWLEDGMENTS.md in this repository.
+
+================================================================================
+THIRD-PARTY SOFTWARE (summary — full table in ACKNOWLEDGMENTS.md)
+================================================================================
+
+FastAPI/Starlette (BSD-3) · uvicorn (BSD-3) · httpx (BSD-3) · Jinja2 (BSD-3)
+· pydantic (MIT) · websockets (BSD-3) · scipy/numpy (BSD-3) · fit-tool (MIT)
+· fitparse (MIT) · bleak (MIT) · pycycling (MIT) · openant (MIT)
+· garminconnect (MIT) · certifi (MPL-2.0) · PyMuPDF (AGPL-3.0, server-side use)
+· pytesseract (Apache-2.0) · lxml (BSD-3) · python-dotenv (BSD-3) · Pillow
+(HPND/MIT-CMU) · python-dateutil (Apache-2.0) · packaging (Apache/BSD) · pystray
+(LGPL-3.0, distributed as bytecode satisfying user-replaceability) · pythonnet
+(MIT) · cefpython3 (BSD-3) · Chart.js (MIT) · html2canvas (MIT) · pywebview
+(BSD-3) · PyInstaller (GPL-2.0 with bootloader exception) · playwright +
+pytest (dev-only, Apache/MIT).
+
+================================================================================
+DATA ATTRIBUTION (retained from upstream)
+================================================================================
+
+Nutrition database: Open Food Facts (ODbL 1.0) — derivative databases must
+share under the same terms. Brand names used nominatively.
+
+Virtual routes: procedurally generated (Apache-2.0). Real-world routes:
+geographic names are public facts; gradient profiles reference real elevation
+data with OSM/DEM attribution where provenance allows (ODbL 1.0).
+
+Workouts: interval structures based on public-domain exercise-physiology
+patterns; names/descriptions original (Apache-2.0). Durability sessions (v1.4.0)
+based on Muriel 2022 / Spragg 2023, original implementation.
+
+Privacy: user data and connection tokens live under ~/.cpsl/. No training data
+leaves the local machine except to intervals.icu / the user-configured LLM
+provider when explicitly authorized.
+
+This NOTICE file must be retained in all redistributions of the Work,
+together with the upstream attributions reproduced in ACKNOWLEDGMENTS.md.
