@@ -1625,7 +1625,9 @@ window.addEventListener('unhandledrejection', function(e) {
   <div class="tab active" data-tab="home">Home</div>
   <div class="tab" data-tab="picker">Workout Shuffle</div>
   <div class="tab" data-tab="library">Workout Library</div>
-  <div class="tab" data-tab="player">Workout Player</div>
+  <!-- v3.11.1 FIX: removed orphan "Workout Player" tab — it had data-tab="player"
+       but no #sec-player section exists (the player is a separate /player/<file>
+       page opened from the library), so the click was a silent no-op. -->
   <div class="tab" data-tab="courses">Routes &amp; Climbs</div>
   <div class="tab" data-tab="plan">Training Plan</div>
   <div class="tab" data-tab="analysis">Analysis</div>
@@ -3606,9 +3608,6 @@ window.addEventListener('unhandledrejection', function(e) {
 
 
 </div>
-</div>
-
-<!-- ===================================================================== -->
 <!-- PCC HRV Section — Extracted from PCC dashboard.html lines 3783-3854   -->
 <!-- Section id="sec-hrv"                                                  -->
 <!-- ===================================================================== -->
@@ -3952,6 +3951,9 @@ window.addEventListener('unhandledrejection', function(e) {
 </div>
 
 <div style="clear:both;"></div>
+</div>
+<!-- ===================================================================== -->
+
 
 
 
@@ -3964,15 +3966,11 @@ window.addEventListener('unhandledrejection', function(e) {
 <!-- ===================================================================== -->
 
 <!-- ==================== ONBOARDING BANNER (Home tab) ==================== -->
-<!-- Lines 1859-1867 -->
-<div id="onboarding-banner" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-  <span style="font-weight:700;">Completa il setup per sbloccare tutti i calcoli</span>
-  <span id="onboarding-progress" style="font-size:12px;color:var(--text2);"></span>
-  <span style="flex:1;"></span>
-  <button class="btn btn-sm" onclick="onboardingGotoFirst()">Inizia</button>
-  <button class="btn btn-sm" style="margin-left:4px;" onclick="dismissOnboarding()">Piu tardi</button>
-</div>
-<div id="onboarding-steps" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;"></div>
+<!-- v3.11.1 FIX: duplicate banner removed. This block duplicated the banner
+     inside sec-home (id="onboarding-banner" x2) and since getElementById
+     returns only the FIRST match, loadOnboarding() could never hide THIS
+     copy — it rendered an un-dismissable "Completa il setup" strip on
+     every tab. The wizard overlay below is kept. -->
 
 <!-- ==================== ONBOARDING WIZARD OVERLAY ==================== -->
 <!-- Lines 24306-24467 -->
@@ -22253,6 +22251,72 @@ function renderHrvChart(trend) {
       plugins: { legend: { display: false } } }
   });
 }
+
+// ── v3.11.1 FIX: missing button helpers (dead onclick handlers) ──────────
+// busyButton — generic wrapper: disables the button, swaps its label, runs
+// fn, restores state. Used by "Push piano su intervals.icu" and the
+// multidiscipline inject button on Home.
+async function busyButton(btn, fn, label) {
+  if (!btn || typeof fn !== 'function') return;
+  const orig = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = label || '…';
+  try { await fn(); } catch (e) { console.error('busyButton:', e); showToast('Errore: ' + e, 4000, 'error'); }
+  btn.disabled = false;
+  btn.textContent = orig;
+}
+window.busyButton = busyButton;
+
+// openHuaweiImport — Home HRV card CTA: jump to the HRV tab where the
+// full import UI (hrv-import-path + hrvImport()) lives.
+function openHuaweiImport() {
+  const tab = document.querySelector('.tab[data-tab="hrv"]');
+  if (tab) tab.click();
+  setTimeout(() => { const p = document.getElementById('hrv-import-path'); if (p) p.focus(); }, 400);
+}
+window.openHuaweiImport = openHuaweiImport;
+
+// loadNutritionAuto — "Auto" button (sec-nutrition): asks the backend to
+// decide today's fueling from plan + ICU actuals (/api/nutrition-auto).
+async function loadNutritionAuto() {
+  const host = document.getElementById('nutri-plan');
+  if (!host) return;
+  host.innerHTML = '<i>Calcolo nutrizione auto (piano + ICU)…</i>';
+  try {
+    const res = await fetch('/api/nutrition-auto');
+    const d = await res.json();
+    if (!res.ok || d.error) { host.innerHTML = '<i style="color:var(--red);">Errore: ' + esc(d.error || res.status) + '</i>'; return; }
+    // Render a compact summary reusing the standard macro card layout.
+    const carb = d.carbohydrate_g ?? d.carbs_g ?? '—';
+    const prot = d.protein_g ?? '—';
+    const fat = d.fat_g ?? '—';
+    const kcal = d.kcal ?? d.calories ?? '—';
+    const note = d.note || d.rationale || '';
+    host.innerHTML =
+      '<div class="grid g4">' +
+      '<div class="card"><h3>Carboidrati</h3><div class="big c-blue">' + carb + ' g</div></div>' +
+      '<div class="card"><h3>Proteine</h3><div class="big c-green">' + prot + ' g</div></div>' +
+      '<div class="card"><h3>Grassi</h3><div class="big c-yellow">' + fat + ' g</div></div>' +
+      '<div class="card"><h3>Kcal</h3><div class="big">' + kcal + '</div></div>' +
+      '</div>' + (note ? '<div style="font-size:12px;color:var(--text2);margin-top:8px;">' + esc(note) + '</div>' : '');
+  } catch (e) {
+    host.innerHTML = '<i style="color:var(--red);">Errore rete: ' + esc(String(e)) + '</i>';
+  }
+}
+window.loadNutritionAuto = loadNutritionAuto;
+
+// injectMultidiscipline — Home button: adds strength/mobility (+ running/MTB
+// when configured) sessions into the current plan week via the backend.
+async function injectMultidiscipline() {
+  const r = await apiPost('/api/plan/inject-multidiscipline', {});
+  if (r && (r.ok || r.injected !== undefined)) {
+    showToast('Forza/mobilità iniettate nel piano.', 4000);
+    if (typeof loadPlan === 'function') loadPlan();
+  } else {
+    showToast(r?.error || 'Iniezione non disponibile', 4000, 'error');
+  }
+}
+window.injectMultidiscipline = injectMultidiscipline;
 
 async function hrvImport() {
   const path = document.getElementById('hrv-import-path').value.trim();

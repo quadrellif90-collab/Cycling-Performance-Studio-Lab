@@ -518,37 +518,39 @@ window.CPSL = window.CPSL || {};
         const statusEl = document.getElementById('ai_coach_status');
         const loadingEl = document.getElementById('ai_coach_loading');
         const formEl = document.getElementById('ai_coach_form');
-        
+
         if (!inputEl || !chatEl || !statusEl || !loadingEl || !formEl) return;
-        
+
         const message = inputEl.value.trim();
         if (!message) return;
-        
-        # Show loading state
+
+        // Show loading state
         loadingEl.style.display = 'block';
         chatEl.style.display = 'none';
         formEl.style.display = 'none';
-        
-        try:
+
+        try {
             const r = await apiPost('/api/ai/weekly-analysis', {rides: [], profile_data: {}});
             if (r && r.ok && r.analysis) {
-                # Display analysis result
+                // Display analysis result
                 let html = '<div class="activity">';
                 html += `<div class="act-name"><strong>Analisi Settimanale</strong></div>`;
                 html += `<div class="act-meta">${r.analysis.llm_analysis || 'Nessuna analisi disponibile'}</div>`;
                 html += '</div>';
                 chatEl.innerHTML += html;
-            } else:
+            } else {
                 toast(r?.error || 'Errore analysis', 'error');
-        # catch(e):
+            }
+        } catch (e) {
             toast('Errore comunicazione AI', 'error');
-        # finally:
-            # Reset state
+        } finally {
+            // Reset state
             loadingEl.style.display = 'none';
             chatEl.style.display = 'block';
             formEl.style.display = 'block';
             inputEl.value = '';
         }
+    }
     
     // ── v1.1.0: AI Coach memory + grounded rider context ──
     async function loadRiderContext() {
