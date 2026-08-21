@@ -1,0 +1,4 @@
+#!/usr/bin/env python3
+"""Minimal cpsl_ui.css placeholder — both pages using it are self-styled
+via inline <style>; this file only prevents the 404 and provides shared
+theme variables for future use."""

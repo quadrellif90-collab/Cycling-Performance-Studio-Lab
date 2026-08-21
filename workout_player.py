@@ -332,12 +332,19 @@ class WorkoutPlayerSession:
             })
 
     def _run_loop(self):
+        # v1.3.1 DEADLOCK FIX: the loop used to time.sleep(1) WHILE holding
+        # self._lock, so every user-facing call (skip_interval, report_power,
+        # pause, stop) queued behind a full tick — under concurrent load this
+        # livelocked the session (pytest-timeout stack: skip_interval blocked
+        # on _lock at line 315). The lock is now held only for the state
+        # snapshot; the trainer BLE write and the wait happen OUTSIDE it, and
+        # the wait uses _stop_flag.wait() so stop() reacts instantly.
         while not self._stop_flag.is_set():
+            target_power = None
             with self._lock:
                 if self.status.state != PlaybackState.RUNNING:
                     break
 
-                time.sleep(self._update_interval)
                 elapsed_since_start = time.time() - self.status.started_at if self.status.started_at else self.status.elapsed
                 self.status.elapsed = elapsed_since_start
 
@@ -347,12 +354,18 @@ class WorkoutPlayerSession:
                     break
 
                 self._update_target()
+                target_power = self.status.target_power
 
-                if self._trainer is not None:
-                    try:
-                        self._trainer.set_target_power(self.status.target_power)
-                    except Exception as e:
-                        log.debug(f"Trainer update failed: {e}")
+            # Trainer I/O outside the lock: a slow BLE write must never block
+            # user interactions for the duration of the transfer.
+            if self._trainer is not None and target_power is not None:
+                try:
+                    self._trainer.set_target_power(target_power)
+                except Exception as e:
+                    log.debug(f"Trainer update failed: {e}")
+
+            # Interruptible wait OUTSIDE the lock (replaces time.sleep).
+            self._stop_flag.wait(self._update_interval)
 
     def _update_target(self):
         target_power, interval = self.timeline.get_target_at_time(self.status.elapsed)

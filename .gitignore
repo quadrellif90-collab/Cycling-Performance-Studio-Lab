@@ -63,3 +63,6 @@ last_pr_toast.json
 C:\Users\*\AppData\Local\pyinstaller
 # AI Coach LLM settings (contains API key — never commit)
 ai_config.json
+
+# Build artifacts (allegati alle GitHub Releases, non al repo)
+CyclingPerformanceStudioLab-v*.zip

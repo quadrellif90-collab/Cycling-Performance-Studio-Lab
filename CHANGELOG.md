@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/).
 
+## [1.3.1] - 2026-08-21
+
+### Fixed (release di stabilità — deep scan + test live su browser reale)
+
+- **Chart.js mancante → tutti i grafici morti** (causa radice dei "tab non funzionanti"): `dashboard.html` caricava `/static/vendor/chart.umd.min.js` ma la cartella `frontend/static/vendor/` non esisteva mai nel repo. Ogni scheda con un grafico (Analysis, Plan, HRV, DFA, Home sparkline…) falliva silenziosamente. Chart.js 4.4.3 (MIT) ora è incluso in `frontend/static/vendor/`.
+- **Icone statiche 404**: aggiunti `favicon.png`, `icon.png`, `apple-touch-icon.png` in `frontend/static/` (prima referenziati ma assenti).
+- **`cpsl_ui.css` fantasma**: `hrv_monitor.html` e `workout_player.html` referenziavano un CSS mai creato (404 a ogni apertura pagina). Entrambe le pagine sono self-styled via `<style>` inline; aggiunto placeholder per eliminare il 404.
+- **Deadlock Workout Player** (`workout_player.py`): il loop di playback teneva `self._lock` durante `time.sleep(1)` e scriveva al trainer BLE dentro il lock — ogni skip/pausa/report dell'utente si accodava al tick (freeze percepibile, hang nei test concorrenti). Ora il lock copre solo lo snapshot di stato; la scrittura BLE e l'attesa (interrompibile via `_stop_flag.wait()`) avvengono fuori dal lock.
+- **Sintassi Python dentro JavaScript** (`app.js`): `sendAiCoachMessage` conteneva `try:`/`else:`/commenti `#` → SyntaxError che bloccava TUTTO il frontend. Riscritta in JS valido.
+- **Banner onboarding duplicato** (`dashboard.html`): seconda copia con gli stessi `id` mai nascosta da JS (`getElementById` trova solo la prima) → striscia "Completa il setup" non dismissabile su ogni tab. Rimossa.
+- **4 bottoni morti** (onclick verso funzioni inesistenti): implementati `busyButton()` (Push piano ICU, Inietto multidisciplina), `loadNutritionAuto()` (bottone "Auto" nutrizione → `/api/nutrition-auto`, endpoint finora orfano), `openHuaweiImport()` (naviga al tab HRV), `injectMultidiscipline()` (`/api/plan/inject-multidiscipline`).
+- **Tab orfano "Workout Player"**: rimosso dalla barra (nessuna sezione interna; il player è una pagina separata `/player/<file>` aperta dalla libreria).
+
+### Removed
+- **Estensione browser `extensions/icu-cpsl/`** e relativo bridge `GET /api/icu/extension/context`: rimossa su decisione owner (non utilizzabile così com'era).
+
+### Verified (test live con browser automation, app reale)
+- 14/14 tab si aprono e diventano visibili: Home, Shuffle, Library, Routes & Climbs, **Plan**, Analysis, DFA α1, Settings, HRV, Nutrition, BIA, Profile, Novità, AI Coach.
+- Pianificatore verificato end-to-end: fold configurazione apre/chiude, "Generate Plan" produce 12 settimane, calendario renderizza 25 righe (`#cal-rows`) con fasi/date/TSS, metriche CTL/FTP/W/kg presenti.
+- 0 errori JavaScript di pagina; Chart.js globale attivo; connessione Intervals.icu OK.
+
 ## [1.3.0] - 2026-08-21
 
 ### Added

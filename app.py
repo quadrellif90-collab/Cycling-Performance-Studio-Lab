@@ -9270,48 +9270,6 @@ def api_icu_sync(body: "dict | None" = None):
         return {"ok": False, "error": f"internal:{type(e).__name__}"}
 
 
-# ── v1.2.1 (ICU EXTENSION BRIDGE) — values for the CPSL intervals.icu extension ──
-@app.get("/api/icu/extension/context")
-async def api_icu_extension_context(athlete_id: str = ""):
-    """Return CPSL-computed indicators for an athlete, for the browser extension.
-
-    The extension (extensions/icu-cpsl) calls this when CPSL is running locally so
-    it can show CPSL's authoritative calculations (forma/HRV/peso/durability) inside
-    the intervals.icu page instead of recomputing client-side.
-    """
-    aid = athlete_id or getattr(config, "ICU_ATHLETE_ID", "") or ""
-    if not aid:
-        return {"ok": False, "error": "no_athlete_id"}
-    try:
-        # Reuse the same wellness loader the AI Coach RAG uses (cached)
-        from ride_storage import load_recent_wellness
-        w = load_recent_wellness(days=90)
-        if not w:
-            return {"ok": False, "error": "no_wellness_data", "athlete_id": aid}
-        last = w[-1]
-        recent_hrv = [x.get("hrv") for x in w[-14:] if x.get("hrv") is not None]
-        indicators = {
-            "ctl": last.get("ctl"),
-            "atl": last.get("atl"),
-            "tsb": (last.get("ctl") - last.get("atl")) if (last.get("ctl") is not None and last.get("atl") is not None) else None,
-            "hrv": last.get("hrv"),
-            "hrvAvg14": (sum(recent_hrv) / len(recent_hrv)) if recent_hrv else None,
-            "weight": last.get("weightKg"),
-            "samples": len(w),
-        }
-        # Durability proxy (best-effort) — only if a helper is available
-        try:
-            from weekly_analysis import compute_durability
-            # needs fresh/fatigued power; skip if not computable here
-        except Exception:
-            pass
-        return {"ok": True, "athlete_id": aid, "indicators": indicators,
-                "source": "CPSL local"}
-    except Exception as e:
-        _log.debug(f"icu extension context failed: {e}")
-        return {"ok": False, "error": f"internal:{type(e).__name__}"}
-
-
 # ── v1.3.0 — multi-source import (Garmin / FIT / GPX) ───────────────────────
 @app.post("/api/import/garmin")
 async def api_import_garmin(request: Request):
