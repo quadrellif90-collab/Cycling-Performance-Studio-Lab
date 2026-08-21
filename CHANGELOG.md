@@ -5,7 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/).
 
-## [1.2.1] - 2026-08-21
+## [1.2.2] - 2026-08-21
+
+### Added
+- **POC: estensione CPSL per intervals.icu** (`extensions/icu-cpsl/`): estensione Chrome/Edge MV3 che inietta un pannello CPSL dentro la pagina atleta di ICU, mostrando Forma/CTL, Fatica/ATL, Equilibrio/TSB, HRV, HRV 14gg e Peso. Se CPSL è in esecuzione in locale usa i valori ufficiali via bridge; altrimenti calcola lato client dalle API REST di ICU. La API key ICU è salvata solo nel browser (`chrome.storage.local`).
+- **Bridge lato CPSL** `GET /api/icu/extension/context?athlete_id=...`: restituisce gli indicatori calcolati da CPSL per un atleta (riusa il loader wellness del RAG AI Coach).
+
+### Fixed
+- **CI pytest hang**: `test_smoke.py` veniva raccolto da pytest come test (nome `test_*.py`) e si appendeva sui timeout di rete verso `127.0.0.1:22400`. Rinominato in `smoke_test.py` (non matcha il pattern) e aggiornato il job CI. La CI ora completa in tempi normali.
+
+
 
 ### Added
 - **Per-user LLM API keys**: the AI Coach configuration panel now makes clear every end user must supply **their own** provider API key (no shared/bundled keys). Each provider shows a contextual **"Crea API Key su …"** link pointing to that provider's key-signup page, so users without a key can get one in one click.
