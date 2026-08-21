@@ -640,6 +640,37 @@ window.CPSL = window.CPSL || {};
       }
     }
 
+    // v1.2.0 — provider API-key signup links (each user brings their own key)
+    const AI_PROVIDER_KEY_LINKS = {
+      google:   { label: "Google AI Studio", url: "https://aistudio.google.com/apikey" },
+      openai:   { label: "OpenAI Platform",  url: "https://platform.openai.com/api-keys" },
+      anthropic:{ label: "Anthropic Console", url: "https://console.anthropic.com/settings/keys" },
+      groq:     { label: "Groq Console",     url: "https://console.groq.com/keys" },
+      deepseek: { label: "DeepSeek Platform", url: "https://platform.deepseek.com/api_keys" },
+      mistral:  { label: "Mistral La Plateforme", url: "https://console.mistral.ai/api-keys/" },
+      openrouter:{ label: "OpenRouter Keys", url: "https://openrouter.ai/keys" },
+      xai:      { label: "xAI Console",      url: "https://console.x.ai/" },
+      ollama:   { label: "Ollama (locale)",  url: "https://ollama.com/" },
+    };
+
+    function renderAiProviderLinks() {
+      const box = document.getElementById('ai_provider_links');
+      if (!box) return;
+      const prov = document.getElementById('ai_provider');
+      const sel = prov ? prov.value : 'google';
+      box.innerHTML = '';
+      const link = AI_PROVIDER_KEY_LINKS[sel];
+      if (link) {
+        const a = document.createElement('a');
+        a.href = link.url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.textContent = '🔗 Crea API Key su ' + link.label;
+        a.style.cssText = 'color:var(--accent);text-decoration:underline;';
+        box.appendChild(a);
+      }
+    }
+
     // Load current settings into the form (read-only key masked)
     async function loadAiSettingsForm() {
       try {
@@ -649,6 +680,7 @@ window.CPSL = window.CPSL || {};
           const mdl = document.getElementById('ai_model');
           if (prov && r.provider) { for (const o of prov.options) if (o.value === r.provider) o.selected = true; }
           if (mdl && r.model) mdl.value = r.model;
+          renderAiProviderLinks();
         }
       } catch (_) {}
     }

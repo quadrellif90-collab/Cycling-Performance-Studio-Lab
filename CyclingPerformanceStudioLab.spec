@@ -165,6 +165,9 @@ a = Analysis(
         "qtpy",
         "PyQt6.QtCore",
         "PySide6.QtCore",
+        # Never bundle local AI/ICU secrets into the distributable
+        "ai_config.json",
+        "*.env",
     ],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
