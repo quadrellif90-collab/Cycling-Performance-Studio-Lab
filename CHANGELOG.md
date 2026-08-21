@@ -5,7 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/).
 
-## [1.1.6] - 2026-08-21
+## [1.2.0] - 2026-08-21
+
+### Added
+- **AI Coach LLM settings UI** (Settings → AI Coach tab): choose provider (Google Gemini / OpenAI / Anthropic / Groq / DeepSeek / Mistral / OpenRouter / xAI / Ollama), model, API key, and an optional **fallback provider** for rate-limit resilience. Key is stored only in gitignored `ai_config.json`.
+- **AI Coach config export/import** (`/api/ai/config/export`, `/api/ai/config/import`) — backup and restore the LLM configuration (provider/key/model/fallback) as a JSON file, so a profile wipe no longer loses the coach setup.
+- **LLM provider fallback** in `ai_coach/llm_client`: if the primary provider errors, the client automatically retries on a configured fallback provider before failing.
+- **CI live smoke-test job**: the workflow now starts the app and runs `test_smoke.py` against all functional endpoints (credentials injected via GitHub secrets — never hard-coded).
+
+### Fixed
+- **ICU sync silent failure**: `/api/icu/sync` now checks the connection state up front and returns a clear `not_connected` error instead of a silent 500; wellness errors include the exception message for faster diagnosis.
+- **Rate-limit resilience**: retry-with-backoff on HTTP 429/503 extended to all OpenAI-compatible providers (was Gemini-only), so transient provider limits don't break coach queries or weekly analysis.
+
+
 
 ### Fixed
 - **AI Coach not auto-enabling on boot**: persisted settings in `ai_config.json` were only applied inside the `lifespan()` hook, which didn't reliably re-enable the coach after a restart (status stayed `ai_coach_enabled: false`). Moved the load to **module-import time** so the coach is enabled immediately on startup, reading provider/key/model from `ai_config.json`. Verified: `GET /api/ai/status` now returns `enabled: true` right after launch.
