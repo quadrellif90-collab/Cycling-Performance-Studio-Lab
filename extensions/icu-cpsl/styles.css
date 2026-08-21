@@ -26,3 +26,7 @@
 .cpsl-actions button:last-child { background: #475569; }
 .cpsl-body { font-size: 13px; color: #cbd5e1; }
 .cpsl-body a { color: #38bdf8; }
+.cpsl-sub { margin-top: 10px; font-size: 12px; }
+.cpsl-sub b { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: #94a3b8; margin-bottom: 4px; }
+.cpsl-sub ul { margin: 0; padding-left: 16px; }
+.cpsl-sub li { margin-bottom: 2px; }

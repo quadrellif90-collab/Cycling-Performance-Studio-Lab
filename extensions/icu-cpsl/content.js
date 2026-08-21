@@ -1,128 +1,139 @@
 // CPSL for Intervals.icu — content script (MV3)
-// Si aggancia alla pagina atleta di intervals.icu, legge l'athleteId dall'URL,
-// recupera wellness/activities via API ICU (auth con la API key dell'utente,
-// salvata nelle options dell'estensione) e mostra un pannello "CPSL".
-// Se il backend CPSL locale è in esecuzione, ne usa i valori calcolati ufficiali.
+// Inietta un pannello CPSL nella pagina atleta/activity di intervals.icu.
+// Tutte le chiamate API passano dal background service worker (auth centralizzata).
 
-const CPSL_BADGE_ID = 'cpsl-icu-panel';
-const CPSL_API_BASE = 'http://127.0.0.1:22400';
+const PANEL_ID = 'cpsl-icu-panel';
+
+function send(msg) {
+  return new Promise((resolve) => chrome.runtime.sendMessage(msg, (r) => resolve(r || { ok: false, error: 'no response' })));
+}
 
 function getAthleteIdFromUrl() {
-  // URL tipo https://intervals.icu/athlete/{id}/... oppure /activities/{id}
   const m = window.location.pathname.match(/\/(athlete|activities|activity|wellness)\/([A-Za-z0-9_]+)/);
   if (m) return m[2];
-  // fallback: query param ?athleteId=
-  const p = new URLSearchParams(window.location.search).get('athleteId');
-  return p || null;
+  return new URLSearchParams(window.location.search).get('athleteId');
 }
 
-async function getKey() {
-  return new Promise((resolve) => {
-    chrome.storage.local.get(['icuApiKey'], (r) => resolve(r.icuApiKey || ''));
-  });
+function getActivityIdFromUrl() {
+  const m = window.location.pathname.match(/\/activities?\/([A-Za-z0-9_]+)/);
+  return m ? m[1] : null;
 }
 
-async function icuGet(path, key) {
-  const url = `https://intervals.icu/api/v1/${path}`;
-  const r = await fetch(url, { headers: { Authorization: 'Basic ' + btoa('API_KEY:' + key) } });
-  if (!r.ok) throw new Error('ICU ' + r.status);
-  return r.json();
-}
+function f(v, d = 1) { return v == null ? '—' : Number(v).toFixed(d); }
+// Escape HTML for any string coming from the ICU API before injecting via innerHTML
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
 function computeIndicators(wellness) {
   if (!wellness || !wellness.length) return null;
   const last = wellness[wellness.length - 1];
-  const ctl = last.ctl != null ? last.ctl : null;          // forma (fitness)
-  const atl = last.atl != null ? last.atl : null;          // fatica (fatigue)
-  const tsb = (ctl != null && atl != null) ? ctl - atl : null; // forma/equilibrio
-  const hrv = last.hrv != null ? last.hrv : null;
-  const weight = last.weightKg != null ? last.weightKg : null;
-  // HRV media 14gg
+  const ctl = last.ctl ?? null, atl = last.atl ?? null;
+  const tsb = (ctl != null && atl != null) ? ctl - atl : null;
   const recent = wellness.slice(-14).map(w => w.hrv).filter(v => v != null);
-  const hrvAvg = recent.length ? (recent.reduce((a,b)=>a+b,0)/recent.length) : null;
-  return { ctl, atl, tsb, hrv, hrvAvg, weight };
+  return {
+    ctl, atl, tsb,
+    hrv: last.hrv ?? null,
+    hrvAvg14: recent.length ? recent.reduce((a, b) => a + b, 0) / recent.length : null,
+    weight: last.weightKg ?? null,
+    restingHr: last.restingHr ?? null,
+  };
 }
 
-function renderPanel(indicators, source) {
-  let panel = document.getElementById(CPSL_BADGE_ID);
-  if (!panel) {
-    panel = document.createElement('div');
-    panel.id = CPSL_BADGE_ID;
-    panel.className = 'cpsl-panel';
-    const host = document.querySelector('main') || document.body;
-    host.insertBefore(panel, host.firstChild);
+function panelShell() {
+  let p = document.getElementById(PANEL_ID);
+  if (!p) {
+    p = document.createElement('div');
+    p.id = PANEL_ID;
+    p.className = 'cpsl-panel';
+    (document.querySelector('main') || document.body).insertBefore(p, (document.querySelector('main') || document.body).firstChild);
   }
-  if (!indicators) {
-    panel.innerHTML = `<div class="cpsl-head">CPSL</div><div class="cpsl-body">Nessun dato wellness disponibile per questo atleta.</div>`;
-    return;
+  return p;
+}
+
+function renderLoading() {
+  panelShell().innerHTML = `<div class="cpsl-head">🚴 CPSL</div><div class="cpsl-body">Caricamento…</div>`;
+}
+
+function renderNoAuth() {
+  const p = panelShell();
+  p.innerHTML = `<div class="cpsl-head">🚴 CPSL</div>
+    <div class="cpsl-body">Configura la tua Intervals.icu API Key o OAuth token nelle <a href="#" id="cpsl-opt">opzioni</a>.</div>`;
+  p.querySelector('#cpsl-opt').onclick = (e) => { e.preventDefault(); chrome.runtime.sendMessage({ type: 'OPEN_OPTIONS' }); };
+}
+
+function renderError(msg) {
+  panelShell().innerHTML = `<div class="cpsl-head">🚴 CPSL</div><div class="cpsl-body">Errore: ${msg}</div>`;
+}
+
+function renderPanel(ind, extra, source) {
+  const p = panelShell();
+  const rows = [
+    ['Forma (CTL)', f(ind.ctl)], ['Fatica (ATL)', f(ind.atl)], ['Equilibrio (TSB)', f(ind.tsb)],
+    ['HRV', `${f(ind.hrv, 0)} ms`], ['HRV 14gg', `${f(ind.hrvAvg14, 0)} ms`],
+    ['Peso', ind.weight ? `${f(ind.weight)} kg` : '—'],
+  ];
+  if (ind.restingHr != null) rows.push(['RHR', `${f(ind.restingHr, 0)} bpm`]);
+  let extraHtml = '';
+  if (extra && extra.activities && extra.activities.length) {
+    const a = extra.activities.slice(-3).reverse().map(x =>
+      `<li>${esc((x.name || 'Attività').slice(0, 40))} — ${f((x.total_power_work || 0) / 1000, 1)} kJ${x.icu_training_load ? ' · TL ' + f(x.icu_training_load, 0) : ''}</li>`).join('');
+    extraHtml += `<div class="cpsl-sub"><b>Ultime attività</b><ul>${a}</ul></div>`;
   }
-  const f = (v, d=1) => v == null ? '—' : Number(v).toFixed(d);
-  panel.innerHTML = `
+  if (extra && extra.events && extra.events.length) {
+    const ev = extra.events.slice(0, 3).map(x =>
+      `<li>${esc(x.name || x.type || 'Evento')} — ${esc((x.date || '').slice(0, 10))}</li>`).join('');
+    extraHtml += `<div class="cpsl-sub"><b>Prossimi eventi</b><ul>${ev}</ul></div>`;
+  }
+  p.innerHTML = `
     <div class="cpsl-head">🚴 CPSL · <span class="cpsl-src">${source}</span></div>
-    <div class="cpsl-grid">
-      <div><span>Forma (CTL)</span><b>${f(indicators.ctl)}</b></div>
-      <div><span>Fatica (ATL)</span><b>${f(indicators.atl)}</b></div>
-      <div><span>Equilibrio (TSB)</span><b>${f(indicators.tsb)}</b></div>
-      <div><span>HRV</span><b>${f(indicators.hrv,0)} ms</b></div>
-      <div><span>HRV 14gg</span><b>${f(indicators.hrvAvg,0)} ms</b></div>
-      <div><span>Peso</span><b>${f(indicators.weight,1)} kg</b></div>
-    </div>
+    <div class="cpsl-grid">${rows.map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join('')}</div>
+    ${extraHtml}
     <div class="cpsl-actions">
       <button id="cpsl-open">Apri in CPSL</button>
       <button id="cpsl-refresh">Aggiorna</button>
     </div>`;
   const aid = getAthleteIdFromUrl();
-  panel.querySelector('#cpsl-open').onclick = () => window.open(`${CPSL_API_BASE}/?athlete=${aid}`, '_blank');
-  panel.querySelector('#cpsl-refresh').onclick = () => loadAndRender();
+  p.querySelector('#cpsl-open').onclick = () => window.open(`http://127.0.0.1:22400/?athlete=${aid}`, '_blank');
+  p.querySelector('#cpsl-refresh').onclick = () => loadAndRender(true);
 }
 
-async function tryCpslBridge(aid) {
-  // Se CPSL locale è attivo, usa i suoi valori calcolati ufficiali
-  try {
-    const r = await fetch(`${CPSL_API_BASE}/api/icu/extension/context?athlete_id=${aid}`, { signal: AbortSignal.timeout(1500) });
-    if (!r.ok) return null;
-    const d = await r.json();
-    if (d && d.ok && d.indicators) return { indicators: d.indicators, source: 'CPSL locale' };
-  } catch (_) {}
-  return null;
-}
-
-async function loadAndRender() {
+async function loadAndRender(force = false) {
   const aid = getAthleteIdFromUrl();
   if (!aid) return;
-  const panel = document.getElementById(CPSL_BADGE_ID);
-  if (panel) panel.querySelector('.cpsl-body') && (panel.innerHTML = `<div class="cpsl-head">🚴 CPSL</div><div class="cpsl-body">Caricamento…</div>`);
+  renderLoading();
 
-  // 1) prova bridge CPSL locale
-  const bridged = await tryCpslBridge(aid);
-  if (bridged) { renderPanel(bridged.indicators, bridged.source); return; }
+  // Auth check
+  const auth = await send({ type: 'AUTH_STATUS' });
+  if (!auth.ok || (!auth.hasKey && !auth.hasToken)) { renderNoAuth(); return; }
 
-  // 2) fallback: calcolo lato client dalle API ICU
-  const key = await getKey();
-  if (!key) {
-    renderPanel(null, 'settings');
-    const p = document.getElementById(CPSL_BADGE_ID);
-    if (p) p.querySelector('.cpsl-body').innerHTML = 'Inserisci la tua Intervals.icu API Key nelle <a href="#" id="cpsl-opt">opzioni</a> dell\'estensione.';
-    return;
+  // 1) Bridge CPSL locale (valori ufficiali)
+  const bridge = await send({ type: 'CPSL_CONTEXT', athleteId: aid });
+  let ind = null, source = '';
+  if (bridge.ok && bridge.data && bridge.data.indicators) {
+    ind = bridge.data.indicators;
+    source = 'CPSL locale';
   }
+
+  // 2) Dati ICU per indicatori + extra
+  const now = new Date().toISOString().slice(0, 10);
+  const old = new Date(Date.now() - 120 * 864e5).toISOString().slice(0, 10);
+  let wellness = null, activities = null, events = null;
   try {
-    const wellness = await icuGet(`athlete/${aid}/wellness?oldest=2026-01-01&newest=2026-12-31`, key);
-    const ind = computeIndicators(wellness);
-    renderPanel(ind, 'calcolato da ICU');
-  } catch (e) {
-    renderPanel(null, 'errore');
-    const p = document.getElementById(CPSL_BADGE_ID);
-    if (p) p.querySelector('.cpsl-body').textContent = 'Errore ICU: ' + e.message;
-  }
+    wellness = (await send({ type: 'GET_WELLNESS', athleteId: aid, oldest: old, newest: now, force })).data;
+  } catch (_) {}
+  if (!ind && wellness) { ind = computeIndicators(wellness); source = 'calcolato da ICU'; }
+  if (!ind) { renderError('nessun dato disponibile'); return; }
+
+  try { activities = (await send({ type: 'GET_ACTIVITIES', athleteId: aid, oldest: old, newest: now, limit: 5 })).data; } catch (_) {}
+  try { events = (await send({ type: 'GET_EVENTS', athleteId: aid, oldest: now, newest: '2026-12-31' })).data; } catch (_) {}
+
+  renderPanel(ind, { activities, events }, source);
 }
 
-// Evita doppi binding su SPA navigation
+// SPA navigation watcher
 if (!window.__cpslIcuBound) {
   window.__cpslIcuBound = true;
   loadAndRender();
-  // Ricarica su cambio route SPA
+  chrome.runtime.onMessage.addListener((msg) => { if (msg.type === 'REFRESH') loadAndRender(true); });
   let lastUrl = location.href;
-  setInterval(() => {
-    if (location.href !== lastUrl) { lastUrl = location.href; loadAndRender(); }
-  }, 1500);
+  setInterval(() => { if (location.href !== lastUrl) { lastUrl = location.href; loadAndRender(); } }, 1500);
 }

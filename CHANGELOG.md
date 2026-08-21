@@ -5,7 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/).
 
-## [1.2.2] - 2026-08-21
+## [1.3.0] - 2026-08-21
+
+### Added
+- **Estensione browser production-ready** (`extensions/icu-cpsl/` v1.0.0): background service worker con auth centralizzata (API key **o** OAuth bearer), cache 5 min, popup di stato (auth + bridge CPSL), pannello in-page arricchito con ultime attività e prossimi eventi, URL CPSL locale configurabile, escape HTML su tutti i dati API.
+- **MCP server CPSL** (`icu_mcp_server.py`): espone 5 tool MCP (wellness_recent, rider_context, coach_memory_search, activities_recent, plan_preview) via stdio JSON-RPC — collegabile a Claude Desktop o qualsiasi client MCP. Bridge HTTP incluso: `GET /api/mcp/status`, `POST /api/mcp/call`.
+- **Import multi-sorgente** (`importers.py`): Garmin Connect (HRV/sonno/peso → wellness records, token cache senza credenziali persistenti), file `.FIT` (riepilogo attività via fitparse), `.GPX` (via parser interno). Endpoint: `POST /api/import/garmin|fit|gpx`.
+- **Metriche avanzate** (`advanced_metrics.py`): Critical Power + W' (modello lineare P = CP + W'/t con R²), W' balance (Skiba), DFA α1 (DFA su finestre RR), classificazione distribuzione intensità (polarizzata/piramidale/soglia). Endpoint: `POST /api/metrics/power-analysis` (upload FIT), `POST /api/metrics/load-distribution`.
+- **Pagina atleta pubblica**: `GET /export/athlete-page` HTML self-contained condivisibile (card statistiche + tabella attività) e `GET /api/export/athlete-page` payload JSON.
+
+### Dependencies
+- `garminconnect`, `fitparse` (opzionali a runtime: gli endpoint degradano con messaggio chiaro se assenti).
+
+
 
 ### Added
 - **POC: estensione CPSL per intervals.icu** (`extensions/icu-cpsl/`): estensione Chrome/Edge MV3 che inietta un pannello CPSL dentro la pagina atleta di ICU, mostrando Forma/CTL, Fatica/ATL, Equilibrio/TSB, HRV, HRV 14gg e Peso. Se CPSL è in esecuzione in locale usa i valori ufficiali via bridge; altrimenti calcola lato client dalle API REST di ICU. La API key ICU è salvata solo nel browser (`chrome.storage.local`).

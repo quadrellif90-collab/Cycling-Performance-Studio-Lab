@@ -9312,6 +9312,241 @@ async def api_icu_extension_context(athlete_id: str = ""):
         return {"ok": False, "error": f"internal:{type(e).__name__}"}
 
 
+# ── v1.3.0 — multi-source import (Garmin / FIT / GPX) ───────────────────────
+@app.post("/api/import/garmin")
+async def api_import_garmin(request: Request):
+    """Import HRV/sleep/weight from Garmin Connect into wellness records.
+
+    Body: {days?: 28, email?: str, password?: str}. Credentials are used only
+    for the initial device login and never stored; subsequent runs reuse the
+    cached token store (~/.cpsl/garmin_tokens).
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    from importers import garmin_import
+    rep = garmin_import(
+        days=int(body.get("days") or 28),
+        email=str(body.get("email") or ""),
+        password=str(body.get("password") or ""),
+    )
+    return rep
+
+
+@app.post("/api/import/fit")
+async def api_import_fit(file: UploadFile = File(...)):
+    """Parse an uploaded .FIT activity file into a compact summary."""
+    import tempfile, os
+    data = await file.read()
+    with tempfile.NamedTemporaryFile(suffix=".fit", delete=False) as tmp:
+        tmp.write(data)
+        tmp_path = tmp.name
+    try:
+        from importers import parse_fit_summary
+        return parse_fit_summary(tmp_path)
+    finally:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+
+
+@app.post("/api/import/gpx")
+async def api_import_gpx(file: UploadFile = File(...)):
+    """Parse an uploaded .GPX file into a compact summary."""
+    import tempfile, os
+    data = await file.read()
+    with tempfile.NamedTemporaryFile(suffix=".gpx", delete=False) as tmp:
+        tmp.write(data)
+        tmp_path = tmp.name
+    try:
+        from importers import parse_gpx_summary
+        return parse_gpx_summary(tmp_path)
+    finally:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+
+
+# ── v1.3.0 — MCP server status + JSON-RPC bridge (for LLM clients) ─────────
+@app.get("/api/mcp/status")
+async def api_mcp_status():
+    """Report MCP server availability and the tools it exposes."""
+    try:
+        import icu_mcp_server as m
+        return {"ok": True, "server": m.SERVER_NAME, "version": m.SERVER_VERSION,
+                "tools": [{"name": n, "description": d} for n, (_, d) in m.TOOLS.items()],
+                "run": "python icu_mcp_server.py  (stdio JSON-RPC)"}
+    except Exception as e:
+        return {"ok": False, "error": f"{type(e).__name__}: {e}"}
+
+
+@app.post("/api/mcp/call")
+async def api_mcp_call(request: Request):
+    """Call an MCP tool over HTTP (convenience bridge for the AI Coach)."""
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    name = str(body.get("name") or "")
+    args = body.get("arguments") or {}
+    try:
+        import icu_mcp_server as m
+        fn = m.TOOLS.get(name, (None, None))[0]
+        if not fn:
+            return JSONResponse({"ok": False, "error": f"unknown tool {name}"}, status_code=404)
+        return {"ok": True, "result": fn(**args)}
+    except Exception as e:
+        return {"ok": False, "error": f"{type(e).__name__}: {e}"}
+
+
+# ── v1.3.0 — advanced metrics endpoints ─────────────────────────────────────
+@app.post("/api/metrics/power-analysis")
+async def api_metrics_power_analysis(file: UploadFile = File(...)):
+    """CP/W' fit + W' balance from an uploaded .FIT power file."""
+    import tempfile, os
+    data = await file.read()
+    with tempfile.NamedTemporaryFile(suffix=".fit", delete=False) as tmp:
+        tmp.write(data)
+        tmp_path = tmp.name
+    try:
+        from importers import parse_fit_summary
+        from advanced_metrics import fit_critical_power, w_balance
+        summ = parse_fit_summary(tmp_path)
+        if not summ.get("ok"):
+            return {"ok": False, "error": summ.get("error", "fit_parse_failed")}
+        # re-parse to collect the full power stream
+        import fitparse
+        power = []
+        f = fitparse.FitFile(tmp_path)
+        for rec in f.get_messages():
+            if rec.mesg_type == "record":
+                p = rec.get_value("power")
+                if p is not None:
+                    power.append(int(p))
+        cp = fit_critical_power(power)
+        out = {"ok": True, "summary": summ, "critical_power": cp}
+        if cp.get("ok"):
+            out["w_balance"] = w_balance(power, cp_w=cp["cp_w"], w_prime_j=cp["w_prime_joules"])
+        return out
+    except ImportError as e:
+        return {"ok": False, "error": f"missing dependency: {e}"}
+    except Exception as e:
+        return {"ok": False, "error": f"{type(e).__name__}: {e}"}
+    finally:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+
+
+@app.post("/api/metrics/load-distribution")
+async def api_metrics_load_distribution(request: Request):
+    """Classify intensity distribution from time-in-zones seconds."""
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    zones = body.get("time_in_zones") or {}
+    from advanced_metrics import load_distribution
+    return load_distribution(zones)
+
+
+# ── v1.3.0 — public athlete page (self-contained HTML) ──────────────────────
+@app.get("/export/athlete-page")
+async def export_athlete_page_html(days: int = 90):
+    """Self-contained shareable HTML page with the athlete's summary."""
+    payload = await api_export_athlete_page(days=days)
+    if not payload.get("ok"):
+        return JSONResponse(payload, status_code=500)
+    s = payload["stats"]; ath = payload["athlete"]
+    rows = "".join(
+        f"<tr><td>{a['date']}</td><td>{a['name']}</td><td class='r'>{a['distance_km']}</td>"
+        f"<td class='r'>{a['tss']}</td><td class='r'>{a['duration_h']}</td></tr>"
+        for a in payload["activities"][:50])
+    html = f"""<!DOCTYPE html><html lang="it"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{ath['name']} · CPSL</title><style>
+body{{font-family:system-ui,sans-serif;max-width:860px;margin:32px auto;padding:0 16px;color:#111}}
+h1{{margin-bottom:2px}} .sub{{color:#666;font-size:13px;margin-bottom:20px}}
+.cards{{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:24px}}
+.c{{background:#f5f7fa;border-radius:10px;padding:12px 14px}}
+.c span{{display:block;font-size:11px;text-transform:uppercase;color:#666;letter-spacing:.04em}}
+.c b{{font-size:22px;color:#0b62d6}}
+table{{width:100%;border-collapse:collapse;font-size:13px}}
+th,td{{padding:6px 8px;border-bottom:1px solid #eee;text-align:left}}
+th{{font-size:11px;text-transform:uppercase;color:#666}} .r{{text-align:right}}
+footer{{margin-top:28px;font-size:11px;color:#999}}</style></head><body>
+<h1>🚴 {ath['name']}</h1>
+<div class="sub">Ultimi {days} giorni · generato da Cycling Performance Studio Lab</div>
+<div class="cards">
+<div class="c"><span>Attività</span><b>{s['total_activities']}</b></div>
+<div class="c"><span>Distanza</span><b>{s['total_distance_km']} km</b></div>
+<div class="c"><span>Tempo</span><b>{s['total_hours']} h</b></div>
+<div class="c"><span>TSS tot.</span><b>{s['total_tss']}</b></div>
+<div class="c"><span>CTL (forma)</span><b>{round(s['ctl_latest']) if s['ctl_latest'] else '—'}</b></div>
+<div class="c"><span>TSB (equilibrio)</span><b>{round(s['tsb_latest']) if s['tsb_latest'] is not None else '—'}</b></div>
+<div class="c"><span>HRV media</span><b>{s['hrv_avg'] or '—'} ms</b></div>
+</div>
+<table><thead><tr><th>Data</th><th>Attività</th><th class="r">km</th><th class="r">TSS</th><th class="r">h</th></tr></thead>
+<tbody>{rows}</tbody></table>
+<footer>CPSL · Cycling Performance Studio Lab — dati locali dell'atleta</footer>
+</body></html>"""
+    from fastapi.responses import HTMLResponse as _H
+    return _H(html)
+
+
+# ── v1.3.0 — public athlete page JSON payload ────────────────────────────────
+@app.get("/api/export/athlete-page")
+async def api_export_athlete_page(days: int = 90):
+    """JSON payload for a shareable athlete summary page (activities + stats)."""
+    import datetime as _dt
+    out: dict = {"ok": True}
+    try:
+        from ride_storage import load_recent_wellness, list_rides
+        w = load_recent_wellness(days=days)
+        ctl = [r.get("ctl") for r in w if r.get("ctl") is not None]
+        atl = [r.get("atl") for r in w if r.get("atl") is not None]
+        hrvs = [r.get("hrv") for r in w if r.get("hrv") is not None]
+        rides = list_rides() or []
+        cutoff = (_dt.date.today() - _dt.timedelta(days=days)).isoformat()
+        acts = []
+        total_km = 0.0; total_tss = 0.0; total_s = 0
+        for r in rides:
+            started = (r.get("started_at") or "")[:10]
+            if started and started >= cutoff:
+                s = r.get("summary") or {}
+                dist_km = float(r.get("distance_km") or s.get("distance_km") or 0)
+                tss = float(r.get("tss") or s.get("tss") or 0)
+                dur = int(r.get("duration_s") or s.get("duration_s") or 0)
+                total_km += dist_km; total_tss += tss; total_s += dur
+                acts.append({"date": started, "name": (r.get("name") or s.get("name") or "Attività")[:60],
+                             "distance_km": round(dist_km, 1), "tss": round(tss), "duration_h": round(dur / 3600, 2)})
+        acts.sort(key=lambda x: x["date"], reverse=True)
+        out["stats"] = {
+            "window_days": days,
+            "total_activities": len(acts),
+            "total_distance_km": round(total_km, 1),
+            "total_tss": round(total_tss),
+            "total_hours": round(total_s / 3600, 1),
+            "ctl_latest": ctl[-1] if ctl else None,
+            "atl_latest": atl[-1] if atl else None,
+            "tsb_latest": (ctl[-1] - atl[-1]) if (ctl and atl) else None,
+            "hrv_avg": round(sum(hrvs) / len(hrvs), 1) if hrvs else None,
+        }
+        out["activities"] = acts[:100]
+        cfg_ftp = getattr(config, "ATHLETE_FTP", None) or getattr(config, "FTP", None)
+        out["athlete"] = {
+            "name": getattr(config, "ATHLETE_NAME", "") or "Atleta CPSL",
+            "ftp_w": cfg_ftp,
+        }
+        return out
+    except Exception as e:
+        return {"ok": False, "error": f"{type(e).__name__}: {e}"}
+
+
 
 # One engine (icu_calendar_push.reconcile), two triggers: the plan-tab button
 # (POST below) and the atomic_write_plan post-write callback registered at
