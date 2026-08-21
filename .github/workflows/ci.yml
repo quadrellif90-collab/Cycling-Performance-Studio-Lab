@@ -89,7 +89,7 @@ jobs:
           CPSL_ICU_KEY: ${{ secrets.CPSL_ICU_KEY }}
           CPSL_ICU_ID: ${{ secrets.CPSL_ICU_ID }}
           CPSL_LLM_KEY: ${{ secrets.CPSL_LLM_KEY }}
-        run: python test_smoke.py
+        run: python smoke_test.py
 
   build:
     name: Build for ${{ matrix.os }}
