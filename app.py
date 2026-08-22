@@ -22042,12 +22042,13 @@ def api_diag_health(request: Request):
             checks["enrich"] = {"ok": False, "code": error_codes.Codes.ENRICH_FAILED, "msg": str(e)[:200]}
     else:
         checks["enrich"] = {"ok": True, "skipped": "no plan_data"}
-    # rides_dir
+    # rides_dir — v1.4.5: per-profile dir (v3.0.0 AC2a) instead of the legacy
+    # global ~/.cpsl/rides path that no longer receives writes.
     try:
-        rides_dir = Path.home() / ".cpsl" / "rides"
-        if rides_dir.exists():
-            _ = list(rides_dir.iterdir())
-        checks["rides_dir"] = {"ok": True, "exists": rides_dir.exists()}
+        from ride_storage import _fit_rides_dir as _rs_fit_rides_dir
+        rides_dir = _rs_fit_rides_dir()
+        _ = list(rides_dir.iterdir())
+        checks["rides_dir"] = {"ok": True, "exists": True, "path": str(rides_dir)}
     except Exception as e:
         checks["rides_dir"] = {"ok": False, "msg": str(e)[:200]}
     # log_dir

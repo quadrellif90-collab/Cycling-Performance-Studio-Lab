@@ -3618,11 +3618,13 @@ window.addEventListener('unhandledrejection', function(e) {
       <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">
         Intervals.icu → Settings → Developer Settings → API Key. L'Athlete ID viene rilevato automaticamente dalla key.
       </div>
-      <div class="form-row">
-        <div class="form-group" style="width:100%;">
-          <input type="password" id="icu-apikey-input" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--surface2);color:var(--text);" placeholder="Incolla la tua API Key di intervals.icu">
+      <form onsubmit="connectIcuApiKey(); return false;">
+        <div class="form-row">
+          <div class="form-group" style="width:100%;">
+            <input type="password" id="icu-apikey-input" autocomplete="off" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--surface2);color:var(--text);" placeholder="Incolla la tua API Key di intervals.icu">
+          </div>
         </div>
-      </div>
+      </form>
       <button class="btn btn-sm" onclick="connectIcuApiKey()">Verifica e collega</button>
       <div id="icu-apikey-status" style="font-size:12px;margin-top:6px;"></div>
     </div>
@@ -3939,53 +3941,32 @@ window.addEventListener('unhandledrejection', function(e) {
   <h2 style="margin:0 0 4px;">AI Coach</h2>
   <div style="font-size:13px;color:var(--text2);margin-bottom:14px;">Coach intelligente per l'analisi settimanale e la generazione di piani di allenamento.</div>
 
-  <!-- v1.2.0 — LLM provider configuration -->
+  <!-- v1.4.5 FIX: the old "Configurazione LLM" card referenced five JS
+       handlers that were never defined (saveAiSettings, disableAiSettings,
+       exportAiConfig, importAiConfig, renderAiProviderLinks) — every click
+       threw ReferenceError. The real AI Coach reads keys from environment
+       variables via ai_coach/llm_client.py, so the card now documents that
+       honestly. -->
   <div class="card" style="margin-bottom:14px;">
     <h3>Configurazione LLM</h3>
-    <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">Configura il provider di intelligenza artificiale. La chiave viene salvata solo localmente (mai nel repository).</p>
-    <div class="grid g2">
-      <div class="form-group">
-        <label>Provider</label>
-        <select id="ai_provider" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);" onchange="renderAiProviderLinks()">
-          <option value="google">Google Gemini</option>
-          <option value="openai">OpenAI</option>
-          <option value="anthropic">Anthropic</option>
-          <option value="groq">Groq</option>
-          <option value="deepseek">DeepSeek</option>
-          <option value="mistral">Mistral</option>
-          <option value="openrouter">OpenRouter</option>
-          <option value="xai">xAI (Grok)</option>
-          <option value="ollama">Ollama (locale)</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Modello</label>
-        <input type="text" id="ai_model" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);" placeholder="es. gemini-3-flash-preview">
-      </div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">
+      L'AI Coach usa le chiavi API dei provider configurate come <b>variabili d'ambiente</b> sul tuo sistema
+      (mai salvate nel repository). Imposta quella del provider che preferisci e riavvia l'app:
+    </p>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      <code style="background:var(--surface2);padding:3px 8px;border-radius:4px;font-size:11px;">GOOGLE_API_KEY</code>
+      <code style="background:var(--surface2);padding:3px 8px;border-radius:4px;font-size:11px;">OPENAI_API_KEY</code>
+      <code style="background:var(--surface2);padding:3px 8px;border-radius:4px;font-size:11px;">ANTHROPIC_API_KEY</code>
+      <code style="background:var(--surface2);padding:3px 8px;border-radius:4px;font-size:11px;">GROQ_API_KEY</code>
+      <code style="background:var(--surface2);padding:3px 8px;border-radius:4px;font-size:11px;">MISTRAL_API_KEY</code>
+      <code style="background:var(--surface2);padding:3px 8px;border-radius:4px;font-size:11px;">DEEPSEEK_API_KEY</code>
+      <code style="background:var(--surface2);padding:3px 8px;border-radius:4px;font-size:11px;">OPENROUTER_API_KEY</code>
+      <code style="background:var(--surface2);padding:3px 8px;border-radius:4px;font-size:11px;">XAI_API_KEY</code>
+      <code style="background:var(--surface2);padding:3px 8px;border-radius:4px;font-size:11px;">OLLAMA_API_KEY</code>
     </div>
-    <div class="form-group" style="margin-top:10px;">
-      <label>API Key (la tua, personale)</label>
-      <input type="password" id="ai_api_key" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);" placeholder="Incolla la TUA API Key del provider scelto">
-      <p style="font-size:11px;color:var(--text3);margin-top:6px;">Inserisci la tua chiave personale. Non usiamo chiavi condivise: ogni utente configura il proprio provider. Non hai una key? Creala gratis:</p>
-      <div id="ai_provider_links" style="font-size:11px;display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
-    </div>
-    <div class="form-group" style="margin-top:10px;">
-      <label>Provider di fallback (opzionale, per rate-limit)</label>
-      <select id="ai_fallback" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);">
-        <option value="">Nessuno</option>
-        <option value="groq">Groq</option>
-        <option value="openai">OpenAI</option>
-        <option value="deepseek">DeepSeek</option>
-        <option value="openrouter">OpenRouter</option>
-      </select>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:12px;align-items:center;">
-      <button type="button" class="btn-primary" id="ai_save_btn" onclick="saveAiSettings()">Salva e abilita</button>
-      <button type="button" class="btn" id="ai_disable_btn" onclick="disableAiSettings()">Disabilita</button>
-      <button type="button" class="btn" id="ai_export_btn" onclick="exportAiConfig()">Esporta</button>
-      <button type="button" class="btn" id="ai_import_btn" onclick="importAiConfig()">Importa</button>
-      <span id="ai_settings_status" style="font-size:12px;color:var(--text2);"></span>
-    </div>
+    <p style="font-size:11px;color:var(--text3);margin-top:10px;">
+      Esempio Windows (PowerShell): <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;">setx GOOGLE_API_KEY "la-tua-chiave"</code>
+    </p>
   </div>
 
   <div id="ai_coach_status" style="margin-bottom:12px;color:var(--text2);">Caricamento...</div>
@@ -9879,6 +9860,11 @@ async function maybeShowFtpTestModal() {
     for (const r of rides.slice(0, 3)) {
       const rideId = r.id || r.ride_id;
       if (!rideId) continue;
+      // v1.4.5 FIX: ICU-synced rides have no local FIT detail endpoint
+      // (GET /api/rides/<icu_id> → 404). The ftp_test_suggestion stamp is
+      // produced by the local FIT parser / legacy live sessions only, so
+      // scanning icu entries just generated console 404 noise.
+      if ((r.source || '') === 'icu' || String(rideId).startsWith('icu_')) continue;
       const seenKey = 'ftp-modal-seen-' + rideId;
       try { if (sessionStorage.getItem(seenKey)) continue; } catch(_) {}
       const dRes = await fetch(`/api/rides/${encodeURIComponent(rideId)}`);

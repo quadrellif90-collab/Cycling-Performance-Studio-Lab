@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/).
 
+## [1.4.6] - 2026-08-22 — Fix totali: console pulita + diagnostica
+
+### Fixed
+- 404 `/api/rides/icu_*` al load: FTP-modal scan salta le ride ICU (niente FIT
+  locale → niente fetch inutile né rumore console).
+- Warning DOM password field: input API-key ICU dentro `<form>` (Enter invia).
+- Health check `rides_dir`: per-profilo via `_fit_rides_dir()` invece del path
+  legacy globale `~/.cpsl/rides`.
+- Card "Configurazione LLM" morta (5 handler JS inesistenti → ReferenceError):
+  sostituita con documentazione delle env var reali (`ai_coach/llm_client.py`).
+
+### Verified
+- Sweep 14 tab: **zero** risposte ≥400, zero errori console, zero warning.
+- Suite `tests/qa_full_az.py`: 25/25 ✅.
+
 ## [1.4.5] - 2026-08-22 — Layout: bottoni accessibili + drag robusto
 
 ### Added — Dashboard-Custom
