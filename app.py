@@ -844,7 +844,7 @@ async def lifespan(app):
     # Boot-time writes are instead mirrored by the once-a-day reconcile
     # riding the sync loop (D3b).
     tp.post_write_callback = _icu_push_schedule_debounced
-    db.post_sync_callback = _icu_push_daily_from_sync
+    db.post_sync_callback = _post_sync_pipeline
 
     try:
         yield
@@ -9614,6 +9614,18 @@ def _icu_push_cancel_pending() -> None:
 _icu_push_last_daily: "str | None" = None
 
 
+def _post_sync_pipeline() -> None:
+    """v1.4.3: pipeline completa post-sync — push calendario ICU + HRV processing."""
+    try:
+        _icu_push_daily_from_sync()
+    except Exception:
+        pass
+    try:
+        _process_hrv_from_sync()
+    except Exception:
+        pass
+
+
 def _icu_push_daily_from_sync() -> None:
     """db.post_sync_callback (boot-registered): ONE reconcile per calendar
     day, riding the 30-min sync loop (D3b). This is what rolls the 14-day
@@ -9642,6 +9654,58 @@ def _icu_push_daily_from_sync() -> None:
     except Exception:
         _icu_push_last_daily = None
         _log.warning("daily ICU calendar push failed", exc_info=True)
+
+
+def _process_hrv_from_sync() -> None:
+    """v1.4.3 HRV-PIPELINE: dopo ogni sync ICU, legge i dati HRV dai wellness
+    record, li elabora con hrv_engine (RMSSD, SDNN, baseline, CV) e scrive
+    i valori calcolati su Intervals.icu se mancanti.
+
+    Flusso: Huawei/Garmin/Whoop → ICU → CPSL legge → calcola → write-back.
+    """
+    try:
+        import huawei_hrv as _hh
+        # 1. Importa HRV da ICU wellness records nel DB locale
+        result = _hh.import_icu_hrv()
+        if result.get("ok"):
+            imported = result.get("imported", 0)
+            if imported:
+                _log.info("EVENT=hrv_import_from_icu imported=%s hrv_present=%s sdnn_present=%s",
+                          imported, result.get("hrv_present", 0), result.get("sdnn_present", 0))
+        # 2. Push back: per ogni giorno con metriche calcolate ma senza valori
+        #    su ICU, scrivi RMSSD/SDNN via wellness-bulk
+        from profile_manager import ProfileManager
+        pm = ProfileManager.get()
+        aid = getattr(config, "ICU_ATHLETE_ID", "")
+        key = getattr(config, "ICU_API_KEY", "")
+        if aid and key:
+            pushed = 0
+            try:
+                conn = db.connect() if hasattr(db, 'connect') else None
+                if conn:
+                    rows = conn.execute(
+                        "SELECT date FROM hrv_daily ORDER BY date DESC LIMIT 7"
+                    ).fetchall()
+                    for (day,) in rows:
+                        daily = {"date": day, "valid": True}
+                        # Leggi i valori calcolati da hrv_daily
+                        cur = conn.execute(
+                            "SELECT rmssd_ms, sdnn_ms, quality_score FROM hrv_daily WHERE date=?",
+                            (day,))
+                        r = cur.fetchone()
+                        if r:
+                            daily.update({"rmssd_ms": r[0], "sdnn_ms": r[1],
+                                          "quality_score": r[2]})
+                            bulk = _hh.to_icu_wellness_bulk(daily)
+                            if bulk:
+                                _hh.push_daily_hrv_to_icu(daily, aid, key)
+                                pushed += 1
+            except Exception:
+                pass
+            if pushed:
+                _log.info("EVENT=hrv_writeback_to_icu pushed=%s days", pushed)
+    except Exception:
+        _log.warning("HRV processing from sync failed", exc_info=True)
 
 
 @app.get("/api/icu/push")

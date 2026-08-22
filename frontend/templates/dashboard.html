@@ -2004,33 +2004,7 @@ window.addEventListener('unhandledrejection', function(e) {
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <!-- 9. HRV HOME CARD (lines 2208-2236)                                    -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!-- v5.5.0 — Huawei Health / HRV card (task #20). -->
-<div class="card" id="card-hrv" style="grid-column: span 4;">
-  <h3>❤️ Huawei Health / HRV</h3>
-  <div id="hrv-empty" style="font-size:12px;color:var(--text2);">
-    Nessun dato HRV importato.
-    <button class="btn" style="margin-top:8px;font-size:11px;padding:6px 10px;"
-            onclick="openHuaweiImport()">📥 Importa export Huawei</button>
-  </div>
-  <div id="hrv-content" style="display:none;">
-    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px;">
-      <div><div style="font-size:11px;color:var(--text3);">RMSSD oggi</div>
-           <div id="hrv-rmssd" style="font-size:24px;font-weight:700;color:var(--accent);">—</div></div>
-      <div><div style="font-size:11px;color:var(--text3);">Baseline 7d</div>
-           <div id="hrv-base7" style="font-size:20px;font-weight:600;">—</div></div>
-      <div><div style="font-size:11px;color:var(--text3);">Baseline 30d</div>
-           <div id="hrv-base30" style="font-size:20px;font-weight:600;">—</div></div>
-      <div><div style="font-size:11px;color:var(--text3);">Deviazione</div>
-           <div id="hrv-dev" style="font-size:20px;font-weight:600;">—</div></div>
-    </div>
-    <div style="font-size:11px;color:var(--text3);">
-      Qualità: <span id="hrv-quality">—</span> ·
-      Campioni: <span id="hrv-samples">—</span> ·
-      Sorgente: <span id="hrv-source">—</span>
-    </div>
-    <canvas id="hrv-chart" height="80" style="margin-top:10px;width:100%;"></canvas>
-  </div>
-</div>
+<!-- v5.5.0 — HRV card (task #20). -->
 </div><!-- /sec-home (chiusura spostata: include tutte le card Home) -->
 <div class="section" id="sec-picker">
 
@@ -3224,6 +3198,32 @@ window.addEventListener('unhandledrejection', function(e) {
     </div>
   </div>
 
+  <!-- v1.4.4 WKO5-RADAR — Power Profile Radar (5 assi stile WKO5):
+       Sprint NM / Anaerobic / VO2max / Threshold / Endurance.
+       Confronta W/kg atleta vs benchmark élite per ogni durata. -->
+  <div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+    <div class="card" id="phenotype-radar-card" style="min-height:380px;">
+      <h3>Power Profile Radar</h3>
+      <div id="phenotype-label" style="text-align:center;margin-bottom:8px;">
+        <span style="font-size:18px;font-weight:700;color:var(--accent);">—</span>
+      </div>
+      <div style="position:relative;height:280px;">
+        <canvas id="phenotype-radar-canvas"></canvas>
+      </div>
+      <div id="phenotype-empty-msg" style="display:none;text-align:center;padding:40px 20px;color:var(--text3);font-size:13px;">
+        Importa un FIT o connetti Intervals.icu per generare il tuo profilo di potenza.
+        Il radar mostra i tuoi punti di forza su 5 assi (Sprint, Anaerobica, VO2max, Soglia, Endurance) confrontati con i benchmark élite.
+      </div>
+    </div>
+    <div class="card" id="power-duration-curve-card" style="min-height:380px;">
+      <h3>Power-Duration Curve</h3>
+      <div style="position:relative;height:320px;">
+        <canvas id="pd-model-chart"></canvas>
+      </div>
+      <div id="pd-model-info" style="font-size:11px;color:var(--text3);margin-top:6px;"></div>
+    </div>
+  </div>
+
   <!-- Fitness Chart — full width -->
   <div class="card" style="margin-bottom:12px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
@@ -3683,7 +3683,7 @@ window.addEventListener('unhandledrejection', function(e) {
 <!-- ===================================================================== -->
 <div class="section" id="sec-hrv">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
-    <h2 style="margin:0;">HRV & Huawei Health</h2>
+    <h2 style="margin:0;">HRV Health</h2>
     <span id="hrv-source-badge" class="badge" style="font-size:11px;color:var(--text2);"></span>
   </div>
   <p style="color:var(--text2);font-size:12px;max-width:780px;margin-bottom:12px;">
@@ -6612,6 +6612,8 @@ function loadAnalysisTab() {
   // the no-arg call restores it (default 90d), replacing the old
   // active-button readback.
   try { loadFitnessChart(); } catch (_) {}
+  // v1.4.4 WKO5-RADAR: power profile radar + PD curve (fire-and-forget)
+  try { loadPhenotypeRadar(); } catch (_) {}
   // Power curve (+ its backfill toast machinery via maybeKickBackfill).
   try { if (typeof loadPowerCurve === 'function') loadPowerCurve(); } catch (_) {}
   // 3.4.1 M2 — fatigue resistance card (always open; was lazy ontoggle).
@@ -6625,6 +6627,157 @@ function loadAnalysisTab() {
 // the source date, greyed when source_date is older than 90 days. Empty
 // states ({value:null}) render "—" with a calibrate hint — never a number.
 const RIDER_STATS_STALE_DAYS = 90;
+
+// ── v1.4.4 WKO5-RADAR: Power Profile Radar + PD Curve ────────────────────
+let _phenoRadarChart = null;
+let _pdCurveChart = null;
+
+async function loadPhenotypeRadar() {
+  const canvas = document.getElementById('phenotype-radar-canvas');
+  const emptyMsg = document.getElementById('phenotype-empty-msg');
+  const labelEl = document.querySelector('#phenotype-label span');
+  if (!canvas) return;
+
+  try {
+    const r = await fetch('/api/analytics/phenotype?window_days=90');
+    const d = await r.json();
+
+    if (!d.ok && d.error || !d.phenotype) {
+      // Nessun dato potenza — mostra messaggio
+      canvas.style.display = 'none';
+      if (emptyMsg) emptyMsg.style.display = 'block';
+      if (labelEl) labelEl.textContent = 'Dati insufficienti';
+      return;
+    }
+
+    // Dati disponibili → mostra radar
+    canvas.style.display = 'block';
+    if (emptyMsg) emptyMsg.style.display = 'none';
+    const ph = d.phenotype;
+
+    if (labelEl) {
+      labelEl.textContent = ph.phenotype_label || ph.phenotype || '—';
+      labelEl.title = ph.description || '';
+    }
+
+    // Distruggi chart precedente
+    if (_phenoRadarChart) { _phenoRadarChart.destroy(); _phenoRadarChart = null; }
+
+    const isLight = document.documentElement.getAttribute('data-theme') !== 'dark';
+    const gridColor = isLight ? '#e2e8f0' : '#2d3f52';
+    const textColor = isLight ? '#475569' : '#b8c8d8';
+
+    // Estrai assi dal risultato
+    const points = ph.radar_points || [];
+    if (!points.length) return;
+
+    const labels = points.map(p => p.axis_label);
+    const scores = points.map(p => Math.round(p.normalized_score));
+    const actualWkg = points.map(p => p.actual_wkg != null ? p.actual_wkg.toFixed(2) : null);
+    const eliteWkg = points.map(p => p.elite_wkg);
+
+    _phenoRadarChart = new Chart(canvas, {
+      type: 'radar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Tu (score)',
+            data: scores,
+            backgroundColor: 'rgba(79,156,247,0.15)',
+            borderColor: 'var(--accent)',
+            borderWidth: 2,
+            pointBackgroundColor: 'var(--accent)',
+            pointRadius: 4
+          },
+          {
+            label: 'Élite benchmark',
+            data: points.map(() => 85),  // linea riferimento élite
+            backgroundColor: 'transparent',
+            borderColor: isLight ? '#94a3b8' : '#64748b',
+            borderWidth: 1,
+            borderDash: [6, 4],
+            pointRadius: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          r: {
+            min: 0, max: 100,
+            grid: { color: gridColor },
+            angleLines: { color: gridColor },
+            pointLabels: { font: { size: 11 }, color: textColor },
+            ticks: { display: false }
+          }
+        },
+        plugins: {
+          legend: { labels: { color: textColor, font: { size: 11 } } },
+          tooltip: {
+            callbacks: {
+              afterBody: function(items) {
+                const idx = items[0].dataIndex;
+                return actualWkg[idx] ? `W/kg attuale: ${actualWkg[idx]}` : '';
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // ── PD Curve chart ──
+    const pdCanvas = document.getElementById('pd-model-chart');
+    const pdInfo = document.getElementById('pd-model-info');
+    if (!pdCanvas) return;
+    try {
+      const pdRes = await fetch('/api/analytics/power-duration-model?window_days=90');
+      const pdData = await pdRes.json();
+      if (_pdCurveChart) { _pdCurveChart.destroy(); _pdCurveChart = null; }
+
+      const curve = pdData.rider_curve || [];
+      const modelFit = pdData.model_fit || {};
+      if (curve.length > 0 && modelFit.cp) {
+        const durations = curve.map(p => p.duration_s);
+        const watts = curve.map(p => p.watts);
+        // Genera la curva teorica dal modello CP+W'
+        const cp = modelFit.cp, wprime = modelFit.wprime_j || 20000;
+        const fitPoints = [];
+        for (const dur of durations) {
+          if (dur > 0) fitPoints.push(cp + (wprime / dur) / 1);  // P = CP + W'/t
+        }
+        const durLabels = durations.map(d =>
+          d < 60 ? `${d}s` : d < 3600 ? `${Math.round(d/60)}m` : `${(d/3600).toFixed(1)}h`);
+
+        _pdCurveChart = new Chart(pdCanvas, {
+          type: 'scatter',
+          data: {
+            datasets: [
+              { label: 'Best efforts', data: durations.map((d,i)=>({x:d,y:watts[i]})),
+                backgroundColor: 'rgba(79,156,247,0.8)', pointRadius: 4 },
+              { label: 'Modello CP', data: durations.map((d,i)=>({x:d,y:fitPoints[i]})),
+                borderColor: 'rgba(220,38,38,0.7)', borderDash: [5,3],
+                showLine: true, pointRadius: 0, fill: false }
+            ]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: {
+              x: { type: 'logarithmic', title: { display: true, text: 'Durata' }, ticks: { color: textColor } },
+              y: { title: { display: true, text: 'Watt' }, ticks: { color: textColor } }
+            },
+            plugins: { legend: { labels: { color: textColor, font: {size:10} } } }
+          }
+        });
+        if (pdInfo) pdInfo.innerHTML =
+          `CP: <b>${Math.round(modelFit.cp)}W</b> · W': <b>${((wprime)/1000).toFixed(1)}kJ</b> · R²: <b>${(modelFit.r2||0).toFixed(3)}</b>`;
+      } else {
+        if (pdInfo) pdInfo.textContent = 'Dati potenza insufficienti per il modello.';
+      }
+    } catch (_) {}
+  } catch (_) {}
+}
 
 function _rsStale(sourceDate) {
   if (!sourceDate) return false;
