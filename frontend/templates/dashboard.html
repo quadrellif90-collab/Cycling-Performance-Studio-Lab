@@ -1821,7 +1821,10 @@ window.addEventListener('unhandledrejection', function(e) {
        Power Curve canvas (#power-curve-chart, above) rendered — confusing phantom.
        3.4.1 ④: #power-curve-loading-placeholder is fully retired — the backfill
        bar + auto-poll render into #power-curve-meta on the Analysis tab now. -->
-</div>
+  <!-- v1.4.2 FIX: sec-home NON si chiude qui — la chiusura è stata spostata
+       DOPO tutte le card Home (tid-heatmap, nutrizione, integrazione,
+       daily-adapt, forza, calendario, HRV). Prima, queste card erano fuori da
+       qualsiasi sezione e apparivano su OGNI tab (il bug "schede sempre attive"). -->
 
 <!-- v1.8.8 Bug 10 — Ride History section removed (homepage activity list +
      agenda cover this surface). The #ride-detail-overlay below is kept
@@ -2028,6 +2031,7 @@ window.addEventListener('unhandledrejection', function(e) {
     <canvas id="hrv-chart" height="80" style="margin-top:10px;width:100%;"></canvas>
   </div>
 </div>
+</div><!-- /sec-home (chiusura spostata: include tutte le card Home) -->
 <div class="section" id="sec-picker">
 
   <!-- ═══ WORKOUT PICKER ═════════════════════════════════════════════════ -->

@@ -270,7 +270,38 @@ def _get(path: str, params: dict | None = None) -> list | dict | None:
         except urllib.error.HTTPError as e:
             # 401 = dead/invalid credential → auth failure (triggers the
             # "reconnect intervals.icu" path). No retry.
+            # v1.4.2 TOKEN-FALLBACK: if we sent a Bearer token AND we also have
+            # a legacy API key, retry once with Basic auth before giving up.
+            # This handles the common "OAuth access token expired but API key
+            # still valid" scenario without user intervention.
             if e.code == 401:
+                _access_tok = getattr(config, "ICU_ACCESS_TOKEN", None)
+                _api_key = getattr(config, "ICU_API_KEY", None)
+                if _access_tok and _api_key:
+                    _log.info(f"ICU 401 with Bearer token on {path} — "
+                              f"retrying with API-key Basic auth")
+                    try:
+                        token = base64.b64encode(
+                            f"API_KEY:{_api_key}".encode()).decode()
+                        req = urllib.request.Request(
+                            url, headers={"User-Agent": ICU_USER_AGENT,
+                                          "Authorization": f"Basic {token}"})
+                        resp = urllib.request.urlopen(req, timeout=30)
+                        return json.loads(resp.read())
+                    except urllib.error.HTTPError as e2:
+                        if e2.code == 401:
+                            _log.warning(f"API-key fallback also 401 on {path}")
+                            raise ICUAuthError(
+                                f"HTTP 401 (Bearer + fallback) on {path}",
+                                status=401) from e2
+                        # non-401 on the retry → surface as server error
+                        raise ICUServerError(
+                            f"HTTP {e2.code} (fallback) on {path}") from e2
+                    except Exception as e3:
+                        _log.warning(f"API-key fallback failed: {e3}")
+                        raise ICUAuthError(
+                            f"HTTP 401 on {path}: fallback error",
+                            status=401) from e
                 _log.warning(f"ICU HTTP 401 on {path}: {e.reason}")
                 raise ICUAuthError(f"HTTP 401 on {path}: {e.reason}",
                                    status=401) from e
