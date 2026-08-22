@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/).
 
+## [1.4.5] - 2026-08-22 — Layout: bottoni accessibili + drag robusto
+
+### Added — Dashboard-Custom
+- **Bottoni ◀ ▶ + − su ogni card** in edit mode: sposta/ridimensiona senza drag,
+  con salvataggio immediato per profilo.
+- API programmatiche `_layoutMoveCard` / `_layoutResizeCard` / `_layoutResetLayout`
+  per test e accessibilità.
+
+### Fixed
+- `setPointerCapture` in try/catch: pointer sintetici/già rilasciati non bloccano
+  più l'inizializzazione di drag e resize.
+- CSS edit mode: `.dl-card-controls` escluso dal `pointer-events:none` (i bottoni
+  erano incliccabili).
+- Listener pointermove/up/cancel su `document`: compatibili con il retarget del
+  pointer capture.
+
+### Verified
+- Suite UI Playwright `tests/test_dashboard_layout_ui.py`: 8/8 ✅ (drag verificato
+  via PointerEvent dispatchati; persistenza `homeLayout:<profile>` post-drag).
+
 ## [1.4.1] - 2026-08-21 — Dashboard personalizzabile
 
 ### Added — Dashboard-Custom
