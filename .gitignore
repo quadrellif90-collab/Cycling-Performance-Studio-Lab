@@ -71,3 +71,6 @@ CyclingPerformanceStudioLab-v*.zip
 plans/*.json
 plans/*.md
 !plans/.gitkeep;
+
+# QA artifacts
+qa_shots/
