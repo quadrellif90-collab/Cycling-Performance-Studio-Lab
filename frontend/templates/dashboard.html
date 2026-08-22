@@ -17547,7 +17547,15 @@ async function loadIcuConnection() {
       statusEl.style.fontSize = '13px';
       statusEl.style.fontWeight = '600';
     }
-    if (oauthBlk) oauthBlk.style.display = 'block';
+    if (oauthBlk) {
+      // v1.4.3 FIX: nascondi il blocco OAuth quando il client_secret non è
+      // configurato — evita che l'utente clicchi un bottone che fallirà sempre.
+      if (!c.oauth_available && !oauth) {
+        oauthBlk.style.display = 'none';
+      } else {
+        oauthBlk.style.display = 'block';
+      }
+    }
     // Connected → subtle "Switch account" (NOT alarming "Reconnect"); legacy key →
     // "Switch to sign-in"; disconnected → "Reconnect" (primary).
     // AC3b: "Switch account" routes through disconnect-then-start (the profile's

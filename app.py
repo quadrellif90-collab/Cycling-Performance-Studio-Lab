@@ -9207,10 +9207,14 @@ def api_icu_connection():
     ``name`` is the linked intervals.icu athlete's display name (OAuth) so the
     UI can show 'Linked as <name>'. ``needs_oauth_migration`` flags a profile
     still on a legacy API key (no OAuth token) so the dashboard can prompt the
-    one-click sign-in upgrade."""
+    one-click sign-in upgrade.
+    v1.4.3: adds ``oauth_available`` so the frontend can hide the broken
+    OAuth button when no client_secret is configured in this build.
+    """
     token = getattr(config, "ICU_ACCESS_TOKEN", "") or ""
     key = getattr(config, "ICU_API_KEY", "") or ""
     aid = getattr(config, "ICU_ATHLETE_ID", "") or ""
+    oauth_secret = getattr(config, "ICU_OAUTH_CLIENT_SECRET", "") or ""
     method = "oauth" if token else ("apikey" if key else "none")
     name = ""
     try:
@@ -9234,7 +9238,7 @@ def api_icu_connection():
         "name": name,
         "write_ok": _wok,
         "needs_oauth_migration": bool(key and not token),
-        "oauth_available": bool(getattr(config, "ICU_OAUTH_CLIENT_ID", "")),
+        "oauth_available": bool(oauth_secret),
     }
 
 
