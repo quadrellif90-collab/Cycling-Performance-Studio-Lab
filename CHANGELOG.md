@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/).
 
+## [1.4.7] — 2026-08-23 — Analisi statica completa + hardening
+
+### Fixed
+- **F821 (undefined names) azzerati**: `_json`/`ride_storage` in app.py;
+  import HRV completi in missing_routes.py (3 endpoint); iniettore di contesto
+  + placeholder in pcc_routes_v2.py (15 global di app rilegati a registration);
+  module logger in hrv_engine.py; `detect_training_phases` adattato in
+  weekly_analysis.py; `WeeklyLoadRecommendation` reale (planner nativo) in
+  plan_generator.py; `pathlib` in training.py.
+- **huawei_api.py import rotto**: il wrapper Flask-legacy `@app.post(...)`
+  referenziava un'app inesistente e uccideva l'import dell'intero modulo
+  (gli endpoint HRV manuale Huawei non potevano mai caricarsi).
+- **B023 (closure su variabili di loop) ×21** legate via default args:
+  zp lambda (app/training_planner), _acc_structure, _swappable, _swap_rank,
+  _victim_rank, _g eventi, _try_swap.
+- **bandit HIGH = 0 nel codice proprietario**: `usedforsecurity=False` sugli
+  hash SHA1/MD5 non-security (seed RNG deterministici, cache key);
+  `shell=True` → `cmd.exe /c` esplicito nei 2 lanci .bat auto-update.
+- **`/api/nutrition/daily-targets` restituiva 500**: firma reale di
+  day_macros (day_type come 1° argomento) e supplement_doses (solo peso).
+
+### Changed
+- pyproject.toml: configurazione ruff migrata allo stile post-0.2
+  (`[tool.ruff.lint]`).
+
+### Verification
+- ruff: F821/B023 = 0 · bandit: HIGH 0 (codice proprio) · radon: survey OK
+- pytest: 285/285 · QA A→Z: 25/25 (14 tab + layout + 38 API)
+- Verifica scientifica online: CTL/ATL τ=42/7 ✓, TSS/IF ✓, DFA α1 0.75/0.5 e
+  scale 4–16 battiti ✓, fueling 60–90 g/h 2:1 ✓, polarizzato vs piramidale per
+  livello atleta ✓ (calibrazione amateur già implementata), durability
+  Xert-style ✓.
+
 ## [1.4.6] - 2026-08-22 — Fix totali: console pulita + diagnostica
 
 ### Fixed
