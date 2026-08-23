@@ -74,3 +74,5 @@ plans/*.md
 
 # QA artifacts
 qa_shots/
+
+montis_ref/
