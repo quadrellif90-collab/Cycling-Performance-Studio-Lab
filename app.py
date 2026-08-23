@@ -23517,6 +23517,229 @@ def api_metabolic_profile(window_days: int = Query(90, ge=7, le=3650)):
 
 # ─── 37. GET /api/athlete/recommendations ────────────────────────────────────
 
+# ─── 36b. v1.5.0 Montis port — ESPE / repeatability / durability trend ──────
+
+@app.get("/api/espe")
+def api_espe(window_days: int = Query(84, ge=14, le=365)):
+    """Energy System Progression Engine: confronta due finestre rotanti
+    uguali della power curve (current vs previous) e classifica la
+    progressione per sistema energetico.
+
+    Concepts adapted from intervalsicugptcoach-public ("Montis")
+    © 2026 Clive King (MIT).
+    """
+    try:
+        import espe as espe_mod
+        from power_curve import (
+            aggregate_power_curve, _load_cached_rides,
+            _filter_rides_by_window, _is_cycling_power_ride,
+            _profile_ftp_weight, is_sensor_glitch)
+    except Exception as e:
+        return {"ok": False, "error": f"import_failed: {e}"}
+
+    all_rides = _load_cached_rides()
+    rides = _filter_rides_by_window(all_rides, window_days * 2)
+
+    # Same hygiene as the mean-max curve: cycling-only power + glitch filter.
+    ftp, weight = _profile_ftp_weight(None)
+    try:
+        from profile_manager import ProfileManager
+        _pm = ProfileManager.get()
+        max_hr = int(_pm.max_hr) if _pm.max_hr else None
+    except Exception:
+        max_hr = None
+    profile = {"ftp": ftp, "weight_kg": weight, "max_hr": max_hr}
+
+    cleaned: list[dict] = []
+    for r in rides:
+        if not _is_cycling_power_ride(r):
+            continue
+        effs = [e for e in (r.get("efforts") or [])
+                if isinstance(e, dict) and not is_sensor_glitch(e, r, profile)]
+        if not effs:
+            continue
+        rr = dict(r)
+        rr["efforts"] = effs
+        cleaned.append(rr)
+
+    curve = aggregate_power_curve(None, window_days=window_days)
+    out = espe_mod.compute_espe(cleaned, window_days=window_days,
+                                cp_w=curve.get("cp_w"))
+    out["cp_w"] = curve.get("cp_w")
+    return out
+
+
+@app.get("/api/repeatability")
+def api_repeatability(days: int = Query(7, ge=1, le=28)):
+    """v1.5.0 — statistiche settimanali depletazione W′bal per sessione.
+
+    Fonte preferenziale: icu_w_prime + icu_max_wbal_depletion (sync ICU);
+    fallback stimato da kj_above_ftp / W′ del fit corrente.
+    """
+    try:
+        import ride_storage as _rs
+        from advanced_metrics import anaerobic_repeatability
+        from power_curve import aggregate_power_curve
+
+        w_prime_j = None
+        try:
+            w_prime_j = float(aggregate_power_curve(None, window_days=90)
+                              .get("wprime_j") or 0) or None
+        except Exception:
+            w_prime_j = None
+
+        rides = []
+        for r in _rs.load_all_rides():
+            d = str(r.get("started_at") or r.get("date") or "")[:10]
+            if not d:
+                continue
+            rides.append({
+                "date": d,
+                "icu_w_prime": r.get("icu_w_prime"),
+                "icu_max_wbal_depletion": r.get("icu_max_wbal_depletion"),
+                "kj_above_ftp": r.get("kj_above_ftp"),
+            })
+
+        baseline = getattr(config, "WPRBAL_BASELINE", 0.30)
+        return anaerobic_repeatability(
+            rides, days=days, w_prime_joules=w_prime_j, baseline=baseline)
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
+@app.get("/api/durability-trend")
+def api_durability_trend(days: int = Query(7, ge=3, le=28)):
+    """v1.5.0 — classificazione trend durability da decoupling firmato
+    (ISDM-style, evidenza ripetuta richiesta prima di segnalare drift)."""
+    try:
+        import ride_storage as _rs
+        from durability_score import durability_trend
+
+        rides = []
+        for r in _rs.load_all_rides():
+            d = str(r.get("started_at") or r.get("date") or "")[:10]
+            dur = r.get("duration_s")
+            if not d:
+                continue
+            rides.append({
+                "date": d,
+                "decoupling_pct": r.get("decoupling_pct"),
+                "duration_s": dur,
+            })
+        return durability_trend(rides, days=days)
+    except Exception as e:
+        return {"state": "insufficient_data", "error": str(e)}
+
+
+@app.get("/api/coach/decision")
+def api_coach_decision():
+    """v1.5.0 — ADE governance: decisione del giorno spiegabile.
+
+    Punteggio 100 con penalità/supporti itemizzati; il punteggio determina la
+    directive. Concetti adattati da intervalsicugptcoach-public ("Montis")
+    © 2026 Clive King (MIT), valori ricalibrati sulle soglie CPSL.
+    """
+    from ai_coach.decision_engine import compute_ade
+
+    ctx: dict = {}
+
+    # Training load (ICU live → local fallback)
+    try:
+        merged = _merge_training_load(cached("training", get_today_metrics))
+        ctx["tsb"] = merged.get("tsb")
+        ctx["ctl"] = merged.get("ctl")
+        ramp = merged.get("ramp_rate")
+        if isinstance(ramp, (int, float)):
+            ctx["ramp_rate"] = float(ramp)
+        mono = merged.get("monotony")
+        if isinstance(mono, (int, float)):
+            ctx["monotony"] = float(mono)
+    except Exception:
+        pass
+
+    # Sleep + HRV ratio (today vs 7d baseline)
+    try:
+        sleep_m = cached("sleep", get_sleep_metrics) or _local_sleep_metrics()
+        score = sleep_m.get("sleep_score")
+        if isinstance(score, (int, float)):
+            ctx["sleep_score"] = float(score)
+        ln_today = sleep_m.get("ln_rmssd_today")
+        ln_base = sleep_m.get("ln_rmssd_7d")
+        if ln_today and ln_base:
+            import math as _math
+            ctx["hrv_ratio"] = round(_math.exp(ln_today - ln_base), 2)
+    except Exception:
+        pass
+
+    # Load trend from weekly TSS (last 14 days vs prior 14)
+    try:
+        import ride_storage as _rs
+        import datetime as _dt
+        today = _dt.date.today()
+        by_day: dict[str, float] = {}
+        for r in _rs.load_all_rides():
+            d_iso = str(r.get("started_at") or "")[:10]
+            tss_v = r.get("tss")
+            if not d_iso or not isinstance(tss_v, (int, float)):
+                continue
+            by_day[d_iso] = by_day.get(d_iso, 0.0) + float(tss_v)
+        recent = [by_day.get((today - _dt.timedelta(days=i)).isoformat(), 0.0)
+                  for i in range(14)]
+        prior = [by_day.get((today - _dt.timedelta(days=14 + i)).isoformat(), 0.0)
+                 for i in range(14)]
+        mr, mp = sum(recent), sum(prior)
+        if mp > 0:
+            delta_pct = (mr - mp) / mp * 100.0
+            ctx["load_trend"] = ("increasing" if delta_pct > 5.0
+                                 else "decreasing" if delta_pct < -5.0
+                                 else "stable")
+    except Exception:
+        pass
+
+    # Taper context from the current plan goal (if any)
+    try:
+        plan_path = _plan_dir() / "current_plan.json"
+        if plan_path.exists():
+            plan = json.loads(plan_path.read_text(encoding="utf-8"))
+            g = plan.get("goal") or {}
+            ev_date = g.get("event_date")
+            if g.get("type") in ("event", "event_preparation") and ev_date:
+                import datetime as _dt
+                dd = (_dt.date.fromisoformat(ev_date) - _dt.date.today()).days
+                if 0 <= dd <= 90:
+                    ctx["days_to_event"] = dd
+                    ctx["event_tsb"] = g.get("target_tsb")
+    except Exception:
+        pass
+
+    # ESPE state (advisory)
+    try:
+        espe_out = espe_mod_cache()
+        if isinstance(espe_out, dict):
+            ctx["espe_state"] = espe_out.get("adaptation_state")
+    except Exception:
+        pass
+
+    # W′bal divergence (advisory)
+    try:
+        rep = api_repeatability(days=7)
+        if isinstance(rep, dict) and rep.get("w_prime_divergence") is not None:
+            ctx["w_prime_divergence"] = float(rep["w_prime_divergence"])
+    except Exception:
+        pass
+
+    decision = compute_ade(ctx)
+    decision["context_used"] = {k: v for k, v in ctx.items()}
+    return decision
+
+
+def espe_mod_cache() -> dict:
+    """Compute ESPE once per request chain (no cross-request caching yet)."""
+    return api_espe(window_days=84)
+
+
+# ─── 37. GET /api/athlete/recommendations ────────────────────────────────────
+
 @app.get("/api/athlete/recommendations")
 def api_athlete_recommendations(window_days: int = Query(90, ge=7, le=3650)):
     """Raccomandazioni intelligenti basate sul profilo metabolico."""

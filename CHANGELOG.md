@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/).
 
+## [1.5.0] — 2026-08-23 — Montis port: ESPE, W′bal repeatability, ISDM trend, ADE governance
+
+### Added
+- **ESPE — Energy System Progression Engine** (`espe.py` + `GET /api/espe`):
+  confronto tra due finestre rotanti uguali della power curve (default 84g);
+  delta per ancore 1m/5m/20m/60m classificati per sistema energetico
+  (anaerobico / VO2 / soglia / durabilità aerobica) con bande strong→decline;
+  derivate (glycolytic_bias ideale ~1.8, durability_gradient, vo2_reserve_ratio,
+  balance_score), detection plateau, profilo curva da slope log-log
+  (6 fenotipi), adaptation_state. Card UI "Progressione sistemi energetici"
+  nel tab Analysis.
+- **Repeatabilità anaerobica W′bal** (`advanced_metrics.anaerobic_repeatability`
+  + `GET /api/repeatability`): statistiche 7 giorni di depletazione W′bal per
+  sessione (max/media %, sessioni moderate >50% e alte >60%, kJ sopra FTP
+  totali, divergenza dalla baseline 0.30). Fonte preferenziale
+  `icu_w_prime`+`icu_max_wbal_depletion`; fallback stimato kj_above_ftp/W′.
+  Nuovi campi persistiti in ride_storage (`icu_w_prime`,
+  `icu_max_wbal_depletion`). `config.WPRBAL_BASELINE` configurabile.
+- **Trend durabilità ISDM** (`durability_score.durability_trend` +
+  `GET /api/durability-trend`): classifica il trend settimanale dal
+  decoupling aerobico firmato con requisito di evidenza ripetuta
+  (drifting/improving/stable_improving/stable).
+- **ADE — Adaptive Decision Engine** (`ai_coach/decision_engine.py` +
+  `GET /api/coach/decision`): governance giornaliera spiegabile — punteggio
+  100 con penalità/supporti itemizzati (stato operativo, rischio, forecast
+  fatica, conflitto trend carico, HRV ratio, sonno, TSB, monotonia, ramp rate,
+  taper governance, W′bal) → directive train_through/maintain/reduce/
+  recovery_day/off con confidenza proporzionale ai segnali disponibili.
+  Card "Decisione del giorno" con lista motivazioni.
+- Card UI "Repeatabilità anaerobica & trend durabilità" (tab Analysis).
+- Test: `tests/test_montis_port.py` — 19 test (ESPE, trend, repeatability,
+  ADE). Suite completa: 304 passed.
+
+### Changed
+- Tab Analysis: nuova griglia ESPE + Decisione affiancate, card W′bal sotto.
+
+### Notes
+- Concetti adattati da intervalsicugptcoach-public ("Montis") © 2026 Clive
+  King, licenza MIT — vedi NOTICE. Valori soglia ricalibrati sulle convenzioni
+  CPSL; baseline W′bal 0.30 è un'euristica upstream non peer-reviewed.
+
 ## [1.4.7] — 2026-08-23 — Analisi statica completa + hardening
 
 ### Fixed

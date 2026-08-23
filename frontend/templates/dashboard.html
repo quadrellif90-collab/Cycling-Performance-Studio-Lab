@@ -3224,6 +3224,27 @@ window.addEventListener('unhandledrejection', function(e) {
     </div>
   </div>
 
+  <!-- v1.5.0 Montis port — ESPE progression + ADE decision of the day -->
+  <div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+    <div class="card" id="espe-card">
+      <h3>Progressione sistemi energetici
+        <span style="font-size:10px;font-weight:400;color:var(--text3);">— curve 84g vs 84g precedenti</span></h3>
+      <div id="espe-body" style="font-size:12px;color:var(--text2);">Caricamento…</div>
+    </div>
+    <div class="card" id="coach-decision-card">
+      <h3>Decisione del giorno
+        <span style="font-size:10px;font-weight:400;color:var(--text3);">— governance spiegabile</span></h3>
+      <div id="coach-decision-body" style="font-size:12px;color:var(--text2);">Caricamento…</div>
+    </div>
+  </div>
+
+  <!-- v1.5.0 Montis port — W'bal repeatability + durability trend -->
+  <div class="card" id="wbal-card" style="margin-bottom:12px;">
+    <h3>Repeatabilità anaerobica &amp; trend durabilità
+      <span style="font-size:10px;font-weight:400;color:var(--text3);">— W′bal 7g · decoupling firmato 7g</span></h3>
+    <div id="wbal-body" style="font-size:12px;color:var(--text2);">Caricamento…</div>
+  </div>
+
   <!-- Fitness Chart — full width -->
   <div class="card" style="margin-bottom:12px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
@@ -6601,6 +6622,115 @@ function loadAnalysisTab() {
   try { if (typeof loadFatigueResistance === 'function') loadFatigueResistance(); } catch (_) {}
   // P2.4 — Rider Profile stats card (lazy with the tab, one round-trip).
   try { if (typeof loadRiderStats === 'function') loadRiderStats(); } catch (_) {}
+  // v1.5.0 Montis port — ESPE / ADE / W'bal cards (fire-and-forget).
+  try { if (typeof loadEspeCard === 'function') loadEspeCard(); } catch (_) {}
+  try { if (typeof loadCoachDecision === 'function') loadCoachDecision(); } catch (_) {}
+  try { if (typeof loadWbalCard === 'function') loadWbalCard(); } catch (_) {}
+}
+
+// ── v1.5.0 Montis port — ESPE / ADE / W'bal cards ─────────────────────────
+// Concepts adapted from intervalsicugptcoach-public ("Montis") © 2026
+// Clive King (MIT). Rendering only: all math stays server-side.
+
+const ESPE_SYS_LABEL = {
+  anaerobic: 'Anaerobica (1m)', vo2: 'VO₂max (5m)',
+  threshold: 'Soglia (20m)', aerobic_durability: 'Durabilità aerobica (60m)',
+};
+const ESPE_CLS_LABEL = {
+  strong_gain: ['++ forte', 'var(--green)'], moderate_gain: ['+ moderato', 'var(--green)'],
+  mild_gain: ['lieve', 'var(--green)'], stable: ['stabile', 'var(--text3)'],
+  decline: ['in calo', '#f87171'], insufficient_data: ['dati insuff.', 'var(--text3)'],
+};
+
+async function loadEspeCard() {
+  const host = document.getElementById('espe-body');
+  if (!host) return;
+  try {
+    const res = await fetch('/api/espe?window_days=84');
+    const d = await res.json();
+    if (!d.ok) { host.innerHTML = '<span style="color:var(--text3);">Servono best efforts in due finestre da 84g (importa attività con potenza).</span>'; return; }
+    const rows = d.systems.map(s => {
+      const [lbl, color] = ESPE_CLS_LABEL[s.classification] || [s.classification, 'var(--text2)'];
+      const dp = s.delta_pct != null ? (s.delta_pct > 0 ? '+' : '') + s.delta_pct + '%' : '—';
+      return `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);">
+        <span>${ESPE_SYS_LABEL[s.system] || s.system}</span>
+        <span><b style="color:${color};">${dp}</b> <span style="font-size:10px;color:var(--text3);">${lbl}</span></span>
+      </div>`;
+    }).join('');
+    const bias = d.glycolytic_bias != null ? d.glycolytic_bias : '—';
+    const prof = d.curve_profile ? d.curve_profile.replace(/_/g, ' ') : '—';
+    host.innerHTML = `
+      ${rows}
+      <div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--text3);">
+        <span>Bias glicolitico <b style="color:var(--text2);">${bias}</b> (ideale ~1.8)</span>
+        <span>Profilo: <b style="color:var(--text2);">${prof}</b></span>
+        ${d.balance_score != null ? `<span>Balance <b style="color:var(--text2);">${d.balance_score}/100</b></span>` : ''}
+        ${d.plateau ? '<span style="color:#fbbf24;">⚠ plateau</span>' : ''}
+        <span>Stato: <b style="color:var(--text2);">${(d.adaptation_state || '').replace(/_/g, ' ')}</b></span>
+      </div>`;
+  } catch (e) { host.textContent = 'Errore caricamento ESPE.'; }
+}
+
+const ADE_DIR_COLOR = {
+  train_through: 'var(--green)', maintain: 'var(--accent)', reduce: '#fbbf24',
+  recovery_day: '#fb923c', off: '#f87171',
+};
+
+async function loadCoachDecision() {
+  const host = document.getElementById('coach-decision-body');
+  if (!host) return;
+  try {
+    const res = await fetch('/api/coach/decision');
+    const d = await res.json();
+    if (!d.ok) { host.textContent = 'Decisione non disponibile.'; return; }
+    const color = ADE_DIR_COLOR[d.directive] || 'var(--text)';
+    const drivers = (d.drivers || []).map(x => {
+      const sign = x.delta > 0 ? '+' : '';
+      return `<li style="margin-bottom:3px;"><span style="color:${x.delta >= 0 ? 'var(--green)' : '#f87171'};font-weight:600;">${sign}${x.delta}</span> — ${esc(x.reason)}</li>`;
+    }).join('') || '<li>Nessun segnale attivo.</li>';
+    const notes = (d.notes || []).map(n => `<div style="font-size:11px;color:#fbbf24;margin-top:4px;">⚠ ${esc(n)}</div>`).join('');
+    host.innerHTML = `
+      <div style="display:flex;gap:14px;align-items:baseline;margin-bottom:8px;">
+        <b style="font-size:22px;color:${color};">${d.score}</b>
+        <b style="font-size:14px;color:${color};">${esc(d.directive_label)}</b>
+        <span style="font-size:10px;color:var(--text3);">confidenza ${Math.round(d.confidence)}%</span>
+      </div>
+      <ul style="margin:0;padding-left:18px;font-size:12px;">${drivers}</ul>
+      ${notes}`;
+  } catch (e) { host.textContent = 'Errore caricamento decisione.'; }
+}
+
+async function loadWbalCard() {
+  const host = document.getElementById('wbal-body');
+  if (!host) return;
+  try {
+    const [repRes, trendRes] = await Promise.all([
+      fetch('/api/repeatability?days=7'), fetch('/api/durability-trend?days=7')]);
+    const rep = await repRes.json();
+    const trend = await trendRes.json();
+    let html = '';
+    if (rep.ok) {
+      html += `<div style="display:flex;gap:16px;flex-wrap:wrap;">
+        <span>Depletazione W′bal media <b>${rep.mean_depletion_pct}%</b> · max <b>${rep.max_depletion_pct}%</b></span>
+        <span>Sessioni alte (&gt;60%) <b>${rep.high_depletion_sessions}</b> · moderate <b>${rep.moderate_depletion_sessions}</b></span>
+        <span>Divergenza baseline <b>${rep.w_prime_divergence > 0 ? '+' : ''}${rep.w_prime_divergence}</b></span>
+        <span style="font-size:10px;color:var(--text3);">fonte: ${rep.source}</span>
+      </div>`;
+    } else {
+      html += '<div><span style="color:var(--text3);">W′bal: nessuna sessione con dati di depletazione nella settimana (serve sync Intervals.icu o kj sopra FTP + W′ stimato).</span></div>';
+    }
+    const tLabel = {
+      drifting: ['Trend durabilità: in peggioramento', '#f87171'],
+      improving: ['Trend durabilità: in miglioramento', 'var(--green)'],
+      stable_improving: ['Trend durabilità: stabile-migliorativo', 'var(--green)'],
+      stable: ['Trend durabilità: stabile', 'var(--accent)'],
+      insufficient_data: ['Trend durabilità: dati insufficienti', 'var(--text3)'],
+    };
+    const [tl, tc] = tLabel[trend.state] || [trend.state, 'var(--text3)'];
+    const ms = trend.mean_signed_decoupling != null ? ` · decoupling medio firmato ${trend.mean_signed_decoupling > 0 ? '+' : ''}${trend.mean_signed_decoupling}%` : '';
+    html += `<div style="margin-top:8px;font-size:12px;"><b style="color:${tc};">${tl}</b>${ms} <span style="font-size:10px;color:var(--text3);">(${trend.long_sessions || 0} sessioni lunghe ≥90min)</span></div>`;
+    host.innerHTML = html;
+  } catch (e) { host.textContent = 'Errore caricamento W′bal/durabilità.'; }
 }
 
 // P2.4 (v3.0.0) — Rider Profile stats card. One fetch of /api/rider-stats;

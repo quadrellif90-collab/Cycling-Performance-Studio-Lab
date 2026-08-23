@@ -104,6 +104,12 @@ EA_OPTIMAL  = 45
 EA_SAFE     = 35
 EA_DANGER   = 30
 
+# ── W′bal repeatability (v1.5.0, Montis port) ───────────────────────────────
+# Expected mean W′bal depletion fraction for an endurance-focused week.
+# Heuristic from intervalsicugptcoach-public ("Montis") © Clive King (MIT),
+# NOT peer-reviewed literature — tune per athlete if needed.
+WPRBAL_BASELINE = 0.30
+
 
 # ── AI Coach Configuration ───────────────────────────────────────────────────
 

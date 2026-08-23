@@ -10,14 +10,12 @@ All functions are defensive and return plain dicts.
 from __future__ import annotations
 
 import math
-from typing import Optional
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Critical Power / W' (3-parameter non-linear model)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _best_mean_power(power: list[int], window_s: int) -> Optional[float]:
+def _best_mean_power(power: list[int], window_s: int) -> float | None:
     """Best average power over any contiguous ``window_s`` of samples (1 Hz)."""
     n = len(power)
     if n < window_s or window_s <= 0:
@@ -173,7 +171,7 @@ def dfa_alpha1(rr_ms: list[float], window: int = 64, step: int = 16) -> dict:
 # Load distribution (polarised vs pyramidal)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def load_distribution(time_in_zones: dict[str, float], ftp_w: Optional[float] = None) -> dict:
+def load_distribution(time_in_zones: dict[str, float], ftp_w: float | None = None) -> dict:
     """Classify training intensity distribution.
 
     ``time_in_zones``: seconds per zone key like z1..z7 (or 'easy','moderate','hard').
@@ -205,4 +203,109 @@ def load_distribution(time_in_zones: dict[str, float], ftp_w: Optional[float] = 
         "easy_pct": round(lo, 1),
         "moderate_pct": round(mid, 1),
         "hard_pct": round(hi, 1),
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# v1.5.0 — Anaerobic repeatability (W′bal depletion statistics)
+#
+# Concepts adapted from intervalsicugptcoach-public ("Montis") © 2026
+# Clive King (MIT): 7-day W′-balance depletion statistics per session.
+# The 0.30 baseline for the divergence metric is a Montis heuristic (not
+# peer-reviewed literature) — kept configurable, see config.WPRBAL_BASELINE.
+# ─────────────────────────────────────────────────────────────────────────────
+
+def anaerobic_repeatability(rides: list[dict], days: int = 7,
+                            w_prime_joules: float | None = None,
+                            baseline: float = 0.30, today=None) -> dict:
+    """Weekly W′bal depletion repeatability stats.
+
+    Source priority per ride:
+      1. ``icu_w_prime`` + ``icu_max_wbal_depletion`` (Intervals.icu sync)
+         -> pct = depletion / w_prime * 100          [source: icu]
+      2. ``kj_above_ftp`` + fitted ``w_prime_joules`` -> estimated pct
+                                                        [source: estimated]
+
+    Returns dict with max/mean depletion %, moderate (>50%) and high (>60%)
+    session counts, total kJ above FTP and ``w_prime_divergence``
+    (= mean_depletion - baseline). Empty stats when no usable session.
+    """
+    import datetime as _dt
+
+    anchor = today or _dt.date.today()
+    cutoff = anchor - _dt.timedelta(days=days)
+
+    pcts: list[float] = []
+    sources: set[str] = set()
+    sessions: list[dict] = []
+    kj_total = 0.0
+    have_kj = False
+
+    for r in rides:
+        try:
+            d = _dt.date.fromisoformat(str(r.get("date", ""))[:10])
+        except ValueError:
+            continue
+        if d < cutoff or d > anchor:
+            continue
+
+        wp = r.get("icu_w_prime")
+        dep = r.get("icu_max_wbal_depletion")
+        kj_a = r.get("kj_above_ftp")
+        pct: float | None = None
+        source = None
+        joules_above: float | None = None
+
+        if isinstance(wp, (int, float)) and wp > 0 and isinstance(
+                dep, (int, float)) and dep > 0:
+            pct = min(100.0, 100.0 * float(dep) / float(wp))
+            source = "icu"
+            joules_above = float(dep)
+        elif isinstance(kj_a, (int, float)) and kj_a > 0 and isinstance(
+                w_prime_joules, (int, float)) and w_prime_joules > 0:
+            joules_above = float(kj_a) * 1000.0
+            pct = min(100.0, 100.0 * joules_above / float(w_prime_joules))
+            source = "estimated"
+
+        if source is None or pct is None:
+            continue
+        sources.add(source)
+        pcts.append(pct)
+        if isinstance(kj_a, (int, float)) and kj_a > 0:
+            kj_total += float(kj_a)
+            have_kj = True
+        sessions.append({
+            "date": str(r.get("date"))[:10],
+            "depletion_pct": round(pct, 1),
+            "source": source,
+        })
+
+    if not pcts:
+        return {
+            "ok": False,
+            "source": None,
+            "max_depletion_pct": None,
+            "mean_depletion_pct": None,
+            "moderate_depletion_sessions": 0,
+            "high_depletion_sessions": 0,
+            "total_joules_above_ftp": None,
+            "w_prime_divergence": None,
+            "baseline": baseline,
+            "window_days": days,
+            "sessions": [],
+        }
+
+    mean_pct = sum(pcts) / len(pcts)
+    return {
+        "ok": True,
+        "source": "mixed" if len(sources) > 1 else sources.pop(),
+        "max_depletion_pct": round(max(pcts), 1),
+        "mean_depletion_pct": round(mean_pct, 1),
+        "moderate_depletion_sessions": sum(1 for p in pcts if p > 50),
+        "high_depletion_sessions": sum(1 for p in pcts if p > 60),
+        "total_joules_above_ftp": round(kj_total * 1000.0, 0) if have_kj else None,
+        "w_prime_divergence": round(mean_pct / 100.0 - baseline, 3),
+        "baseline": baseline,
+        "window_days": days,
+        "sessions": sorted(sessions, key=lambda s: s["date"]),
     }

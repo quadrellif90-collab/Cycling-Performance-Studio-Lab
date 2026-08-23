@@ -23,10 +23,7 @@ Algorithm:
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field
-from typing import Optional
-
 
 # Durability tiers
 _DURABILITY_TIERS = [
@@ -46,12 +43,12 @@ class DurabilityResult:
     tier_label: str                # Human-readable tier
     description: str
     n_rides_analyzed: int          # Number of long rides used
-    avg_fresh_5min_wkg: Optional[float] = None
-    avg_tired_5min_wkg: Optional[float] = None
-    avg_fresh_20min_wkg: Optional[float] = None
-    avg_tired_20min_wkg: Optional[float] = None
-    fade_5min_pct: Optional[float] = None       # % drop from fresh to tired (5min)
-    fade_20min_pct: Optional[float] = None      # % drop from fresh to tired (20min)
+    avg_fresh_5min_wkg: float | None = None
+    avg_tired_5min_wkg: float | None = None
+    avg_fresh_20min_wkg: float | None = None
+    avg_tired_20min_wkg: float | None = None
+    fade_5min_pct: float | None = None       # % drop from fresh to tired (5min)
+    fade_20min_pct: float | None = None      # % drop from fresh to tired (20min)
     best_ride_date: str = ""       # Date of the ride with best durability
     best_ride_score: float = 0.0   # Score of the best individual ride
     by_ride: list[dict] = field(default_factory=list)  # Per-ride breakdown
@@ -77,7 +74,7 @@ class DurabilityResult:
 
 def _peak_power_in_window(power_stream: list[int],
                           start_s: int, end_s: int,
-                          window_s: int) -> Optional[float]:
+                          window_s: int) -> float | None:
     """Find peak mean power over a sliding window within a time range."""
     if not power_stream or start_s >= end_s:
         return None
@@ -222,3 +219,94 @@ def compute_durability_score(rides: list[dict],
         best_ride_score=best_ride["durability_score"],
         by_ride=analyzed,
     )
+
+
+# ---------------------------------------------------------------------------
+# v1.5.0 — Durability TREND (ISDM-style weekly classification)
+#
+# Concepts adapted from intervalsicugptcoach-public ("Montis") © 2026
+# Clive King (MIT): classify the weekly durability direction from *signed*
+# aerobic decoupling, requiring repeated evidence before flagging drift so a
+# single noisy session cannot trigger an alarm.
+#
+#   mean_signed > 10                          -> drifting
+#   mean_signed > 5 AND >=2 sessions >5%
+#     across >=3 valid sessions               -> drifting
+#   mean_signed < -5 (>=2 valid)              -> improving
+#   mean_signed < 0                           -> stable_improving
+#   otherwise                                 -> stable
+# ---------------------------------------------------------------------------
+
+_TREND_MIN_DURATION_S = 5400    # 90 min — long endurance sessions only
+
+
+def durability_trend(rides: list[dict], days: int = 7,
+                     today=None) -> dict:
+    """Classify the weekly durability trend from signed aerobic decoupling.
+
+    Args:
+        rides: Stored ride records (dicts with ``decoupling_pct``,
+            ``duration_s`` and ``date``).
+        days:  Look-back window length (default 7).
+        today: Anchor date (defaults to ``datetime.date.today``); useful for
+            deterministic tests.
+
+    Returns:
+        Dict with ``state`` (drifting / improving / stable_improving /
+        stable / insufficient_data), ``mean_signed_decoupling``,
+        ``high_drift_sessions``, ``long_sessions`` and a per-ride breakdown.
+    """
+    import datetime as _dt
+
+    anchor = today or _dt.date.today()
+    cutoff = anchor - _dt.timedelta(days=days)
+
+    valid: list[dict] = []
+    for r in rides:
+        try:
+            d = _dt.date.fromisoformat(str(r.get("date", ""))[:10])
+        except ValueError:
+            continue
+        if d < cutoff or d > anchor:
+            continue
+        dec = r.get("decoupling_pct")
+        dur = r.get("duration_s") or r.get("elapsed_time") or r.get(
+            "moving_time")
+        if dec is None or not isinstance(dur, (int, float)):
+            continue
+        if dur < _TREND_MIN_DURATION_S:
+            continue
+        valid.append({"date": str(r.get("date"))[:10],
+                      "decoupling_pct": float(dec),
+                      "duration_min": round(float(dur) / 60.0)})
+
+    if not valid:
+        return {
+            "state": "insufficient_data",
+            "mean_signed_decoupling": None,
+            "high_drift_sessions": 0,
+            "long_sessions": 0,
+            "window_days": days,
+            "sessions": [],
+        }
+
+    mean_signed = sum(v["decoupling_pct"] for v in valid) / len(valid)
+    n_high = sum(1 for v in valid if v["decoupling_pct"] > 5)
+
+    if mean_signed > 10 or mean_signed > 5 and n_high >= 2 and len(valid) >= 3:
+        state = "drifting"
+    elif mean_signed < -5 and len(valid) >= 2:
+        state = "improving"
+    elif mean_signed < 0:
+        state = "stable_improving"
+    else:
+        state = "stable"
+
+    return {
+        "state": state,
+        "mean_signed_decoupling": round(mean_signed, 1),
+        "high_drift_sessions": n_high,
+        "long_sessions": len(valid),
+        "window_days": days,
+        "sessions": sorted(valid, key=lambda v: v["date"]),
+    }

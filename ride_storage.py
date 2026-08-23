@@ -11,7 +11,6 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Optional
 
 log = logging.getLogger("domestique.rides")
 
@@ -132,7 +131,7 @@ def _pick_first(d: dict, *keys):
     return None
 
 
-def _first_num(d: dict, *keys) -> "int | None":
+def _first_num(d: dict, *keys) -> int | None:
     """First of ``keys`` present on ``d`` as an int; None if none are usable.
 
     0 is a real offset (the first lap starts there), so this cannot use the
@@ -460,6 +459,11 @@ def _normalize_icu_activity(a: dict) -> dict:
         ),
         "kj": round(float(kj), 1) if kj is not None else None,
         "kj_above_ftp": kj_above_ftp,
+        # v1.5.0 (Montis port F2): campi W′bal per repeatabilità anaerobica.
+        # icu_w_prime = W' in joules; icu_max_wbal_depletion = depletazione
+        # massima in joules nella sessione → pct = depletion / w_prime.
+        "icu_w_prime": _pick("icu_w_prime"),
+        "icu_max_wbal_depletion": _pick("icu_max_wbal_depletion"),
         "kcal": int(kcal) if kcal else None,
         "avg_hr": int(avg_hr) if avg_hr else None,
         "hr_max": int(hr_max) if hr_max else None,
@@ -868,7 +872,7 @@ def _fit_iso_started_at(fit_path: Path) -> str:
     try:
         st = fit_path.stat()
         return _dt.datetime.fromtimestamp(
-            st.st_mtime, _dt.timezone.utc
+            st.st_mtime, _dt.UTC
         ).astimezone().isoformat()
     except OSError:
         return ""
@@ -1023,7 +1027,7 @@ def compute_fit_load(fit_path: Path) -> dict | None:
         import datetime as _dt
         try:
             dt = _dt.datetime.fromtimestamp(
-                float(ms) / 1000.0, _dt.timezone.utc
+                float(ms) / 1000.0, _dt.UTC
             )
             if 2000 <= dt.year <= 2100:
                 started_at = dt.astimezone().isoformat()
@@ -1458,7 +1462,7 @@ def list_rides() -> list[dict]:
     return rides
 
 
-def _safe_ride_path(ride_id: str) -> Optional[Path]:
+def _safe_ride_path(ride_id: str) -> Path | None:
     """Resolve ride path with path traversal protection.
 
     The regex `^[\\w\\-]+$` allows only [A-Za-z0-9_-] (no dots, slashes, or
@@ -1485,7 +1489,7 @@ def _safe_ride_path(ride_id: str) -> Optional[Path]:
     return path
 
 
-def get_ride(ride_id: str) -> Optional[dict]:
+def get_ride(ride_id: str) -> dict | None:
     """Load a complete ride (including samples).
 
     Returns None for any invalid/unknown id (malformed, too long, traversal
