@@ -5,11 +5,11 @@
 </p>
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Release](https://img.shields.io/badge/release-v1.4.0-green.svg)](https://github.com/quadrellif90-collab/Cycling-Performance-Studio-Lab/releases/latest)
+[![Release](https://img.shields.io/badge/release-v1.5.0-green.svg)](https://github.com/quadrellif90-collab/Cycling-Performance-Studio-Lab/releases/latest)
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.119+-009688.svg)](https://fastapi.tiangolo.com/)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
-[![Tests](https://img.shields.io/badge/tests-246%20passing-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-304%20passing-brightgreen.svg)]()
 
 **Cycling Performance Studio Lab** è una piattaforma professionale di analisi e allenamento per ciclismo, self-hosted, che unisce il meglio di **Domestique** e **PCC** in un'unica applicazione desktop — senza cloud obbligatorio, senza abbonamenti, senza setup di server. I tuoi dati restano su `~/.cpsl`.
 
@@ -30,19 +30,16 @@
 
 ---
 
-## 🚀 Novità v1.4.0
+## 🚀 Novità v1.5.0 — Port Montis (ESPE · W′bal · ISDM · ADE)
+
+Quattro nuovi moduli analitici ad alto valore, portati dai concetti di [Montis.icu](https://www.montis.icu) (MIT) e ricalibrati sulle convenzioni CPSL — attribuzione completa nel file [`NOTICE`](NOTICE).
 
 | Funzione | Descrizione |
 |----------|-------------|
-| **Fueling Planner** (`fueling.py`) | Piano CHO/h per sessione basato sulla "fueling revolution" 2024-2026 (tabella per durata, miscele multi-trasportatore), tracker gut-training progressivo (+10-15 g/h ogni 2 sett), recupero 3:1. Endpoint `/api/fueling/session` |
-| **4 Workout Durability** | Sessioni firma evidence-based: negative split, late hill reps @FTP, pre-fatigued intervals, muscular endurance (Muriel 2022, Spragg 2023) |
-| **Alert instabilità HRV (CV)** | Coefficiente di variazione 7g vs 28g come allarme precoce più sensibile della baseline; deviazioni bidirezionali (paradosso parasimpatico, Plews) |
-| **Calibrazione livello atleta** | Adaptive planner accetta `athlete_level`: il vantaggio polarizzato è élite-only (Rivera-Köfler 2025 JSCR) → amatori default pyramidal equipollente |
-| **Protocollo heat training** | Suggerimento acclimatazione 10 giorni nel countdown gara per eventi in clima caldo (VO2max +5-8%, TT +6-8%) |
-| **Cronologia piano + Restore** | Le ultime 7 versioni del piano (.bak rotation) consultabili e ripristinabili in sicurezza dal tab Plan |
-| **Export piano PDF** | Con fallback writer integrato dove PyMuPDF non carica |
-| **GPX → Golden Cheetah** | Conversione .gpx → .crs via endpoint |
-| **Documentazione scientifica** | `docs/SCIENCE_UPDATES_2025.md` — sintesi citata delle evidenze implementate |
+| **Progressione sistemi energetici (ESPE)** | Confronta la power curve a 84 giorni con i precedenti 84: delta per 1m/5m/20m/60m classificati per sistema (anaerobico, VO₂max, soglia, durabilità aerobica), bias glicolitico P1m/P20m (ideale ~1.8), detection plateau, profilo di curva su 6 fenotipi. Endpoint `/api/espe` + card nel tab Analysis |
+| **Repeatabilità anaerobica W′bal** | Statistiche settimanali della depletazione W′bal per sessione: media/max %, sessioni moderate (>50%) e alte (>60%), divergenza dalla baseline endurance. Fonte sync Intervals.icu (`icu_w_prime`, `icu_max_wbal_depletion`), fallback stimato da kJ sopra FTP + W′ locale. Endpoint `/api/repeatability` |
+| **Trend durabilità ISDM** | Classificazione settimanale del trend di resistenza dal decoupling aerobico firmato, con requisito di evidenza ripetuta (drifting / improving / stable). Endpoint `/api/durability-trend` |
+| **Decisione del giorno (ADE)** | Governance giornaliera spiegabile: punteggio da 100 con penalità/supporti itemizzati (HRV, sonno, TSB, ramp rate, monotonia, taper, rischio) → directive chiara da *carico completo* a *riposo*, con confidenza proporzionale ai segnali disponibili. Il motore decide, l'AI spiega. Endpoint `/api/coach/decision` |
 
 [CHANGELOG completo →](CHANGELOG.md)
 
@@ -51,7 +48,7 @@
 ## ✨ Funzionalità complete
 
 ### Analisi della performance
-FTP estimation (Coggan) · Fitness Signature (FTP/LTP/HIE/Pmax) · CP/W' Monod-Scherrer · Modelli Morton 3P/2P/Marinescu · Power-duration curve · W' balance (Skiba) · Aerobic decoupling · Phenotype radar (6 tipi, 5 assi) · Durability score · Breakthrough detection · DFA α1 · Readiness composita bayesiana · Strain/XSS · Tau fitting · Pedal asymmetry · Metabolic profile · Field test protocols
+FTP estimation (Coggan) · Fitness Signature (FTP/LTP/HIE/Pmax) · CP/W' Monod-Scherrer · Modelli Morton 3P/2P/Marinescu · Power-duration curve · W' balance (Skiba) · Aerobic decoupling · Phenotype radar (6 tipi, 5 assi) · Durability score + trend ISDM · Breakthrough detection · ESPE progressione sistemi energetici · Repeatabilità anaerobica W′bal · DFA α1 · Readiness composita bayesiana · Strain/XSS · Tau fitting · Pedal asymmetry · Metabolic profile · Field test protocols
 
 ### Allenamento & pianificazione
 Training planner (5 metodologie: polarized/pyramidal/threshold/HIIT/sweet spot) · Adattamento giornaliero automatico (ride→reconcile→adapt→reforecast→push) · AI Coach nel Plan tab con azioni applicabili · Cronologia versioni piano con restore · Block model · Strength & mobility per fase · Inject multidisciplina · Calendar ICS · Export HTML/PDF · Workout player ZWO/FIT con controllo trainer BLE · 4.300+ workout in libreria classificati
@@ -66,7 +63,7 @@ HRV engine (baseline, trend, CV alert) · Huawei Health import · Sonno · Readi
 Intervals.icu OAuth2 bidirezionale (attività, wellness, push calendario con esito) · Garmin import · Terra wearables · MCP server per Claude Desktop · Export bundle ZIP/metrics
 
 ### Architettura
-108 moduli Python · 293 route API · Multi-profilo con credenziali separate · Cache LRU TTL · Error registry strutturato · Audit log · 6 temi UI (light/dark/sepia/high-contrast/ocean/forest)
+110 moduli Python · 297 route API · Multi-profilo con credenziali separate · Cache LRU TTL · Error registry strutturato · Audit log · 6 temi UI (light/dark/sepia/high-contrast/ocean/forest)
 
 ---
 

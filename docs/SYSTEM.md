@@ -93,6 +93,10 @@ The repository itself ships no personal data. First launch runs a 5-step setup w
 - **Daily adapter** — Rebalances the week based on morning readiness, HRV, and actual completed load
 - **Rolling plan recalculation** — Adjusts remaining weeks after deviations (missed sessions, unexpected illness, travel)
 - **Morning check-in** — Subjective readiness, soreness, sleep, RHR, HRV — folded into a composite score
+- **Energy System Progression Engine (ESPE)** — Rolling 84d vs 84d power-curve comparison classified per energy system (anaerobic/VO2/threshold/aerobic durability), plateau detection, curve phenotype (v1.5.0, concepts adapted from Montis.icu — see NOTICE)
+- **W′bal anaerobic repeatability** — Weekly per-session W′-balance depletion stats from Intervals.icu sync with estimated fallback (v1.5.0)
+- **Durability trend** — Weekly signed-decoupling classification with repeated-evidence requirement (v1.5.0)
+- **Adaptive Decision Engine (ADE)** — Explainable daily governance: transparent 100-point score with itemized penalties/supports → directive + confidence (v1.5.0)
 - **Nutrition targets** — Periodised kcal, carbs, protein, fat by day type; tracks energy availability vs LEA/RED-S thresholds
 - **Workout export** — ZWO (smart-trainer apps) and FIT (Karoo, Garmin, Wahoo)
 - **Light/dark mode** — Follows system preference, manual override available
