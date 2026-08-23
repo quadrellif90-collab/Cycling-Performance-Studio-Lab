@@ -137,7 +137,38 @@ def generate_weekly_analysis(
             durability = {"score": "N/A", "tier": "unknown"}
 
     # Fase di allenamento
-    phase = detect_phase(rides) if rides else "Unknown"
+    # v1.4.6 FIX (F821): "detect_phase" non esiste; il modulo importa
+    # detect_training_phases (training_phase_detector), che però richiede
+    # weekly_summaries [{week_start, tss, hours, if_avg, ride_count}] —
+    # le costruiamo dalle ride degli ultimi 28 giorni.
+    phase = "Unknown"
+    if rides:
+        try:
+            from datetime import timedelta as _td
+            _wk = defaultdict(lambda: {"tss": 0.0, "hours": 0.0, "ifs": [],
+                                       "count": 0, "start": None})
+            for r in rides:
+                try:
+                    d = datetime.fromisoformat(str(r.get("started_at") or r.get("date") or ""))[:10]
+                except Exception:
+                    continue
+                monday = (datetime.fromisoformat(d) - _td(days=datetime.fromisoformat(d).weekday())).date().isoformat()
+                w = _wk[monday]
+                w["tss"] += float(r.get("tss") or 0)
+                w["hours"] += float(r.get("duration_sec") or r.get("moving_time") or 0) / 3600.0
+                if r.get("if_avg") is not None:
+                    w["ifs"].append(float(r["if_avg"]))
+                w["count"] += 1
+                w["start"] = monday
+            summaries = [{"week_start": s["start"], "tss": round(s["tss"], 1),
+                          "hours": round(s["hours"], 2),
+                          "if_avg": round(sum(s["ifs"]) / len(s["ifs"]), 3) if s["ifs"] else 0.0,
+                          "ride_count": s["count"]}
+                         for s in _wk.values() if s["count"]]
+            if summaries:
+                phase = detect_training_phases(summaries).current_phase or "Unknown"
+        except Exception:
+            phase = "Unknown"
 
     # 3. Prepara il contesto per l'LLM
     context = {

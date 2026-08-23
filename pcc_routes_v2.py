@@ -24,6 +24,32 @@ from fastapi.responses import JSONResponse, FileResponse, HTMLResponse, Redirect
 from starlette.background import BackgroundTask
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# v1.4.6 FIX (F821): questo modulo è stato estratto da app.py e diversi helper
+# referenziano ancora global di app. Li dichiaro qui come placeholder (None) —
+# ruff/mypy vedono nomi definiti — e register_pcc_routes() li RILEGA dal modulo
+# 'app' già importato (sovrascrivendo i placeholder) prima che qualunque route
+# venga eseguita.
+# ═══════════════════════════════════════════════════════════════════════════════
+cached = None                      # functools decorator di app
+clear_cache = None                 # invalidazione cache ride
+DATA_DIR = None                    # Path dati utente
+ROUTE_PROFILES_INDEX = None        # Path profiles_indexed.json
+_compute_local_atl = None          # ATL locale (7d)
+_sync_icu_activities = None        # sync Intervals.icu
+_setup_marker = None               # marker onboarding completato
+_get_json_body = None              # parse body JSON async
+SETUP_LIMITS: dict = {}            # range validazione campi atleta
+api_activities = None              # GET archivio attività
+api_readiness_composite = None     # readiness composita
+api_update_check = None            # controllo aggiornamenti
+db = None                          # ActivityDatabase
+config = None                      # config globale CPSLConfig
+tp = None                          # training_planner
+
+# Vocabolario locale di validazione (non esiste in app; usato da /api/athlete)
+_SETUP_ENUM_LOCAL: dict = {"sex": {"m", "f", "other"}}
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # HELPER FUNCTIONS (dependencies for the routes below)
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -613,7 +639,9 @@ def api_onboarding_status():
         missing_profile.append("FTP")
 
     try:
-        acts = query_activities(limit=1)
+        # v1.4.6 FIX: era query_activities(limit=1) — nome mai esistito.
+        # api_activities() (iniettata da app) restituisce l'archivio completo.
+        acts = api_activities()
         has_activities = bool(acts)
     except Exception:
         has_activities = False
@@ -797,8 +825,8 @@ async def api_profile_put(request: Request):
             if not (lo <= v <= hi):
                 raise HTTPException(400, f"{k}={v} out of range [{lo},{hi}]")
             updates[k] = v
-    if "sex" in updates and str(updates["sex"]).lower() not in SETUP_ENUM["sex"]:
-        raise HTTPException(400, "sex must be m/f/other")
+        if "sex" in updates and str(updates["sex"]).lower() not in _SETUP_ENUM_LOCAL["sex"]:
+            raise HTTPException(400, "sex must be m/f/other")
     if "weight" in updates:
         updates["weight_kg"] = updates.pop("weight")
     if not updates and not disc_updates:
@@ -1096,7 +1124,8 @@ async def api_self_update(request: Request):
                     bf.write('"%s" /S\n' % dest.replace("/", "\\"))
                     bf.write('if exist "%s" start "" "%s"\n' % (exe_path, exe_path))
                 DETACHED = 0x00000008
-                subprocess.Popen([bat], shell=True, creationflags=DETACHED)
+                # v1.4.6 FIX (bandit B602): niente shell=True; cmd.exe esplicito.
+                subprocess.Popen(["cmd.exe", "/c", bat], creationflags=DETACHED)
             except Exception as e:
                 return JSONResponse(status_code=200, content={
                     "ok": False, "launched": False,
@@ -1203,6 +1232,21 @@ def api_terra_disconnect():
 
 def register_pcc_routes(app: FastAPI):
     """Register all extracted PCC routes on the given FastAPI app."""
+
+    # v1.4.6 FIX (F821): rilegatura reale dei placeholder dichiarati a inizio
+    # modulo (vedi blocco commentato sopra). Sovrascrive sempre: i placeholder
+    # None non devono sopravvivere se app li ha davvero.
+    import sys as _sys
+    _app_mod = _sys.modules.get("app")
+    if _app_mod is not None:
+        _g = globals()
+        for _name in ("cached", "clear_cache", "DATA_DIR", "ROUTE_PROFILES_INDEX",
+                      "_compute_local_atl", "_sync_icu_activities", "_setup_marker",
+                      "_get_json_body", "SETUP_LIMITS",
+                      "api_activities", "api_readiness_composite",
+                      "api_update_check", "db", "config", "tp"):
+            if hasattr(_app_mod, _name):
+                _g[_name] = getattr(_app_mod, _name)
 
     app.post("/api/activity/rpe")(api_activity_rpe)
     app.get("/api/activity-insights")(api_activity_insights)

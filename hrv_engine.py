@@ -24,11 +24,14 @@ Autore: PCC Pro — estensione Huawei Health / HRV (v5.5.0)
 from __future__ import annotations
 
 import json
+import logging
 import math
 import statistics
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Sequence, List, Dict, Any
+
+log = logging.getLogger("cpsl.hrv_engine")
 
 
 # ─────────────────────────────────────────────────────────────────────────────

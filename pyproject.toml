@@ -28,9 +28,11 @@ dev = ["pytest>=7.0", "pytest-asyncio>=0.21", "pytest-cov>=4.0", "ruff>=0.1.0", 
 [tool.ruff]
 target-version = "py311"
 line-length = 100
+
+[tool.ruff.lint]
 select = ["E", "F", "I", "W", "UP", "B", "C4", "SIM", "T20"]
 ignore = ["E501", "B008"]
-per-file-ignores = ["tests/*:S101"]
+per-file-ignores = { "tests/*" = ["S101"] }
 
 [tool.ruff.format]
 quote-style = "double"

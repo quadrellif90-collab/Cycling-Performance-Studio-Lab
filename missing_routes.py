@@ -955,6 +955,7 @@ def register_missing_routes(app):
     async def hrv_extract_rr(request: Request):
         """Extract RR intervals from raw sensor data."""
         try:
+            from dataclasses import asdict
             from hrv_engine import extract_rr_intervals
             body = await request.json()
             raw_data = body.get("data", [])
@@ -968,7 +969,8 @@ def register_missing_routes(app):
     async def hrv_clean(request: Request):
         """Clean RR intervals (remove artifacts)."""
         try:
-            from hrv_engine import clean_rr, compute_quality, RRPoint
+            from dataclasses import asdict
+            from hrv_engine import clean_rr, compute_quality, RRPoint, extract_rr_intervals
             body = await request.json()
             raw_points = body.get("data", [])
             rr_min = body.get("rr_min", 250.0)
@@ -984,7 +986,9 @@ def register_missing_routes(app):
     async def hrv_metrics(request: Request):
         """Calculate HRV metrics from cleaned NN intervals."""
         try:
-            from hrv_engine import clean_rr, compute_hrv_metrics, QualityResult
+            from dataclasses import asdict
+            from hrv_engine import (clean_rr, compute_hrv_metrics, QualityResult,
+                                    CleanNN, RRPoint)
             body = await request.json()
             clean_data = body.get("data", [])
             raw_data = body.get("raw_data", [])
@@ -1063,6 +1067,7 @@ def register_missing_routes(app):
     async def nutrition_daily_targets(request: Request):
         """Return daily nutrition targets based on goal and phase."""
         try:
+            body = await request.json()
             from nutrition import day_macros, supplement_doses
             from profile_manager import ProfileManager
             from user_home import cpsl_home
@@ -1078,11 +1083,16 @@ def register_missing_routes(app):
             age = athlete.get("age", 30)
             sex = athlete.get("sex", "m")
             goal = body.get("goal", "maintain")
-            phase = body.get("phase", "base")
-            
-            macros = day_macros(goal, phase, weight, height, age, sex)
-            supplements = supplement_doses(goal, phase)
-            
+            # v1.4.6 FIX: day_macros(day_type, goal_type, bw, h, age, sex) —
+            # il 1° argomento è il TIPO GIORNO (moderate/high_intensity/...),
+            # non il goal; supplement_doses richiede solo il peso corporeo.
+            day_type = body.get("day_type") or {"base": "z2", "build": "threshold",
+                                                "peak": "high_intensity",
+                                                "recovery": "rest"}.get(
+                str(body.get("phase", "base")).lower(), "moderate")
+            macros = day_macros(day_type, goal, weight, height, age, sex)
+            supplements = supplement_doses(weight)
+
             return {"ok": True, "macros": macros, "supplements": supplements}
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)

@@ -174,7 +174,7 @@ def make_cache_key(*args: Any, **kwargs: Any) -> str:
     key_parts = [repr(a) for a in args]
     key_parts.extend(f"{k}={repr(v)}" for k, v in sorted(kwargs.items()))
     raw = ":".join(key_parts)
-    return hashlib.md5(raw.encode()).hexdigest()
+    return hashlib.md5(raw.encode(), usedforsecurity=False).hexdigest()
 
 
 def lru_ttl_cache(maxsize: int = 64, ttl: float = 60.0) -> Callable:

@@ -63,16 +63,21 @@ def generate_weekly_plan(
     method = _resolve_method(preferred_method, goal, analysis.get("phenotype", {}))
 
     # 2. Raccomandazioni carico settimanale dal planner nativo CPSL
+    # v1.4.6 FIX (F821): la chiamata usava "WeeklyLoadRecommendations",
+    # classe inesistente (NameError sempre assorbito dal fallback). Ora usa
+    # generate_adaptive_recommendation() di adaptive_planner, il planner
+    # nativo reale, e deriva session_tss / rest_days dal weekly_load.
     try:
-        recs = WeeklyLoadRecommendations(
-            method=method,
-            phenotype=analysis.get("phenotype", {}).get("primary", "All-Rounder"),
-            tss_current=analysis.get("total_tss", 0),
-            training_phase=analysis.get("training_phase", "Build"),
+        import adaptive_planner as _ap
+        _rec = _ap.generate_adaptive_recommendation(
+            goal=goal or "general_fitness",
+            current_weekly_tss=float(analysis.get("total_tss") or 300.0),
         )
-        weekly_tss = recs.target_tss
-        session_tss = recs.per_session_tss
-        rest_days = recs.rest_day_recommendations
+        _wl = _rec.weekly_load
+        weekly_tss = float(_wl.target_weekly_tss)
+        _sessions = max(1, int(_wl.sessions_per_week))
+        session_tss = round(weekly_tss / _sessions, 1)
+        rest_days = [i >= _sessions for i in range(max(_sessions + 1, days_per_week))]
     except Exception:
         weekly_tss = 400.0
         session_tss = 80.0
@@ -135,7 +140,7 @@ def generate_weekly_plan(
     # 5. Chiamata LLM per raffinamento (opzionale)
     if client is not None:
         try:
-            weeks_str = str(weeks) if weeks else "unknown"
+            weeks_str = "1"  # piano settimanale: la funzione genera una sola settimana
             goal_str = str(goal) if goal else "generic"
             method_str = str(method) if method else "polarized"
             current_fitness_str = str(analysis.get("ftp", 200)) if analysis.get("ftp") else "200"

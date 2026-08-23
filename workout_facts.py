@@ -126,7 +126,7 @@ def compute_facts_row(zwo_path: Path, sha1: str | None = None) -> dict:
     v3.3.0 storm minted 4,255 nulls from one missing bundled script).
     """
     if sha1 is None:
-        sha1 = hashlib.sha1(zwo_path.read_bytes()).hexdigest()
+        sha1 = hashlib.sha1(zwo_path.read_bytes(), usedforsecurity=False).hexdigest()
     # 3.3.1 hotfix: hoisted OUT of the per-file try — import failure raises.
     clc = _clc()
     try:
@@ -267,7 +267,7 @@ def ensure_facts(workout_dir: Path, zwo_paths: list[Path] | None = None) -> dict
         for p in zwo_paths:
             names.add(p.name)
             try:
-                sha1 = hashlib.sha1(p.read_bytes()).hexdigest()
+                sha1 = hashlib.sha1(p.read_bytes(), usedforsecurity=False).hexdigest()
             except OSError:
                 continue
             row = facts.get(p.name)

@@ -26,6 +26,8 @@ import os
 from datetime import datetime, timezone, date
 from typing import Dict, Any, List, Optional
 
+from fastapi import Body
+
 log = logging.getLogger("pcc.huawei_api")
 
 # Import del progetto
@@ -391,26 +393,11 @@ def api_huawei_manual_hrv(payload: dict) -> dict:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Route Flask per l'endpoint manuale
+# v1.4.6 FIX: rimosso il wrapper Flask-legacy "@app.post(...)" che referenziava
+# un'app FastAPI inesistente in questo modulo e uccideva l'import intero
+# (NameError: app) — pcc_routes_v2 importa api_huawei_manual_hrv da qui.
 # ─────────────────────────────────────────────────────────────────────────────
 
-@app.post("/api/huawei/hrv/manual")
-def api_huawei_manual_hrv_endpoint(body: dict = Body(default={})):
-    """POST scrittura manuale dati HRV su Intervals.icu (task #25/#31).
-    
-    Vedere api_huawei_manual_hrv() per la documentazione completa del payload.
-    """
-    try:
-        from huawei_api import api_huawei_manual_hrv
-        return api_huawei_manual_hrv(body)
-    except Exception as e:
-        _log.exception("huawei manual hrv failed")
-        return {"error": f"internal:{type(e).__name__}"}
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# POST /api/huawei/hrv/manual  (task #25/#31) — Scrittura manuale dati HRV
-# ─────────────────────────────────────────────────────────────────────────────
 def api_huawei_manual_hrv(body: dict = Body(default={})) -> dict:
     """
     Scrive dati manuali su Intervals.icu wellness-bulk.

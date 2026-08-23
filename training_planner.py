@@ -3790,11 +3790,12 @@ def load_workout_library() -> list[dict]:
             elif power_pct < 121: z5_sec += dur_s
             else: z6_sec += dur_s
 
-        def _acc_structure(power_pct: float):
+        # v1.4.6 FIX (B023): bind della variabile di loop come default arg.
+        def _acc_structure(power_pct: float, _dht=distinct_high_targets):
             # FIX-CONTRACT C8: track distinct above-Z2 targets + VO2 floor.
             nonlocal has_vo2_intensity
             if power_pct > 75:  # above-Z2 (≥76% FTP)
-                distinct_high_targets.add(round(power_pct))
+                _dht.add(round(power_pct))
             if power_pct > 105:  # VO2 floor (Coggan Z5 edge)
                 has_vo2_intensity = True
 
@@ -3878,7 +3879,8 @@ def load_workout_library() -> list[dict]:
 
         if_val = _np_fraction_from_samples(samples)
         tss_np = (total_sec / 3600) * (if_val ** 2) * 100
-        zp = lambda s: round(s / total_sec * 100, 1) if total_sec else 0.0
+        # v1.4.6 FIX (B023): bind total_sec come default arg (closure in loop).
+        zp = lambda s, _tot=total_sec: round(s / _tot * 100, 1) if _tot else 0.0
 
         protocol = _classify_protocol(
             z1_sec, z2_sec, z3_sec, z4_sec, z5_sec, z6_sec,
@@ -4566,7 +4568,7 @@ def match_zwo(
         f"{anchor_date.isoformat()}:{pid}:{week_num}:{day_idx}:"
         f"{session.session_type}:{salt_part}"
     ).encode()
-    seed_int = int(hashlib.sha1(seed_src).hexdigest()[:8], 16)
+    seed_int = int(hashlib.sha1(seed_src, usedforsecurity=False).hexdigest()[:8], 16)
     rng = random.Random(seed_int)
 
     # v4.3.0 B3: shuffle the candidate pool BEFORE the score-weighted pick so
@@ -7663,7 +7665,10 @@ def _enforce_build2_peak_hard_floor(
                 # hit-cap-blocked AND every HIT victim floor-shielded, e.g.
                 # build1 vo2_short 0/4 while sweet_spot sat at 3 vs floor 1).
                 # At-floor classes stay shielded.
-                def _swappable(s):
+                # v1.4.6 FIX (B023): bind delle variabili del loop
+                # (all_targets/cc_target/counts/mins) come default args.
+                def _swappable(s, _all=all_targets, _cc=cc_target,
+                               _counts=counts, _mins=mins):
                     # §6.12 (recalc parity, 2026-07-06): the floor passes now
                     # ALSO run on the weekly-recalc path, whose weeks can
                     # carry preserved DONE / adapted / user-moved sessions —
@@ -7680,11 +7685,11 @@ def _enforce_build2_peak_hard_floor(
                     if getattr(s, "session_type", "") == "ftp_test":
                         return False
                     cc_s = _content_class_for_zwo(s.zwo_file or "")
-                    if cc_s not in all_targets:
+                    if cc_s not in _all:
                         return True
-                    if cc_s == cc_target:
+                    if cc_s == _cc:
                         return False  # never donate to itself
-                    return counts.get(cc_s, 0) > mins.get(cc_s, 0)
+                    return _counts.get(cc_s, 0) > _mins.get(cc_s, 0)
                 sess_list = [
                     (i, s) for i, s in enumerate(w_target.sessions)
                     if s.session_type != "rest"
@@ -7694,12 +7699,13 @@ def _enforce_build2_peak_hard_floor(
                 # Sort: (1) prefer slots whose current file is a duplicate
                 # in the plan (freq>=2), (2) then by swap_priority_types so
                 # we still swap out boring steady picks first.
-                def _swap_rank(kv):
+                # v1.4.6 FIX (B023): bind delle variabili di loop come default args.
+                def _swap_rank(kv, _freq=plan_file_freq, _prio=swap_priority_types):
                     _, ss = kv
                     fl = ss.zwo_file or ""
-                    freq = plan_file_freq.get(fl, 0)
-                    pri = (swap_priority_types.index(ss.session_type)
-                           if ss.session_type in swap_priority_types else 99)
+                    freq = _freq.get(fl, 0)
+                    pri = (_prio.index(ss.session_type)
+                           if ss.session_type in _prio else 99)
                     # Availability wave (2026-07-06): slot_max is now the
                     # replaced slot's duration+5, so SHORT victims can't
                     # legally take classes whose shortest file is long
@@ -7924,9 +7930,10 @@ def _enforce_weekly_hit_cap(weeks: list, library: list[dict]) -> None:
             # class that is sitting exactly ON its phase floor; it stays a
             # PREFERENCE, so the cap still binds when every candidate is floored.
             floors = _PHASE_HARD_FLOORS.get(getattr(wk, "phase", "") or "", {})
-            def _victim_rank(c: str) -> tuple:
-                at_floor = c in floors and class_counts[c] <= floors[c]
-                return (class_counts[c], not at_floor)
+            # v1.4.6 FIX (B023): bind floors/class_counts come default args.
+            def _victim_rank(c: str, _floors=floors, _counts=class_counts) -> tuple:
+                at_floor = c in _floors and _counts[c] <= _floors[c]
+                return (_counts[c], not at_floor)
             redundant_cc = max(class_counts, key=_victim_rank)
             demote_candidates = [
                 (i, s) for i, s in demotable
@@ -8872,8 +8879,9 @@ def _mark_race_days(weeks: list, goal) -> None:
         }
     # B/C events (TargetEvent objects or plain dicts — handle both).
     for ev in (getattr(goal, "events", None) or []):
-        def _g(key, default=None):
-            return getattr(ev, key, None) if not isinstance(ev, dict) else ev.get(key, default)
+        # v1.4.6 FIX (B023): bind ev come default arg (closure in loop).
+        def _g(key, default=None, _ev=ev):
+            return getattr(_ev, key, None) if not isinstance(_ev, dict) else _ev.get(key, default)
         ed = _g("date")
         if isinstance(ed, str):
             try:
@@ -9037,10 +9045,12 @@ def _enforce_ronnestad_floor(
         hit_types = ("vo2_short", "vo2max", "threshold", "sweetspot",
                      "over_under", "anaerobic", "neuromuscular")
 
-        def _try_swap(prefer_duplicates: bool) -> bool:
-            for w in phase_weeks:
+        # v1.4.6 FIX (B023): bind phase_weeks/hit_types come default args
+        # (la funzione viene definita dentro il loop per-phase).
+        def _try_swap(prefer_duplicates: bool, _pw=phase_weeks, _ht=hit_types) -> bool:
+            for w in _pw:
                 for s in w.sessions:
-                    if s.session_type not in hit_types:
+                    if s.session_type not in _ht:
                         continue
                     if _protect_race(s):  # FC3: never swap the race entry
                         continue

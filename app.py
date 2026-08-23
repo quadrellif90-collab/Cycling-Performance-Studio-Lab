@@ -913,11 +913,9 @@ try:
     except Exception as _e:
         log.debug(f"ai_coach.register_routes failed: {_e}")
 
-    # Apply persisted AI Coach LLM settings (provider/key/model/enabled)
-    try:
-        _load_ai_config_at_boot()
-    except Exception as _e:
-        log.debug(f"ai config boot-load failed: {_e}")
+    # v1.4.6: rimosso _load_ai_config_at_boot() — funzione mai definita (F821),
+    # chiamata assorbita da try/except che ne mascherava il NameError a ogni
+    # boot. La config LLM arriva dalle env var lette da ai_coach/llm_client.
 
     # PCC v2 routes (Huawei HRV, Terra, Custom Charts, Onboarding, etc.)
     try:
@@ -5702,7 +5700,9 @@ def _build_library_rows() -> list[dict]:
         dur_min = total_sec / 60
 
         # Zone percentages.
-        zp = lambda s: round(s / total_sec * 100, 1) if total_sec else 0
+        # v1.4.6 FIX (B023): bind total_sec as default arg — la lambda era
+        # definita in un loop e catturava la variabile per riferimento.
+        zp = lambda s, _tot=total_sec: round(s / _tot * 100, 1) if _tot else 0
 
         # Session type classification (for Protocol field).
         # v4.1.2 IMPL-CLASSIFIER: prefer the content-based 12-rule cascade
@@ -11983,7 +11983,7 @@ def _advance_continuous_deload(plan: dict, json_path: Path, cur_idx: int,
     # Deterministic per (week, trigger) — re-running the same advance cannot
     # re-roll picks (pinned-seeds contract, mirrors _apply_refit_to_plan).
     salt_basis = f"deload:{cur_dto.start.isoformat()}:{cur_dto.week_num}:{trip['trigger']}"
-    seed_salt = int(hashlib.sha1(salt_basis.encode()).hexdigest()[:12], 16)
+    seed_salt = int(hashlib.sha1(salt_basis.encode(), usedforsecurity=False).hexdigest()[:12], 16)
     prev_sessions = None
     if cur_idx > 0:
         try:
@@ -14281,7 +14281,7 @@ def _apply_refit_to_plan(plan: dict, today: date) -> "dict | None":
     # keep the refit from re-rolling on repeat syncs (planner is otherwise
     # non-deterministic — see planner-test-nondeterminism memory).
     seed_basis = f"{dto_weeks[0].start.isoformat()}:{cur.week_num}:{','.join(missed_dates)}"
-    seed_salt = int(hashlib.sha1(seed_basis.encode()).hexdigest()[:12], 16)
+    seed_salt = int(hashlib.sha1(seed_basis.encode(), usedforsecurity=False).hexdigest()[:12], 16)
 
     _, refit_info = tp.refit_remaining_week(
         goal, dto_weeks, today, seed_salt=seed_salt,
@@ -22906,6 +22906,7 @@ def _bia_history_path():
 
 
 def _bia_load_history():
+    import json as _json
     p = _bia_history_path()
     if p and p.exists():
         try:
@@ -22916,6 +22917,7 @@ def _bia_load_history():
 
 
 def _bia_save_history(hist):
+    import json as _json
     p = _bia_history_path()
     if p is None:
         return False
@@ -22951,6 +22953,7 @@ async def api_bia_import(request: Request):
     Salva la misurazione nello storico BIA del profilo.
     """
     import io
+    import json as _json
     try:
         ctype = request.headers.get("content-type", "")
         body = await request.body()
@@ -23059,6 +23062,7 @@ async def api_bia_sync_icu(request: Request):
     Richiede Intervals.icu configurato (Settings → Connessione ICU).
     """
     import httpx
+    import json as _json
     body = {}
     try:
         raw = await request.body()
@@ -23213,7 +23217,9 @@ async def api_self_update(request: Request):
                     bf.write('"%s" /S\n' % dest.replace("/", "\\"))
                     bf.write('if exist "%s" start "" "%s"\n' % (exe_path, exe_path))
                 DETACHED = 0x00000008
-                subprocess.Popen([bat], shell=True, creationflags=DETACHED)
+                # v1.4.6 FIX (bandit B602): niente shell=True; il .bat viene
+                # lanciato tramite cmd.exe esplicito, stessa semantica.
+                subprocess.Popen(["cmd.exe", "/c", bat], creationflags=DETACHED)
             except Exception as e:
                 return JSONResponse(status_code=200, content={
                     "ok": False, "launched": False,
@@ -24066,6 +24072,7 @@ def api_notifications_digest():
     digest. Il motore notifications.py esisteva da v1.x ma era cablato al 6%.
     """
     import notifications as _notif
+    import ride_storage
     from datetime import date as _date, timedelta as _td
 
     items: list[dict] = []
