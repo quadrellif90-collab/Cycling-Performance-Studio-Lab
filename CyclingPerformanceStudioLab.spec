@@ -24,7 +24,6 @@ VERSION = (_spec_dir / "VERSION").read_text(encoding="utf-8-sig").strip()
 datas = [
     ("frontend/templates", "frontend/templates"),
     ("frontend/static", "frontend/static"),
-    ("web", "web"),
     ("extension", "extension"),
     ("workouts", "workouts"),
     ("courses", "courses"),

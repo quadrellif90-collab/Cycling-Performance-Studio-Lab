@@ -24676,11 +24676,12 @@ def dashboard(request: Request):
             return RedirectResponse(url="/profile-picker")
     except Exception:
         pass
-    # Otherwise → hand off to the MontisFork SPA (v3.6 main UI). Setup /
-    # profile-picker flows above are preserved; the legacy Jinja dashboard is
-    # still reachable under /legacy if ever needed.
-    from fastapi.responses import RedirectResponse as _RR
-    return _RR(url="/panoramica")
+    # Otherwise → legacy Jinja dashboard (the CPSL native UI). If the optional
+    # MontisFork SPA bundle is present (web/) it remains reachable under
+    # /panoramica via the catch-all route, but it is no longer the main UI.
+    return templates.TemplateResponse(
+        request=request, name="dashboard.html",
+        context={"active_profile_id": active_profile_id})
 
 # Workout Player page
 @app.get("/player/{workout_filename}", response_class=HTMLResponse)

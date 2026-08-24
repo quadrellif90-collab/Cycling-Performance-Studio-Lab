@@ -1,58 +1,56 @@
-# Montis IT · CPSL Edition
+# Montis IT · CPSL Edition v2.0
 
-Estensione browser (Manifest V3) che trasforma **app.montis.icu** in un'esperienza
-completamente in italiano e aggiunge i pannelli calcolatori avanzati del motore
-locale **CPSL** (Cycling Performance Studio Lab).
+Estensione browser (Manifest V3) **completamente autonoma** che trasforma
+**app.montis.icu** in un'esperienza italiana con i calcolatori CPSL integrati.
+**Nessuna app locale, nessun server, nessun processo in background.**
 
 ## Cosa fa
 
-1. **Traduzione italiana completa** — dizionario di ~350 stringhe applicato in tempo
-   reale via MutationObserver su tutte le pagine (Panoramica, Micro, Meso, Macro,
-   Calendario, Preparazione, Sandbox, Profilo Atleta, Benessere, Chat, Cronologia, Help).
-   Traduce anche `aria-label`, `title` e `placeholder`.
-2. **Pannelli CPSL+** — nelle sezioni "Prontitudine e Operazioni", "Durabilità (ISDM)"
-   e "Andamento temporale (W′ BAL)" inserisce schede extra alimentate dal motore locale:
-   - Prontitudine Composita multi-fattore (`/api/readiness/composite`)
-   - Durability con ancoraggio sul lavoro cumulativo kJ (`/api/durability-trend`)
-   - Stato del motore fisiologico aggiornato (W′bal Skiba 2015 a τ variabile,
-     DFA α1 doppia scala, baseline HRV ln(RMSSD))
+1. **Traduzione italiana completa** — ~350 stringhe applicate in tempo reale su
+   tutte le pagine (anche `aria-label`, `title`, `placeholder`).
+2. **Calcolatori CPSL integrati (JS)** — pannelli **CPSL+** calcolati nel browser:
+   - **Prontitudine Composita 0-10**: porting JS di `readiness_composite.py`
+     (z-score individuali su baseline personale, ln(RMSSD) media mobile 7 giorni,
+     TSB, FC a riposo invertita, sonno — pesi rinormalizzati quando un componente
+     manca, confidenza = somma pesi disponibili)
+   - **Segnali autonomici**: deviazione ln(RMSSD), stabilità HRV 14g
+     (1 − std/mean), stato autonomico 42g
+   - Gestione automatica del ritardo dei dati (usa l'ultimo giorno con HRV)
 
-## Requisiti
+## Da dove prende i dati
 
-- Browser Chromium/Thorium/Chrome/Edge/Brave
-- **CyclingPerformanceStudioLab** in esecuzione sulla porta 22400 (l'app exe avvia
-  il server automaticamente). Senza il motore locale l'estensione traduce comunque
-  tutto; i pannelli mostrano un avviso finché il motore non è raggiungibile.
+Dalla **cache locale di Montis stessa** (`montis_wellness_dashboard` in
+localStorage): la serie giornaliera di 42 giorni con HRV, FC a riposo, sonno,
+CTL/ATL che l'app ha già scaricato da Intervals.icu. L'estensione legge solo
+la pagina su cui gira — nessun dato lascia il browser, nessuna credenziale
+viene toccata.
 
-## Installazione permanente (consigliata)
+> Se la serie non è ancora in cache, apri una volta la pagina Panoramica o
+> Benessere di Montis: l'estensione calcola subito dopo.
+
+## Installazione
 
 1. Apri `chrome://extensions` (o `thorium://extensions`)
-2. Attiva **Modalità sviluppatore** (interruttore in alto a destra)
-3. Clicca **Carica estensione non pacchettizzata**
-4. Seleziona questa cartella (`montis-extension`)
-5. Apri/ricarica `https://app.montis.icu`
-
-## Avvio rapido con estensione già caricata (alternativa)
-
-```
-thorium.exe --load-extension="C:\Users\Siviglino\Desktop\PPC\montis-extension"
-```
+2. Attiva **Modalità sviluppatore**
+3. **Carica estensione non pacchettizzata** → seleziona questa cartella
+4. Apri/ricarica `https://app.montis.icu`
 
 ## File
 
 | File | Ruolo |
 |------|-------|
-| `manifest.json` | Manifest MV3, permessi solo su `127.0.0.1:22400` |
-| `background.js` | Service worker: proxy fetch verso il motore locale (evita CORS/mixed-content) |
+| `manifest.json` | Manifest MV3 — nessun permesso host, nessun background |
 | `content/translate.js` | Dizionario EN→IT + osservatore mutazioni |
+| `content/engine.js` | Motore CPSL in JS (readiness composita, ln-RMSSD, stabilità) |
 | `content/cpsl.js` | Iniezione pannelli CPSL+ con auto-reinject su navigazione SPA |
-| `content/style.css` | Stile pannelli coerente col design system shadcn di Montis |
+| `content/style.css` | Stile pannelli coerente col design system di Montis |
 
-## Note tecniche
+## Note
 
-- La traduzione usa match esatto case-insensitive + normalizzazione spazi, con
-  fallback a sostituzioni parziali per stringhe dinamiche ("REPORT STATUS:",
-  "Ultimo aggiornamento:", …).
-- I pannelli si reiniettano automaticamente dopo i re-render React dell'app.
-- I nomi degli allenamenti della libreria personale NON vengono tradotti (sono dati).
-- Nessun dato lascia il PC: la comunicazione è solo verso `http://127.0.0.1:22400`.
+- I nomi degli allenamenti della libreria personale NON vengono tradotti (dati).
+- Se un giorno Montis cambia la struttura della cache wellness, il pannello
+  mostra un messaggio chiaro invece di rompersi.
+- Il motore CPSL completo (fit dei modelli CP, parsing ride, durability su
+  stream di potenza) resta nel progetto
+  [Cycling-Performance-Studio-Lab](https://github.com/quadrellif90-collab/Cycling-Performance-Studio-Lab)
+  per chi vuole l'analisi completa.
