@@ -24,13 +24,18 @@ VERSION = (_spec_dir / "VERSION").read_text(encoding="utf-8-sig").strip()
 datas = [
     ("frontend/templates", "frontend/templates"),
     ("frontend/static", "frontend/static"),
-    ("extension", "extension"),
     ("workouts", "workouts"),
     ("courses", "courses"),
     ("routes.json", "."),
     ("surface_types.json", "."),
     ("VERSION", "."),
 ]
+
+# Estensione Montis IT (repo separato: quadrellif90-collab/montis-it-extension).
+# Inclusa nel bundle quando il repo sibling è presente accanto a questo progetto.
+_montis_ext = _spec_dir.parent / "montis-it-extension"
+if _montis_ext.is_dir():
+    datas.append((str(_montis_ext), "extension"))
 
 # v2.1.0 WIN-TLS-FIX: bundle certifi's CA bundle so urllib can verify certs
 from PyInstaller.utils.hooks import collect_data_files
