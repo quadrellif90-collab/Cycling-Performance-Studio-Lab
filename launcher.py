@@ -417,6 +417,123 @@ def get_app_dir():
     return os.path.dirname(os.path.abspath(__file__))
 
 
+# ---------------------------------------------------------------------------
+# MONTIS IT (v1.6.0) — one-click "app" experience on top of app.montis.icu.
+#
+# The bundled `extension/` folder is a Manifest-V3 browser extension that (a)
+# translates app.montis.icu into Italian and (b) injects CPSL+ panels fed by
+# THIS process's local API. Launching a Chromium browser with --load-extension
+# plus --app=<url> gives a standalone-window "installed app" feel with the
+# extension guaranteed active.
+#
+# A DEDICATED user-data-dir (~/.cpsl/montis-browser) is essential: when the
+# user's main browser is already running, a plain launch just forwards to the
+# existing process and --load-extension is SILENTLY IGNORED (Chromium design).
+# A separate profile dir forces a separate browser instance where the flag
+# always applies, keeps the user's normal browsing untouched, and persists
+# the montis.icu login + extension between sessions.
+# ---------------------------------------------------------------------------
+
+MONTIS_URL = "https://app.montis.icu"
+
+
+def _extension_dir():
+    """Where the bundled Montis IT extension lives (dev and frozen)."""
+    base = getattr(sys, "_MEIPASS", None) or os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(base, "extension")
+
+
+def _find_chromium_browser():
+    """Find an installed Chromium-family browser to host the Montis IT window.
+
+    Order: Thorium (the user's known preference) → Chrome → Edge → plain
+    Chromium. All of them honour --load-extension / --app. Returns None when
+    nothing usable is installed; callers then fall back to the default
+    browser WITHOUT the extension (translation lost, but still usable).
+    """
+    import shutil as _shutil
+    cands = []
+    if sys.platform == "win32":
+        pf = os.environ.get("PROGRAMFILES", r"C:\Program Files")
+        pf86 = os.environ.get("PROGRAMFILES(X86)", r"C:\Program Files (x86)")
+        lf = os.environ.get("LOCALAPPDATA", "")
+        cands = [
+            os.path.join(lf, r"Thorium\Application\thorium.exe"),
+            os.path.join(pf, r"Google\Chrome\Application\chrome.exe"),
+            os.path.join(pf86, r"Google\Chrome\Application\chrome.exe"),
+            os.path.join(lf, r"Google\Chrome\Application\chrome.exe"),
+            os.path.join(pf, r"Microsoft\Edge\Application\msedge.exe"),
+            os.path.join(pf86, r"Microsoft\Edge\Application\msedge.exe"),
+            os.path.join(pf, r"Chromium\Application\chrome.exe"),
+            os.path.join(lf, r"Chromium\Application\chrome.exe"),
+        ]
+    elif sys.platform == "darwin":
+        cands = [
+            "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+            "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+            "/Applications/Chromium.app/Contents/MacOS/Chromium",
+        ]
+    else:
+        for name in ("chromium", "chromium-browser", "google-chrome"):
+            p = _shutil.which(name)
+            if p:
+                return p
+        return None
+    for c in cands:
+        if c and os.path.isfile(c):
+            return c
+    return None
+
+
+def open_montis_it():
+    """Open app.montis.icu in a dedicated app window with the CPSL extension.
+
+    Never raises: every failure degrades to opening the plain URL in the
+    default browser so the feature can only ever be "less pretty", never a
+    crash from the tray menu.
+    """
+    ext = _extension_dir()
+    have_ext = os.path.isdir(ext)
+    browser = _find_chromium_browser()
+    if not have_ext or not browser:
+        reason = ("estensione non inclusa" if not have_ext
+                  else "nessun browser Chromium trovato")
+        print(f"(Montis IT: {reason} — apro {MONTIS_URL} nel browser predefinito)")
+        _open_url(MONTIS_URL)
+        return False
+    try:
+        from user_home import cpsl_home
+        profile = str(cpsl_home() / "montis-browser")
+    except Exception:
+        profile = os.path.join(os.path.expanduser("~"), ".cpsl", "montis-browser")
+    try:
+        os.makedirs(profile, exist_ok=True)
+    except OSError:
+        pass
+    import subprocess
+    args = [
+        browser,
+        f"--load-extension={ext}",
+        f"--user-data-dir={profile}",
+        f"--app={MONTIS_URL}",
+        "--no-first-run",
+        "--no-default-browser-check",
+    ]
+    try:
+        subprocess.Popen(args, close_fds=(sys.platform != "win32"))
+        print(f"Montis IT → {MONTIS_URL} (estensione CPSL attiva, profilo dedicato)")
+        return True
+    except Exception as e:
+        print(f"(Montis IT: avvio browser fallito: {e} — apro il browser predefinito)")
+        _open_url(MONTIS_URL)
+        return False
+
+
+def _montis_requested() -> bool:
+    """True when the user asked for the Montis IT window via CLI/env."""
+    return "--montis" in sys.argv or os.environ.get("CPSL_MONTIS") == "1"
+
+
 def start_server():
     """Start the FastAPI server in a background thread."""
     app_dir = get_app_dir()
@@ -554,6 +671,7 @@ def run_with_tray():
 
         menu = Menu(
             MenuItem("Open Dashboard", open_browser, default=True),
+            MenuItem("Apri Montis IT (tradotto + CPSL)", lambda i, item: open_montis_it()),
             MenuItem("Quit", quit_app),
         )
 
@@ -913,6 +1031,8 @@ def main():
     # port, activate its native window instead of opening a browser tab.
     # Opening Chrome/Safari defeats the whole point of the pywebview app.
     if is_already_running():
+        if _montis_requested():
+            open_montis_it()
         if _activate_existing_window():
             print(f"Cycling Performance Studio Lab already running — activated existing window.")
             return
@@ -970,6 +1090,8 @@ def main():
         # never written back as the preferred one.
         _remember_port(PORT)
         print(f"Server ready → {URL}")
+        if _montis_requested():
+            open_montis_it()
     else:
         log = _log()
         if _server_error is not None:

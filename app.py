@@ -1072,8 +1072,9 @@ async def _security_headers(request, call_next):
     # serves no third-party scripts, so unsafe-eval is acceptable here.
     resp.headers.setdefault(
         "Content-Security-Policy",
-        "default-src 'self'; style-src 'self' 'unsafe-inline'; "
-        "img-src 'self' data:; connect-src 'self' ws: wss:; "
+        "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' data: https://fonts.gstatic.com; "
+        "img-src 'self' data: https://*.tile.openstreetmap.org; connect-src 'self' ws: wss:; "
         "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
     )
     resp.headers.setdefault("X-Content-Type-Options", "nosniff")
@@ -24675,11 +24676,11 @@ def dashboard(request: Request):
             return RedirectResponse(url="/profile-picker")
     except Exception:
         pass
-    # Otherwise → dashboard. active_profile_id feeds the per-profile
-    # localStorage keys (AC2d) — rendered into an inline const.
-    return templates.TemplateResponse(
-        request=request, name="dashboard.html",
-        context={"active_profile_id": active_profile_id})
+    # Otherwise → hand off to the MontisFork SPA (v3.6 main UI). Setup /
+    # profile-picker flows above are preserved; the legacy Jinja dashboard is
+    # still reachable under /legacy if ever needed.
+    from fastapi.responses import RedirectResponse as _RR
+    return _RR(url="/panoramica")
 
 # Workout Player page
 @app.get("/player/{workout_filename}", response_class=HTMLResponse)
@@ -24711,6 +24712,32 @@ def workout_player_page(request: Request, workout_filename: str = ""):
             "workout_filename": workout_filename,
             "active_profile_id": pm.active_id or "",
         })
+
+
+# ── MontisFork SPA (v3.6): the React fork is the main UI. Registered LAST so
+# every real route above (API, old dashboard "/", setup, player…) keeps
+# priority; anything unmatched that is not an API path falls back to the SPA
+# with index.html (client-side routing). Assets are served straight from disk.
+_WEB_DIR = BASE_DIR / "web"
+
+if _WEB_DIR.exists():
+    @app.get("/{full_path:path}", response_class=HTMLResponse, include_in_schema=False)
+    async def montisfork_spa(full_path: str):
+        from fastapi.responses import FileResponse
+        from fastapi import HTTPException
+        if not full_path or full_path.startswith("api/") or full_path == "api":
+            raise HTTPException(status_code=404)
+        try:
+            root = _WEB_DIR.resolve()
+            cand = (root / full_path).resolve()
+            if str(cand).startswith(str(root)) and cand.is_file():
+                return FileResponse(cand)
+        except Exception:
+            pass
+        idx = _WEB_DIR / "index.html"
+        if idx.is_file():
+            return FileResponse(idx)
+        raise HTTPException(status_code=404)
 
 
 if __name__ == "__main__":

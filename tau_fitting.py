@@ -19,7 +19,7 @@ We mitigate by:
      (see ``_FIT_BOUNDS`` below).
   2. Locking τ_fatigue ≤ τ_fitness / 2 implicitly via initial guesses
      biased toward the bound.
-  3. Gating success on a residual r² ≥ 0.40 (per the Hellard cohort
+  3. Gating success on a residual r² ≥ 0.50 (per the Hellard cohort
      floor of 0.61, with extra margin for amateur-rider data).
   4. Returning ``low_confidence`` whenever the bootstrap CI exceeds 50 %
      of the point estimate — the user sees the rejection in the dashboard
@@ -176,8 +176,8 @@ _FIT_BOUNDS = {
 
 # Status thresholds (PATCH G9 + audit §4):
 _THRESH_INSUFFICIENT = 5.0    # weighted_n < 5 → insufficient_data
-_THRESH_SUCCESS = 10.0        # weighted_n >= 10 + r² >= 0.40 + CI-tight → success
-_THRESH_R2 = 0.40
+_THRESH_SUCCESS = 10.0        # weighted_n >= 10 + r² >= 0.50 + CI-tight → success
+_THRESH_R2 = 0.50
 _THRESH_CI_RATIO = 0.50
 
 # Bootstrap config — Hellard 2006 / Sohn 2002 say 1000 is sufficient for
@@ -439,7 +439,7 @@ def fit_tau_per_athlete(profile_id: str, persist: bool = True,
 
     Returns the full fit dict per /tmp/MASTER_DECISIONS_v107.md §1, with
     a guaranteed ``fit_status`` field of one of:
-      * ``"success"`` — weighted_n ≥ 10, r² ≥ 0.40, CI-tight
+      * ``"success"`` — weighted_n ≥ 10, r² ≥ 0.50, CI-tight
       * ``"low_confidence"`` — 5 ≤ weighted_n < 10 OR (weighted_n ≥ 10 but
         the fit failed the CI/r² gate)
       * ``"insufficient_data"`` — weighted_n < 5 OR scipy didn't converge

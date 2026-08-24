@@ -532,12 +532,14 @@ def build_daily_hrv(
                             timestamp=window[0].timestamp if window else None)
     if not window:
         return {}
+    ln_rmssd = round(math.log(m.rmssd_ms), 4) if m.rmssd_ms and m.rmssd_ms > 0 else None
     return {
         "date": date,
         "timestamp": window[0].timestamp,
         "window_start": window[0].timestamp,
         "window_end": window[-1].timestamp,
         "rmssd_ms": m.rmssd_ms,
+        "ln_rmssd_ms": ln_rmssd,
         "sdnn_ms": m.sdnn_ms,
         "mean_hr": m.mean_hr,
         "min_hr": m.min_hr,
@@ -570,13 +572,14 @@ def compute_baseline(daily: Sequence[Dict[str, Any]], window_days: int = 7) -> D
     sorted_daily = sorted(daily, key=lambda d: d.get("date", ""), reverse=True)
     window = sorted_daily[:window_days]
     vals = [d["rmssd_ms"] for d in window if d.get("rmssd_ms") is not None]
+    ln_vals = [d["ln_rmssd_ms"] for d in window if d.get("ln_rmssd_ms") is not None]
     if not vals:
         return {"window_days": window_days, "count": 0}
     mean = statistics.mean(vals)
     median = statistics.median(vals)
     std = statistics.pstdev(vals) if len(vals) > 1 else 0.0
     cv = (std / mean * 100.0) if mean else 0.0
-    return {
+    out = {
         "window_days": window_days,
         "count": len(vals),
         "mean_rmssd": round(mean, 2),
@@ -584,6 +587,14 @@ def compute_baseline(daily: Sequence[Dict[str, Any]], window_days: int = 7) -> D
         "std_rmssd": round(std, 2),
         "cv_pct": round(cv, 2),
     }
+    # ln(RMSSD) baseline (Shaffer & Ginsberg 2017; Buchheit 2014) — the
+    # statistically preferred scale for HRV trend comparison.
+    if ln_vals:
+        ln_mean = statistics.mean(ln_vals)
+        ln_std = statistics.pstdev(ln_vals) if len(ln_vals) > 1 else 0.0
+        out["mean_ln_rmssd"] = round(ln_mean, 4)
+        out["std_ln_rmssd"] = round(ln_std, 4)
+    return out
 
 
 def hrv_deviation(today_rmssd: float, baseline_mean: float) -> Dict[str, Any]:
@@ -592,6 +603,23 @@ def hrv_deviation(today_rmssd: float, baseline_mean: float) -> Dict[str, Any]:
         return {"deviation_pct": None, "z_score": None}
     dev = (today_rmssd - baseline_mean) / baseline_mean * 100.0
     return {"deviation_pct": round(dev, 1), "baseline_mean": round(baseline_mean, 2)}
+
+
+def hrv_deviation_ln(today_ln_rmssd: float, baseline_ln_mean: float,
+                     baseline_ln_std: float | None = None) -> Dict[str, Any]:
+    """Deviazione su scala ln(RMSSD) — preferita per confronti di trend HRV.
+
+    Restituisce la deviazione (in unità ln) e lo z-score se fornita la std
+    della baseline ln.
+    """
+    if baseline_ln_mean is None or baseline_ln_mean <= 0:
+        return {"ln_deviation": None, "z_score": None}
+    ln_dev = today_ln_rmssd - baseline_ln_mean
+    z = ln_dev / baseline_ln_std if baseline_ln_std else None
+    return {
+        "ln_deviation": round(ln_dev, 4),
+        "z_score": round(z, 2) if z is not None else None,
+    }
 
 
 def rolling_average(daily: Sequence[Dict[str, Any]], days: int = 7) -> List[Dict[str, Any]]:

@@ -140,12 +140,14 @@ def detect_breakthrough(power_stream: list[int],
             wprime_remaining -= excess
             t_above_cp += 1.0
         else:
-            # Power below CP → W' reconstitutes
-            # W' recovery follows: dW'/dt = (W'max - W') / tau_reconstitution
-            # Simplified: recover ~33% per second below CP (fast recovery model)
-            recovery_rate = (wprime - wprime_remaining) / max(tau * 3, 1.0)
-            wprime_remaining = min(wprime, wprime_remaining + recovery_rate)
-            # Reset t_above_cp when fully recovered
+            # Power below CP → W' reconstitutes (Skiba 2015 time-varying model)
+            # dW'/dt = (W'max - W') / tau,  tau = 546*exp(-0.01*(CP-P)) + 316 s
+            deficit = max(0.0, cp - p_watts)
+            tau_w = 546.0 * math.exp(-0.01 * deficit) + 316.0
+            wprime_remaining = min(
+                wprime, wprime_remaining + (wprime - wprime_remaining) / tau_w
+            )
+            # Reset t_above_cp when essentially fully recovered
             if wprime_remaining >= wprime * 0.95:
                 t_above_cp = 0.0
 

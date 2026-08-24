@@ -96,6 +96,16 @@ def _peak_power_in_window(power_stream: list[int],
     return best if best > 0 else None
 
 
+def _cumulative_kj(power_stream: list[int]) -> list[float]:
+    """Rolling cumulative work in kJ (1 W for 1 s = 1 J)."""
+    out = []
+    acc = 0.0
+    for p in power_stream:
+        acc += float(p)  # joules (W*s)
+        out.append(acc / 1000.0)  # kJ
+    return out
+
+
 def compute_durability_score(rides: list[dict],
                              weight_kg: float = 70.0,
                              min_duration_s: int = 7200) -> DurabilityResult:
@@ -130,8 +140,18 @@ def compute_durability_score(rides: list[dict],
         fresh_5min = _peak_power_in_window(power_stream, 0, 3600, 300)
         fresh_20min = _peak_power_in_window(power_stream, 0, 3600, 1200)
 
-        # Tired peak: after 120 min (7200s+)
-        tired_start = 7200
+        # Tired peak: anchor on cumulative work (kJ) per 2022-2026 durability
+        # literature (Muriel 2022; Valenzuela 2022 Grand Tour; Pinot 2014
+        # robustness), mirroring power_curve.fatigue_resistance. Fall back to a
+        # time anchor (>=7200 s) when the ride never accumulates enough work.
+        kj_cum = _cumulative_kj(power_stream)
+        tired_start = len(power_stream)
+        for i, kj in enumerate(kj_cum):
+            if kj >= 1500.0:
+                tired_start = i
+                break
+        if tired_start >= len(power_stream) - 300:
+            tired_start = min(7200, max(0, len(power_stream) - 1200))
         tired_5min = _peak_power_in_window(power_stream, tired_start, len(power_stream), 300)
         tired_20min = _peak_power_in_window(power_stream, tired_start, len(power_stream), 1200)
 

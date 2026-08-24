@@ -76,3 +76,7 @@ plans/*.md
 qa_shots/
 
 montis_ref/
+montis_linked/
+
+# Copia build della UI fork (rigenerata da MontisFork/dist)
+web/

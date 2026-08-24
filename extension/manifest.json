@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Montis IT · CPSL Edition",
+  "version": "0.1.0",
+  "description": "Traduzione italiana completa di app.montis.icu + pannelli calcolatori CPSL (motore locale aggiornato).",
+  "host_permissions": [
+    "http://127.0.0.1:22400/*",
+    "http://localhost:22400/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://app.montis.icu/*"],
+      "js": ["content/translate.js", "content/cpsl.js"],
+      "css": ["content/style.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "128": "icons/icon128.png"
+  }
+}
