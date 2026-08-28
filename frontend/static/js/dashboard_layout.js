@@ -248,7 +248,7 @@ function enableDrag(grid) {
 
     window.addEventListener('resize', function() {
       grid.querySelectorAll(':scope > .card').forEach(function(c) {
-        applySpan(c, parseInt(c.dataset.span, 10) || 2);
+        applySpan(c, parseInt(c.dataset.span, 10) || maxCols());
       });
     });
   }
