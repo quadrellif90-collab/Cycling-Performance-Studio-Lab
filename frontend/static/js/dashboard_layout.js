@@ -73,6 +73,19 @@
     });
   }
 
+  // Applica lo span iniziale a TUTTE le card del grid anche quando non esiste
+  // un layout salvato in localStorage. Senza questo, al primo avvio le card
+  // hanno l'attributo data-span ma nessuno style.gridColumn e collassano su
+  // una sola colonna della griglia (card sottili/rotte).
+  function ensureSpans(grid) {
+    Array.from(grid.children).forEach(function(c) {
+      if (!c.classList.contains('card')) return;
+      var n = parseInt(c.dataset.span, 10);
+      if (!n || n < 1) n = DEFAULT_SPANS[c.id] || maxCols();
+      if (!c.style.gridColumn) applySpan(c, n);
+    });
+  }
+
   // Trova la card figlia diretta del grid partendo da un elemento qualsiasi
   function findGridCard(el) {
     while (el && el !== document.body) {
@@ -371,6 +384,7 @@ function init() {
       .map(function(c) { return c.id; });
     injectCSS();
     loadLayout(grid);
+    ensureSpans(grid);
     enableDrag(grid);
     addCardControls(grid);
     enableResize(grid);
