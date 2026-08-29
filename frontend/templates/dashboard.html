@@ -1585,14 +1585,14 @@ window.addEventListener('unhandledrejection', function(e) {
     <input type="file" id="import-fit-input" accept=".fit,application/octet-stream" style="display:none;" onchange="handleImportFit(this)">
     <select id="theme-select" onchange="changeTheme(this.value)" title="Select theme"
       style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 8px;cursor:pointer;font-size:13px;color:var(--text);min-width:140px;">
-      <option value="light">ÔÿÇ´©Å Light</option>
+      <option value="light">☀️©Å Light</option>
       <option value="dark">🌙 Dark</option>
       <option value="sepia">📜 Sepia</option>
-      <option value="high-contrast">ÔÜ½ High Contrast</option>
+      <option value="high-contrast">🌙 High Contrast</option>
       <option value="ocean">🌊 Ocean</option>
       <option value="forest">🌲 Forest</option>
       <option value="sunset">🌅 Sunset</option>
-      <option value="nord">ÔØä´©Å Nord</option>
+      <option value="nord">🌿©Å Nord</option>
     </select>
   </div>
 </header>
@@ -1664,7 +1664,7 @@ window.addEventListener('unhandledrejection', function(e) {
       <h3 style="margin:0;">📋 Il tuo giorno</h3>
       <span id="digest-status-badge" class="badge b-good" style="display:none;"></span>
       <span style="flex:1;"></span>
-      <button class="btn btn-sm" onclick="loadDailyDigest()" title="Ricarica" style="font-size:11px;">Ôå╗</button>
+      <button class="btn btn-sm" onclick="loadDailyDigest()" title="Ricarica" style="font-size:11px;">🌊</button>
     </div>
     <div id="digest-items" style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
       <div style="font-size:12px;color:var(--text3);font-style:italic;">Caricamento…</div>
@@ -1718,8 +1718,8 @@ window.addEventListener('unhandledrejection', function(e) {
          loadTodaySession() from the /api/today-session retest_nudge flag;
          dismissible (snooze 14d, persisted in athlete.json server-side). -->
     <div id="retest-nudge-host"></div>
-    <!-- 3.4.1 Ôæ® — Recovery details is ALWAYS visible now (was a collapsed
-         <details> fold, which hid the DFA snapshot — and the Ôæñ sync-progress
+    <!-- 3.4.1 🌲 — Recovery details is ALWAYS visible now (was a collapsed
+         <details> fold, which hid the DFA snapshot — and the 🌲 sync-progress
          bar that renders in it — behind a click nobody made). Inner id kept:
          loadHomeSnapshotDfa() fires on home render, no toggle involved. -->
     <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px;">
@@ -1819,9 +1819,9 @@ window.addEventListener('unhandledrejection', function(e) {
   <!-- Legacy duplicate "Power Duration Curve" card removed: it was a redundant
        second surface that showed a "Loading…" block then vanished once the real
        Power Curve canvas (#power-curve-chart, above) rendered — confusing phantom.
-       3.4.1 Ôæú: #power-curve-loading-placeholder is fully retired — the backfill
+       3.4.1 🌲 #power-curve-loading-placeholder is fully retired — the backfill
        bar + auto-poll render into #power-curve-meta on the Analysis tab now. -->
-  <!-- v1.4.2 FIX: sec-home NON si chiude qui — la chiusura ├¿ stata spostata
+  <!-- v1.4.2 FIX: sec-home NON si chiude qui — la chiusura ? stata spostata
        DOPO tutte le card Home (tid-heatmap, nutrizione, integrazione,
        daily-adapt, forza, calendario, HRV). Prima, queste card erano fuori da
        qualsiasi sezione e apparivano su OGNI tab (il bug "schede sempre attive"). -->
@@ -1962,8 +1962,8 @@ window.addEventListener('unhandledrejection', function(e) {
     <button class="btn" style="font-size:11px;padding:3px 10px;" onclick="loadStrength()">Genera piano</button>
     <button class="btn btn-primary" style="font-size:11px;padding:3px 10px;" onclick="busyButton(this, injectMultidiscipline, 'Inietto…')" title="Inserisce forza+mobilitá + running/MTB (se nei discipline) nel piano, affine al ciclismo">➕ Inietta multi</button>
     <a class="btn" style="font-size:11px;padding:3px 10px;" href="/api/export-plan-html?athlete=Atleta&phase=base"
-       target="_blank" rel="noopener">Ô¼ç Esporta HTML</a>
-    <a class="btn" style="font-size:11px;padding:3px 10px;" href="/api/export-plan-pdf">Ô¼ç PDF</a>
+       target="_blank" rel="noopener">📊sporta HTML</a>
+    <a class="btn" style="font-size:11px;padding:3px 10px;" href="/api/export-plan-pdf">📈DF</a>
   </div>
   <div id="strength-summary" style="font-size:12px;color:var(--text2);margin-bottom:8px;"></div>
   <div id="strength-weeks" style="display:flex;flex-direction:column;gap:6px;"></div>
@@ -1978,7 +1978,7 @@ window.addEventListener('unhandledrejection', function(e) {
   <h3 data-tip="Il tuo calendario: per ogni settimana del piano mostra TSS pianificato vs eseguito (da intervals.icu) e l'aderenza %.">Il mio calendario</h3>
   <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
     <button class="btn" style="font-size:11px;padding:3px 10px;" onclick="loadMyCalendar()">Aggiorna</button>
-    <button class="btn btn-primary" style="font-size:11px;padding:3px 10px;" onclick="busyButton(this, myPushPlan, 'Invio a intervals.icu…')">Ôñ┤ Push piano su intervals.icu</button>
+    <button class="btn btn-primary" style="font-size:11px;padding:3px 10px;" onclick="busyButton(this, myPushPlan, 'Invio a intervals.icu…')">🎯 Push piano su intervals.icu</button>
   </div>
   <div id="my-calendar" style="font-size:11px;color:var(--text2);">Genera un piano per vedere l'aderenza…</div>
 </div>
@@ -2226,16 +2226,16 @@ window.addEventListener('unhandledrejection', function(e) {
              so searching looked like a no-op). -->
         <!-- search pass 2: Relevance option — auto-selected while a search is
              active (unless the user explicitly picked a sort; onLibSortChange
-             records the explicit choice), reverts to Duration Ôû▓ on clear. -->
+             records the explicit choice), reverts to Duration 📍 on clear. -->
         <select id="wk-sort" onchange="onLibSortChange()">
           <option value="relevance">Relevance</option>
-          <option value="duration_asc" selected>Duration Ôû▓</option>
-          <option value="duration_desc">Duration Ôû╝</option>
+          <option value="duration_asc" selected>Duration 📍</option>
+          <option value="duration_desc">Duration 🌙</option>
           <option value="name_asc">Name A→Z</option>
           <option value="name_desc">Name Z→A</option>
         </select></div>
       <div class="form-group"><label>&nbsp;</label>
-        <button class="btn" id="wk-adv-toggle" aria-expanded="false" onclick="toggleLibAdvanced()">Advanced Ôû¥</button></div>
+        <button class="btn" id="wk-adv-toggle" aria-expanded="false" onclick="toggleLibAdvanced()">Advanced 📍</button></div>
       <div class="form-group"><label>&nbsp;</label>
         <button class="btn" onclick="clearLibFilters()">Clear</button></div>
     </div>
@@ -2280,11 +2280,11 @@ window.addEventListener('unhandledrejection', function(e) {
          (the API field stays — openWorkoutDetail/downloadZwo build URLs
          from it), so the column was pure noise with a working sort header. -->
     <table><thead><tr>
-      <th style="cursor:pointer;" onclick="sortLibrary('Name')">Name Ôåò</th>
-      <th style="cursor:pointer;" onclick="sortLibrary('Duration(min)')">Duration Ôåò</th>
-      <th style="cursor:pointer;" onclick="sortLibrary('TSS')">TSS Ôåò</th>
+      <th style="cursor:pointer;" onclick="sortLibrary('Name')">Name 📅</th>
+      <th style="cursor:pointer;" onclick="sortLibrary('Duration(min)')">Duration 📅</th>
+      <th style="cursor:pointer;" onclick="sortLibrary('TSS')">TSS 📅</th>
       <th style="min-width:150px;">Profile</th>
-      <th style="cursor:pointer;" onclick="sortLibrary('Protocol')">Protocol Ôåò</th><th></th>
+      <th style="cursor:pointer;" onclick="sortLibrary('Protocol')">Protocol 📅</th><th></th>
     </tr></thead><tbody id="wk-body"><tr><td colspan="6" class="loading">No workouts match — clear a filter or broaden your search.</td></tr></tbody></table>
   </div>
 </div>
@@ -2477,7 +2477,7 @@ window.addEventListener('unhandledrejection', function(e) {
            aria-expanded="true" aria-controls="plan-config-body"
            onclick="togglePlanConfig()"
            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();togglePlanConfig();}">
-        <span class="planfold-chev" id="plan-config-chev">Ôû¥</span>
+        <span class="planfold-chev" id="plan-config-chev">📍</span>
         <span class="planfold-title">Plan Configuration</span>
         <span class="planfold-hint" id="plan-config-hint">Hide</span>
       </div>
@@ -2501,7 +2501,7 @@ window.addEventListener('unhandledrejection', function(e) {
              onclick="selectPlanMode('continuous')"
              onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectPlanMode('continuous');}"
              style="flex:1;min-width:210px;border:1px solid var(--border);border-radius:8px;padding:10px 12px;cursor:pointer;background:transparent;">
-          <div style="font-weight:700;font-size:13px;">ÔÖ¥ Train continuously</div>
+          <div style="font-weight:700;font-size:13px;">⏱️rain continuously</div>
           <div style="font-size:11px;color:var(--text2);margin-top:3px;">No end date — reads your rides &amp; readiness daily, extends itself weekly.</div>
         </div>
       </div>
@@ -2600,7 +2600,7 @@ window.addEventListener('unhandledrejection', function(e) {
         <div id="cb-sum" style="font-size:11px;color:var(--text2);"></div>
       </div>
       <!-- v3.1.0 (IP_PLAN_CONTINUITY MODE 1): backdated start. Applies to every
-           goal type. Checked + a past date ÔçÆ the plan anchors on that date;
+           goal type. Checked + a past date 🔍 the plan anchors on that date;
            weeks already behind you are marked done and you enter mid-plan.
            MODE 2 ("Place me from my rides"): the recognizer scans the ride
            archive, proposes a credit, and Confirm stores the RESULT as an
@@ -2697,7 +2697,7 @@ window.addEventListener('unhandledrejection', function(e) {
              while running / "Reconnect…" linking to the Settings connection
              card when the OAuth grant lacks CALENDAR:WRITE. -->
         <button class="btn" id="btn-icu-push" style="display:none;" onclick="icuPushNow()">Push to intervals.icu calendar</button>
-        <span id="plan-autoupdate-note" style="font-size:11px;color:var(--text3);">Ôå╗ Auto-updates after each sync &amp; when you open this tab.</span>
+        <span id="plan-autoupdate-note" style="font-size:11px;color:var(--text3);">🌊 Auto-updates after each sync &amp; when you open this tab.</span>
         <!-- v4.6.7 IMPL-SUM: summary modal trigger BEGIN -->
         <button class="btn" onclick="showProgrammeSummary()" id="btn-programme-summary" title="End-of-plan literature-grounded recap">Programme summary</button>
         <!-- v4.6.7 IMPL-SUM: summary modal trigger END -->
@@ -3200,7 +3200,7 @@ window.addEventListener('unhandledrejection', function(e) {
 
   <!-- v1.4.4 WKO5-RADAR — Power Profile Radar (5 assi stile WKO5):
        Sprint NM / Anaerobic / VO2max / Threshold / Endurance.
-       Confronta W/kg atleta vs benchmark ├®lite per ogni durata. -->
+       Confronta W/kg atleta vs benchmark élite per ogni durata. -->
   <div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
     <div class="card" id="phenotype-radar-card" style="min-height:380px;">
       <h3>Power Profile Radar</h3>
@@ -3212,7 +3212,7 @@ window.addEventListener('unhandledrejection', function(e) {
       </div>
       <div id="phenotype-empty-msg" style="display:none;text-align:center;padding:40px 20px;color:var(--text3);font-size:13px;">
         Importa un FIT o connetti Intervals.icu per generare il tuo profilo di potenza.
-        Il radar mostra i tuoi punti di forza su 5 assi (Sprint, Anaerobica, VO2max, Soglia, Endurance) confrontati con i benchmark ├®lite.
+        Il radar mostra i tuoi punti di forza su 5 assi (Sprint, Anaerobica, VO2max, Soglia, Endurance) confrontati con i benchmark élite.
       </div>
     </div>
     <div class="card" id="power-duration-curve-card" style="min-height:380px;">
@@ -3262,7 +3262,7 @@ window.addEventListener('unhandledrejection', function(e) {
            default stays the pre-3.4.4 90-day window. -->
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;position:relative;">
         <div class="date-range-btns" style="flex-wrap:wrap;justify-content:flex-end;">
-          <button onclick="ffToggleCal()" id="ff-range-label" title="Pick a custom date range">Date range Ôû¥</button>
+          <button onclick="ffToggleCal()" id="ff-range-label" title="Pick a custom date range">Date range 📍</button>
           <button onclick="ffSelectDays(30)" id="dr-30">1m</button>
           <button onclick="ffSelectDays(42)" id="dr-42">42d</button>
           <button onclick="ffSelectDays(90)" id="dr-90" class="active">3m</button>
@@ -3545,7 +3545,7 @@ window.addEventListener('unhandledrejection', function(e) {
       <div class="form-row">
         <div class="form-group">
           <label>Match short intervals to my measured power
-            <span class="hint" title="When a workout's short hard efforts (Ôëñ2 min, above ~120%FTP) ask for more power than your own MEASURED max-power curve says you can do, lower them to your real ceiling. Off: never change a file. Prompt: ask before each download. On: cap silently. Only your MEASURED Pmax (from intervals.icu or typed in Setup) is used — never an estimate." style="margin-left:4px;cursor:help;color:var(--text3);border:1px solid var(--border);border-radius:50%;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;">?</span>
+            <span class="hint" title="When a workout's short hard efforts (📋2 min, above ~120%FTP) ask for more power than your own MEASURED max-power curve says you can do, lower them to your real ceiling. Off: never change a file. Prompt: ask before each download. On: cap silently. Only your MEASURED Pmax (from intervals.icu or typed in Setup) is used — never an estimate." style="margin-left:4px;cursor:help;color:var(--text3);border:1px solid var(--border);border-radius:50%;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;">?</span>
           </label>
           <select id="set-cap-short">
             <option value="off">Off (never change a file)</option>
@@ -3564,7 +3564,7 @@ window.addEventListener('unhandledrejection', function(e) {
           <span id="hr-rows-custom-badge" style="display:none;margin-left:6px;font-size:9px;color:var(--accent);">custom</span>
         </div>
         <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:6px;align-items:center;font-size:11px;">
-          <span style="color:var(--text3);">Z1 recovery Ôëñ</span><input type="number" id="hrr-z1h" style="width:70px;"><span></span>
+          <span style="color:var(--text3);">Z1 recovery 📋</span><input type="number" id="hrr-z1h" style="width:70px;"><span></span>
           <span style="color:var(--text3);">Z2 endurance</span><input type="number" id="hrr-z2l" style="width:70px;"><input type="number" id="hrr-z2h" style="width:70px;">
           <span style="color:var(--text3);">Z3 tempo</span><input type="number" id="hrr-z3l" style="width:70px;"><input type="number" id="hrr-z3h" style="width:70px;">
           <span style="color:var(--text3);">Z4 threshold</span><input type="number" id="hrr-z4l" style="width:70px;"><input type="number" id="hrr-z4h" style="width:70px;">
@@ -3818,7 +3818,7 @@ window.addEventListener('unhandledrejection', function(e) {
         <option value="extra">Solo extra da sforzo</option>
       </select>
       <label class="btn" style="font-size:11px;padding:3px 10px;cursor:pointer;">
-        Ôñô Importa PDF nutrizionista<input type="file" id="nutri-pdf-tab" accept="application/pdf" style="display:none;" onchange="importNutriPDF()">
+        🎯mporta PDF nutrizionista<input type="file" id="nutri-pdf-tab" accept="application/pdf" style="display:none;" onchange="importNutriPDF()">
       </label>
       <span id="nutri-pdf-meta" style="font-size:10px;color:var(--text3);"></span>
     </div>
@@ -3860,7 +3860,7 @@ window.addEventListener('unhandledrejection', function(e) {
     <h3>Composizione corporea (BIA)</h3>
     <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center;">
       <label class="btn" style="font-size:11px;padding:3px 10px;cursor:pointer;">
-        Ôñô Importa PDF BIA<input type="file" id="bia-pdf" accept="application/pdf" style="display:none;" onchange="importBIA()">
+        🎯mporta PDF BIA<input type="file" id="bia-pdf" accept="application/pdf" style="display:none;" onchange="importBIA()">
       </label>
       <span style="font-size:10px;color:var(--text3);">oppure incolla i valori (JSON) o usa l'import manuale qui sotto</span>
     </div>
@@ -3878,7 +3878,7 @@ window.addEventListener('unhandledrejection', function(e) {
       <div class="form-group"><label>BMI</label><input type="number" step="0.1" id="bia-bmi"></div>
     </div>
     <button class="btn" style="font-size:11px;padding:4px 12px;margin-top:6px;" onclick="saveBIAmanual()">Salva misurazione</button>
-    <button class="btn" style="font-size:11px;padding:4px 12px;margin-top:6px;background:var(--accent);color:#fff;" onclick="syncBIAicu()">Ôçº Sync Intervals.icu</button>
+    <button class="btn" style="font-size:11px;padding:4px 12px;margin-top:6px;background:var(--accent);color:#fff;" onclick="syncBIAicu()">🔧ync Intervals.icu</button>
     <span id="bia-sync-msg" style="font-size:10px;color:var(--text3);margin-left:6px;"></span>
   </div>
   <div class="card">
@@ -3890,7 +3890,7 @@ window.addEventListener('unhandledrejection', function(e) {
     <div style="font-size:11px;color:var(--text2);">
       Ogni misurazione BIA importata qui viene sincronizzata su Intervals.icu
       (<code>/wellness</code>): <b>peso, % massa grassa, idratazione%, massa muscolare (SMM),
-      BMI</b> (pi├╣ massa ossea/proteine/grasso viscerale/etá metabolica se presenti).
+      BMI</b> (più massa ossea/proteine/grasso viscerale/etá metabolica se presenti).
       Serve Intervals.icu collegato (Impostazioni → Connessione ICU).
       La dieta del nutrizionista resta locale (ICU non gestisce piani alimentari).
     </div>
@@ -3908,7 +3908,7 @@ window.addEventListener('unhandledrejection', function(e) {
         <div id="profile-type-badge" style="font-size:18px;font-weight:700;color:var(--accent);margin-bottom:6px;">—</div>
         <div id="profile-focus" style="font-size:13px;color:var(--text2);margin-bottom:12px;"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
-          <div><span style="color:var(--text3);">VOÔéémax</span><br><b id="p-vo2max">—</b></div>
+          <div><span style="color:var(--text3);">VO💎max</span><br><b id="p-vo2max">—</b></div>
           <div><span style="color:var(--text3);">VLamax</span><br><b id="p-vlamax">—</b></div>
           <div><span style="color:var(--text3);">FatMax</span><br><b id="p-fatmax">—</b></div>
           <div><span style="color:var(--text3);">W/kg</span><br><b id="p-wkg">—</b></div>
@@ -5254,13 +5254,13 @@ function renderElevSvg(points) {
 async function openCourseDetail(region, filename) {
   try {
     // v1.8.8 Bug 4 — pre-v1.8.6 cached routes.json carried Unicode like
-    // "M├╝r" / "pav├®" in the filename; the disk is ASCII since v1.8.6
+    // "Mür" / "pavé" in the filename; the disk is ASCII since v1.8.6
     // (Mur / pave). Normalize: drop combining marks, then strip any
     // remaining non-ASCII so the request matches what the FS has. The
     // backend also retries NFC/NFD on its side as defense-in-depth.
     let asciiFilename = String(filename || '');
     try {
-      // NFD splits "├®" → "e" + U+0301 combining acute. Strip the combining
+      // NFD splits "é" → "e" + U+0301 combining acute. Strip the combining
       // marks (U+0300 .. U+036F), then drop any remaining non-ASCII so the
       // request matches the on-disk ASCII filename from the v1.8.6 rename.
       asciiFilename = asciiFilename.normalize('NFD').replace(/[╠Ç-═»]/g, '');
@@ -5298,7 +5298,7 @@ async function openCourseDetail(region, filename) {
 
 function powerToZone(pct) {
   // Allen-Coggan boundaries (kept in sync with zones.py / classify_library_content.py
-  // ZONES_FTP). v1.0.5 fixed the 88% Z3ÔåöZ4 boundary in the Python source-of-truth.
+  // ZONES_FTP). v1.0.5 fixed the 88% Z3📊 boundary in the Python source-of-truth.
   if (pct >= 105) return {zone:'Z6', color:'var(--z6)'};
   if (pct >= 96)  return {zone:'Z5', color:'var(--z5)'};
   if (pct >= 88)  return {zone:'Z4', color:'var(--z4)'};
@@ -5323,13 +5323,13 @@ function _hrTipText(t) {
     // Z1 recovery: ceiling only — a bpm floor on easy riding just generates
     // "too low" alarms (matches the FIT builder's no-floor rule, red-team D4).
     let s = t.zone === 1
-      ? `Ôëñ${t.bpm_high} bpm (${esc(t.zone_name || '')})`
+      ? `📋${t.bpm_high} bpm (${esc(t.zone_name || '')})`
       : `${t.bpm_low}–${t.bpm_high} bpm (${esc(t.zone_name || '')})`;
     if (t.drift) s += ' • expect upward drift — start low in range';
     return s;
   }
   if (t.kind === 'hr_ramp') {
-    if (t.bpm_start === t.bpm_end) return `Ôëê${t.bpm_end} bpm (capped at threshold HR)`;
+    if (t.bpm_start === t.bpm_end) return `📊${t.bpm_end} bpm (capped at threshold HR)`;
     return `ramp ${t.bpm_start}→${t.bpm_end} bpm`;
   }
   const r = t.rpe_low === t.rpe_high ? `RPE ${t.rpe_low}` : `RPE ${t.rpe_low}–${t.rpe_high}`;
@@ -5487,7 +5487,7 @@ function workoutProfileSVG(segments, ftp, totalSec, hrCtx) {
     {pct: 75, label: _ax['75'] != null ? `${_ax['75']} bpm` : ''},
     {pct: 90, label: _ax['90'] != null ? `${_ax['90']} bpm` : ''},
     {pct: 105, label: _ax['105'] != null ? `${_ax['105']} bpm ┬À LTHR zone top` : ''},
-    {pct: 120, label:'RPE Ôåæ'}
+    {pct: 120, label:'RPE 📈'}
   ] : [
     {pct: 55, label:'Z1/Z2'}, {pct: 75, label:'Z2/Z3'},
     {pct: 88, label:'SS'}, {pct: 100, label:'FTP'}, {pct: 120, label:'VO2'}
@@ -5497,7 +5497,7 @@ function workoutProfileSVG(segments, ftp, totalSec, hrCtx) {
     const pw = ftp * t.pct / 100;
     if (pw > maxPwr) continue;
     const y = yScale(pw);
-    const emph = hrMode ? t.pct === 105 : t.pct === 100; // FTP line Ôåö threshold-HR line
+    const emph = hrMode ? t.pct === 105 : t.pct === 100; // FTP line 📊 threshold-HR line
     const dash = emph ? '4,2' : '2,4';
     const col = emph ? 'var(--text)' : 'var(--text3)';
     const opac = emph ? '0.6' : '0.3';
@@ -5570,7 +5570,7 @@ function capAdvisoryHtml(cc, category, filename, d) {
 }
 
 async function openWorkoutDetail(category, filename, meta, view) {
-  // ``view`` ('hr'|'power') = the modal's ➕/ÔØñ peek toggle — overrides the
+  // ``view`` ('hr'|'power') = the modal's ➕/🌲eek toggle — overrides the
   // global target_mode for this render AND for the FIT download (WYSIWYG).
   openModal('<div class="loading">Loading workout...</div>');
   try {
@@ -5588,12 +5588,12 @@ async function openWorkoutDetail(category, filename, meta, view) {
     const chart = workoutProfileSVG(d.segments, d.ftp, d.total_seconds, hrCtx);
     const durMin = Math.round(d.total_seconds / 60);
     const _calBounds = _calDateBounds();   // calendar-push (2026-07-07): picker bounds
-    // ➕/ÔØñ peek toggle — instant swap between watt and HR views; the FIT
+    // ➕/🌲eek toggle — instant swap between watt and HR views; the FIT
     // download follows the active view. Shown whenever an HR view is
     // possible (sane LTHR), regardless of the global target_mode.
     const _tgl = d.hr_available ? `<span style="margin-left:auto;display:inline-flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;font-size:11px;">
         <button class="btn btn-sm" style="border:none;border-radius:0;${!hrCtx ? 'background:var(--accent);color:#fff;' : 'background:transparent;'}" onclick="openWorkoutDetail('${escJs(category)}','${escJs(filename)}', window._wkDetailMeta, 'power')">➕ Watts</button>
-        <button class="btn btn-sm" style="border:none;border-radius:0;${hrCtx ? 'background:var(--accent);color:#fff;' : 'background:transparent;'}" onclick="openWorkoutDetail('${escJs(category)}','${escJs(filename)}', window._wkDetailMeta, 'hr')">ÔØñ HR</button>
+        <button class="btn btn-sm" style="border:none;border-radius:0;${hrCtx ? 'background:var(--accent);color:#fff;' : 'background:transparent;'}" onclick="openWorkoutDetail('${escJs(category)}','${escJs(filename)}', window._wkDetailMeta, 'hr')">🌲 HR</button>
       </span>` : '';
     const metaHtml = `<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--text2);margin-bottom:12px;">
       <span>${durMin} min</span>
@@ -6133,7 +6133,7 @@ function trendArrow(current, previous) {
   if (current === null || previous === null || current === undefined || previous === undefined) return '';
   const diff = current - previous;
   if (Math.abs(diff) < 0.5) return '<span class="wb-flat">→</span>';
-  return diff > 0 ? '<span class="wb-up">Ôåæ</span>' : '<span class="wb-down">Ôåô</span>';
+  return diff > 0 ? '<span class="wb-up">📈</span>' : '<span class="wb-down">📉</span>';
 }
 
 function miniSparklineSVG(values, w=80, h=24, color='var(--accent)', band=null) {
@@ -6417,10 +6417,10 @@ function ffUpdateLabel(data) {
   const el = $('ff-range-label');
   if (!el) return;
   const ds = (data || []).map(r => r && r.date).filter(Boolean);
-  if (!ds.length) { el.textContent = 'Date range Ôû¥'; _ffLabelRange = null; return; }
+  if (!ds.length) { el.textContent = 'Date range 📍'; _ffLabelRange = null; return; }
   const f = ds.reduce((a, b) => a < b ? a : b), t = ds.reduce((a, b) => a > b ? a : b);
   _ffLabelRange = {from: f, to: t};
-  el.textContent = ffRangeLabel(f, t) + ' Ôû¥';
+  el.textContent = ffRangeLabel(f, t) + ' 📍';
 }
 
 // ★★ Calendar popover (two-month pair, ICU-style) ★★
@@ -6486,10 +6486,10 @@ function ffRenderCal() {
     }).join('');
     return `<div class="ff-cal-panel">
       <div class="ff-cal-head">
-        <button class="ff-cal-chev" onclick="ffCalShift(${idx}, -1)" aria-label="Previous month">ÔÇ╣</button>
+        <button class="ff-cal-chev" onclick="ffCalShift(${idx}, -1)" aria-label="Previous month">⚙️</button>
         <select onchange="ffCalSetMonth(${idx}, this.value)">${monthOpts}</select>
         <select onchange="ffCalSetYear(${idx}, this.value)">${yearOpts}</select>
-        <button class="ff-cal-chev" onclick="ffCalShift(${idx}, 1)" aria-label="Next month">ÔÇ║</button>
+        <button class="ff-cal-chev" onclick="ffCalShift(${idx}, 1)" aria-label="Next month">⚙️</button>
       </div>
       <div class="ff-cal-grid">
         ${['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(d => `<div class="ff-cal-dow">${d}</div>`).join('')}
@@ -6633,7 +6633,7 @@ function loadAnalysisTab() {
 // Clive King (MIT). Rendering only: all math stays server-side.
 
 const ESPE_SYS_LABEL = {
-  anaerobic: 'Anaerobica (1m)', vo2: 'VOÔéémax (5m)',
+  anaerobic: 'Anaerobica (1m)', vo2: 'VO💎max (5m)',
   threshold: 'Soglia (20m)', aerobic_durability: 'Durabilitá aerobica (60m)',
 };
 const ESPE_CLS_LABEL = {
@@ -6803,7 +6803,7 @@ async function loadPhenotypeRadar() {
           },
           {
             label: 'ëlite benchmark',
-            data: points.map(() => 85),  // linea riferimento ├®lite
+            data: points.map(() => 85),  // linea riferimento élite
             backgroundColor: 'transparent',
             borderColor: isLight ? '#94a3b8' : '#64748b',
             borderWidth: 1,
@@ -6951,7 +6951,7 @@ async function loadRiderStats() {
       + _rsRow('DFA-a1 AeT', h.dfa_aet, {unit: 'bpm',
           extra: h.dfa_aet && h.dfa_aet.watts ? ` <span style="color:var(--text3);font-weight:400;">/ ${Math.round(h.dfa_aet.watts)}W</span>` : ''});
     const efTrend = ef.ef && ef.ef.trend
-      ? ` <span style="font-weight:400;" title="42d trend ${ef.ef.trend_pct != null ? ef.ef.trend_pct + '%' : ''}">${ef.ef.trend === 'up' ? '↗' : ef.ef.trend === 'down' ? 'Ôåÿ' : '→'}</span>` : '';
+      ? ` <span style="font-weight:400;" title="42d trend ${ef.ef.trend_pct != null ? ef.ef.trend_pct + '%' : ''}">${ef.ef.trend === 'up' ? '↗' : ef.ef.trend === 'down' ? '💎: '→'}</span>` : '';
     let loadRows = _rsRow('EF (NP/HR)', ef.ef, {extra: efTrend})
       + _rsRow('Decoupling', ef.decoupling, {unit: '%'})
       + _rsRow('CTL', ld.ctl) + _rsRow('ATL', ld.atl) + _rsRow('TSB', ld.tsb);
@@ -7063,7 +7063,7 @@ let _pcPollTimer = null, _pcPollCount = 0;  // v3.2.1 background-backfill auto-p
 // spinner. Used by the power curve + fatigue resistance while streams cache.
 function backfillBarHtml(pct, label) {
   pct = Math.max(0, Math.min(100, Math.round(pct || 0)));
-  // 3.4.1 Ôæó — the .backfill-bar class is the "a live bar is showing" hook:
+  // 3.4.1 🌲— the .backfill-bar class is the "a live bar is showing" hook:
   // loaders check for it before writing a bare "Loading…" placeholder so a
   // 4s poll upgrades the bar in place instead of flashing it away.
   return `<div class="backfill-bar" style="font-size:12px;color:var(--text2);line-height:1.6;padding:8px 0;">
@@ -7082,7 +7082,7 @@ async function loadPowerCurve(force=false) {
   if (_powerCurveInflight && !force) return;
   _powerCurveInflight = true;
   if (!force) { _pcPollCount = 0; clearTimeout(_pcPollTimer); }  // A2: fresh open re-enables polling
-  // 3.4.1 Ôæó — never clobber a visible backfill bar with a bare "Loading…";
+  // 3.4.1 🌲— never clobber a visible backfill bar with a bare "Loading…";
   // the 4s polls upgrade the bar in place below instead.
   if (meta && !meta.querySelector('.backfill-bar')) meta.textContent = 'Loading…';
   try {
@@ -7095,7 +7095,7 @@ async function loadPowerCurve(force=false) {
     const needsBackfill = data.needs_backfill === true;
     renderPowerCurve();
     if (nRides === 0 || needsBackfill) {
-      // 3.4.1 Ôæú — the v3.2.1 bar + auto-poll targeted
+      // 3.4.1 🌲— the v3.2.1 bar + auto-poll targeted
       // #power-curve-loading-placeholder, an element DELETED back in v2.2.2
       // (c3d2d6e7), so neither ever rendered in any shipped build. Render
       // the bar into the card's meta line (#power-curve-meta — always
@@ -7475,7 +7475,7 @@ async function pollFirstSyncTopbar() {
 // v1.3.0 IMPL-DASHBOARD — Fatigue Resistance panel.
 // 3.4.1 M2: loads with the Analysis tab (always-open card; was lazy-loaded
 // on <details> open). Reads /api/profile/fatigue-resistance with
-// kj_threshold Ôêê {1500, 2000} per PATCH G5. Renders headline + per-duration
+// kj_threshold 📊1500, 2000} per PATCH G5. Renders headline + per-duration
 // table + scatter (kJ on x, watts on y, color per duration tier).
 let _fatigueResistanceLoaded = false;
 let _fatigueResistanceInflight = false;
@@ -7487,7 +7487,7 @@ let _fatigueScatterChart = null;
 // opens don't stack timers.
 let _fatigueResistanceBackfillStart = 0;
 let _fatigueResistanceBackfillTimer = null;
-// 3.4.1 Ôæó helpers — poll bookkeeping shared by the two render branches.
+// 3.4.1 🌲helpers — poll bookkeeping shared by the two render branches.
 function _fatigueClearPoll() {
   _fatigueResistanceBackfillStart = 0;
   if (_fatigueResistanceBackfillTimer) {
@@ -7511,7 +7511,7 @@ function _fatigueSchedulePoll() {
   }, 4000);
   return true;
 }
-// 3.4.1 Ôæí — "N rides have no power data" note (terminally-unfetchable rides
+// 3.4.1 🌲— "N rides have no power data" note (terminally-unfetchable rides
 // counted done by the backend so the pct can reach 100). Muted, tiny, sits
 // under whatever the panel is showing.
 function _fatigueUnfetchableNoteHtml(d) {
@@ -7519,7 +7519,7 @@ function _fatigueUnfetchableNoteHtml(d) {
   if (!(n > 0)) return '';
   return `<div class="fr-unfetchable-note" style="margin-top:6px;font-size:10px;color:var(--text3);">${n} ride${n === 1 ? ' has' : 's have'} no power data on intervals.icu — skipped.</div>`;
 }
-// 3.4.1 Ôæó — thin footer variant of the backfill bar: shown UNDER a rendered
+// 3.4.1 🌲— thin footer variant of the backfill bar: shown UNDER a rendered
 // robustness result while the remaining streams still hydrate (pct<100).
 function _fatigueFooterBarHtml(pct) {
   pct = Math.max(0, Math.min(100, Math.round(pct || 0)));
@@ -7534,7 +7534,7 @@ async function loadFatigueResistance(force=false) {
   if (!body) return;
   if (_fatigueResistanceInflight) return;
   _fatigueResistanceInflight = true;
-  // 3.4.1 Ôæó — never clobber a visible backfill bar (or a result carrying
+  // 3.4.1 🌲— never clobber a visible backfill bar (or a result carrying
   // its footer bar) with a bare "Loading…": the 4s polls upgrade in place.
   if (!body.querySelector('.backfill-bar')) {
     body.innerHTML = '<div style="color:var(--text3);">Loading…</div>';
@@ -7570,7 +7570,7 @@ async function loadFatigueResistance(force=false) {
     const triggered = d && d.auto_backfill_triggered === true;
     const pct = Number((d && d.power_streams_cached_pct) || 0);
     const backfilling = (triggered || (pct > 0 && pct < 100));
-    // 3.4.1 Ôæó — a computable result renders EVEN while streams are still
+    // 3.4.1 🌲— a computable result renders EVEN while streams are still
     // caching: the score shows immediately and the bar shrinks to a thin
     // footer under it. (Pre-3.4.1 the bar branch early-returned INSTEAD of
     // the score, hiding a perfectly valid robustness_score behind a bar
@@ -7954,7 +7954,7 @@ function renderBanisterValidation(d) {
   const badge = document.getElementById('banister-oos-comparison-badge');
   if (!c) return;
   // Comparison badge — hidden if no comparison or insufficient_data
-  // (G1 patch: success ÔçÆ comparison Ôêê {better,in_line,worse}; nullable
+  // (G1 patch: success 🔍 comparison 📊better,in_line,worse}; nullable
   // path covers _empty_response + endpoint exception path).
   if (badge) {
     if (!d.comparison || d.comparison === 'insufficient_data') {
@@ -8443,8 +8443,8 @@ async function loadMigrationToast() {
     if (localStorage.getItem(key) === '1') return;
     const cols = m.columns_added || 0;
     const msg = cols > 0
-      ? 'Ô£à Migrated from v' + from + ' → v' + to + ', ' + cols + ' columns added, all rider data preserved.'
-      : 'Ô£à Migrated from v' + from + ' → v' + to + ' — all rider data preserved.';
+      ? '📊igrated from v' + from + ' → v' + to + ', ' + cols + ' columns added, all rider data preserved.'
+      : '📊igrated from v' + from + ' → v' + to + ' — all rider data preserved.';
     showToast(msg, 5000);
     try { localStorage.setItem(key, '1'); } catch (_) {}
   } catch (_) {
@@ -8467,7 +8467,7 @@ async function loadPlanAdoptionToast() {
     if (!hit) return;
     const key = 'plan-adoption-toast-shown-' + (hit.ts || '');
     if (localStorage.getItem(key) === '1') return;
-    showToast('Ô£à Restored your pre-upgrade training plan — the replaced snapshot was kept as a backup.', 7000);
+    showToast('📈estored your pre-upgrade training plan — the replaced snapshot was kept as a backup.', 7000);
     try { localStorage.setItem(key, '1'); } catch (_) {}
   } catch (_) {
     // silent — the toast is a courtesy, never a boot dependency.
@@ -8600,7 +8600,7 @@ async function loadHome() {
     const _noData = (s.sleep_h == null && s.hrv_ms == null && s.sleep_score == null);
     if (_staleAsof) {
       $('sleep-metrics').insertAdjacentHTML('afterend',
-        `<div id="sleep-today-note" style="font-size:10px;font-style:italic;color:var(--text3);margin-top:6px;">ÔÅ│ Italic values are from your last synced day (${_dLbl(_staleAsof)}) — today's usually land mid-morning from intervals.icu.</div>`);
+        `<div id="sleep-today-note" style="font-size:10px;font-style:italic;color:var(--text3);margin-top:6px;">📊 Italic values are from your last synced day (${_dLbl(_staleAsof)}) — today's usually land mid-morning from intervals.icu.</div>`);
     } else if (_noData) {
       $('sleep-metrics').insertAdjacentHTML('afterend',
         `<div id="sleep-today-note" style="font-size:10px;color:var(--text3);margin-top:6px;">No sleep or HRV yet — connect a Garmin/Oura/Whoop source in intervals.icu and it'll show here.</div>`);
@@ -8632,7 +8632,7 @@ async function loadHome() {
         const current = Math.round(eftpVals[eftpVals.length - 1]);
         const peak = Math.round(eftpVals.reduce((a, b) => Math.max(a, b), 0));
         const prev = eftpVals.length >= 14 ? Math.round(eftpVals[eftpVals.length - 14]) : Math.round(eftpVals[0]);
-        const arrow = current > prev ? '<span class="wb-up">Ôåæ</span>' : current < prev ? '<span class="wb-down">Ôåô</span>' : '<span class="wb-flat">→</span>';
+        const arrow = current > prev ? '<span class="wb-up">📈</span>' : current < prev ? '<span class="wb-down">📉</span>' : '<span class="wb-flat">→</span>';
         $('eftp-card').innerHTML = `
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
             <div><span style="font-size:28px;font-weight:800;">${current}W</span> ${arrow}</div>
@@ -8808,7 +8808,7 @@ async function loadReadinessComposite() {
     } else if (sev === 'tier_down') {
       actionHtml = `
         <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-          <button class="btn btn-primary" id="apply-tier-down-btn" onclick="applyReadinessTierDown()" style="font-size:11px;padding:5px 12px;">Ôçú Ease today's session</button>
+          <button class="btn btn-primary" id="apply-tier-down-btn" onclick="applyReadinessTierDown()" style="font-size:11px;padding:5px 12px;">🔧ase today's session</button>
           <button class="btn" id="apply-week-tier-down-btn" onclick="applyWeekAutoAdjust()" style="font-size:11px;padding:5px 12px;">Auto-adjust this week</button>
         </div>
         <div id="apply-tier-down-status" style="font-size:11px;color:var(--text2);margin-top:6px;"></div>
@@ -8945,7 +8945,7 @@ async function _dfaPollBackfill(host, taskId, onDone) {
   if (typeof onDone === 'function') onDone(null);
 }
 
-// 3.4.1 Ôæñ/Ôæ® — shared ICU activity-sync strip (home DFA card + DFA tab).
+// 3.4.1 🌲/🌲 — shared ICU activity-sync strip (home DFA card + DFA tab).
 // The sync itself is auto-kicked by the home load (/api/activities,
 // /api/today-session, /api/calendar all call _kick_lazy_icu_sync); these
 // two helpers only VISUALIZE GET /api/sync/progress while state==='running'
@@ -8989,7 +8989,7 @@ async function _renderDfaCard(host, d) {
   const failed = Number(d && d.n_fetch_failed || 0);
   let diag = '';
   if (recent === 0) {
-    // 3.4.1 Ôæñ — "no rides indexed yet" was a DEAD END while the auto-kicked
+    // 3.4.1 🌲 — "no rides indexed yet" was a DEAD END while the auto-kicked
     // ICU sync was busy writing the very envelopes this card needs. If the
     // sync is running, show its live bar instead and re-fetch when it lands
     // (the sync computes DFA per new activity, so values arrive with it).
@@ -9063,7 +9063,7 @@ async function loadHomeSnapshotDfa(_activitiesUnused) {
 
 // ★★★ v1.8.14 — DFA ╬▒1 TAB ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 // Per MASTER_DECISIONS_v1814 ┬º10 (grilled). Reads /api/profile/dfa-rides
-// (scan-on-read, no stream re-fetch). Aggregate Ôåö per-ride toggle; r┬▓
+// (scan-on-read, no stream re-fetch). Aggregate 📊 per-ride toggle; r┬▓
 // shown + color-coded per channel cell; (i) tooltip; reuses
 // _dfaAlpha1ChartSvg for the per-ride curve. On stale-version records,
 // kicks a ONE-TIME migrate backfill (localStorage-throttled) that
@@ -9140,7 +9140,7 @@ async function loadDfaTab() {
   _renderDfaPerRide(d);
   setDfaView(_dfaView);
 
-  // 3.4.1 Ôæñ — fresh profile: zero indexed rides means the DFA backfill has
+  // 3.4.1 🌲 — fresh profile: zero indexed rides means the DFA backfill has
   // nothing to augment (candidates=0 renders no strip) while the ICU sync
   // is still writing envelopes. Surface the live sync strip instead and
   // reload the tab when it lands; skip the backfill/migrate kicks until then.
@@ -9177,7 +9177,7 @@ async function loadDfaTab() {
 // into #dfa-tab-status and reloads the aggregate when new values land.
 async function _dfaTabUpdateProgress() {
   const host = document.getElementById('dfa-tab-status');
-  // 3.4.1 Ôæñ — NO localStorage-throttle bail on the TAB surface: the key is
+  // 3.4.1 🌲 — NO localStorage-throttle bail on the TAB surface: the key is
   // shared with the home card (which POSTs on every dashboard load), so
   // within 30 min of app start the tab's "Updating yy of zz" strip never
   // showed even while a backfill was actively computing. Always POST — the
@@ -9502,7 +9502,7 @@ async function applyReadinessTierDown() {
       }
       if (statusEl) statusEl.innerHTML = `<span style="color:var(--orange);">${esc(msg)}</span>`;
       try { showToast(msg, 4000); } catch(_) {}
-      if (btn) { btn.disabled = false; btn.textContent = 'Ôçú Apply tier-down to today'; }
+      if (btn) { btn.disabled = false; btn.textContent = '🔧pply tier-down to today'; }
       return;
     }
     const o = (data.old_type || '').toUpperCase();
@@ -9521,7 +9521,7 @@ async function applyReadinessTierDown() {
     try { loadWeeklyCalendar(); } catch(_) {}
   } catch (e) {
     if (statusEl) statusEl.innerHTML = `<span style="color:var(--red);">Network error: ${esc(String(e && e.message || e))}</span>`;
-    if (btn) { btn.disabled = false; btn.textContent = 'Ôçú Apply tier-down to today'; }
+    if (btn) { btn.disabled = false; btn.textContent = '🔧pply tier-down to today'; }
   }
 }
 
@@ -9661,7 +9661,7 @@ async function _applyWeekAutoAdjustCommit() {
     if (!res.ok || data.ok === false) {
       const reason = (data.error || ('HTTP ' + res.status));
       const failMsg = severity === 'rest'
-        ? `Ô£ù Apply failed: ${reason}`
+        ? `📊pply failed: ${reason}`
         : `Auto-adjust failed: ${reason}`;
       try { showToast(failMsg, 4000); } catch(_) {}
       if (applyBtn) { applyBtn.disabled = false; applyBtn.textContent = 'Apply'; }
@@ -9691,7 +9691,7 @@ async function _applyWeekAutoAdjustCommit() {
     try { loadReadinessComposite(); } catch(_) {}
   } catch (e) {
     const msg = severity === 'rest'
-      ? `Ô£ù Apply failed: ${(e && e.message) || e}`
+      ? `📊pply failed: ${(e && e.message) || e}`
       : `Network error: ${(e && e.message) || e}`;
     try { showToast(msg, 4000); } catch(_) {}
     if (applyBtn) { applyBtn.disabled = false; applyBtn.textContent = 'Apply'; }
@@ -9723,10 +9723,10 @@ function _calMatchBadge(compare) {
   if (!compare || !compare.match_status) return '';
   const MATCH_VISUAL = {
     matched:           { glyph: '✓', color: 'var(--green)',  label: 'matched' },
-    matched_extended:  { glyph: 'Ôñ┤', color: 'var(--accent)', label: 'extended' },
-    matched_truncated: { glyph: 'ÔñÁ', color: 'var(--yellow)', label: 'truncated' },
+    matched_extended:  { glyph: '🎯', color: 'var(--accent)', label: 'extended' },
+    matched_truncated: { glyph: '🎯 color: 'var(--yellow)', label: 'truncated' },
     different_workout: { glyph: '↗', color: 'var(--orange)', label: 'different' },
-    no_plan:           { glyph: 'Ôù»', color: 'var(--text3)',  label: 'no plan' },
+    no_plan:           { glyph: '📅 color: 'var(--text3)',  label: 'no plan' },
   };
   const v = MATCH_VISUAL[compare.match_status];
   if (!v) return '';
@@ -10628,7 +10628,7 @@ async function openRideDetail(rideId) {
       html += `<div style="background:var(--surface2);border-radius:10px;padding:12px;margin-bottom:16px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
           <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:1.5px;">DFA ╬▒1 (HRV non-linearity)</div>
-          <div style="font-size:12px;color:var(--text2);" title="Average DFA ╬▒1 across the ride. VT1 Ôëê 1.0, VT2 Ôëê 0.75.">avg ${avgTxt}</div>
+          <div style="font-size:12px;color:var(--text2);" title="Average DFA ╬▒1 across the ride. VT1 📊 1.0, VT2 📊 0.75.">avg ${avgTxt}</div>
         </div>
         <svg viewBox="0 0 ${W} ${H}" style="width:${W}px;height:${H}px;max-width:100%;" preserveAspectRatio="none">
           <line x1="0" y1="${yVT1}" x2="${W}" y2="${yVT1}" stroke="rgba(34,197,94,0.35)" stroke-width="1" stroke-dasharray="3,2"/>
@@ -10772,7 +10772,7 @@ function _libClampInt(v, lo, hi) {
 }
 
 // Reconcile all four controls from an authoritative (which, value) edit,
-// clamping so min Ôëñ max without swapping. Updates the label. Returns [a,b].
+// clamping so min 📋 max without swapping. Updates the label. Returns [a,b].
 function _libDurationSync(which, rawValue) {
   const minS = $('wk-dur-min'), maxS = $('wk-dur-max');
   const minN = $('wk-dur-min-num'), maxN = $('wk-dur-max-num');
@@ -10832,7 +10832,7 @@ function onLibSearchInput() {
 function onLibSortChange() { _libSortTouched = true; loadWorkouts(); }
 
 // While a query is active and the user never touched Sort: show Relevance;
-// cleared query flips back to Duration Ôû▓ (the no-search default).
+// cleared query flips back to Duration 📍 (the no-search default).
 function _libAutoSort() {
   if (_libSortTouched) return;
   const el = $('wk-sort'); if (!el) return;
@@ -10924,7 +10924,7 @@ function toggleLibAdvanced() {
   panel.style.display = open ? '' : 'none';
   if (btn) {
     btn.setAttribute('aria-expanded', String(open));
-    btn.textContent = open ? 'Advanced Ôû┤' : 'Advanced Ôû¥';
+    btn.textContent = open ? 'Advanced 📍 : 'Advanced 📍';
   }
 }
 
@@ -12562,7 +12562,7 @@ if (!window._chipDelegateInstalled) {
 
 // ---------- Dual-range wiring + chip hints + empty-state placeholder ----------
 // Helper: wire up a single-track / two-thumb dual-range widget. Handles
-// clamping (min Ôëñ max), updates the "Min–Max" label, and paints the
+// clamping (min 📋 max), updates the "Min–Max" label, and paints the
 // colored fill bar between the two thumbs. One call per widget.
 function _wireDualRange(minId, maxId, fillId, labelId, unit) {
   const minEl = document.getElementById(minId);
@@ -12646,7 +12646,7 @@ function _wireDualRange(minId, maxId, fillId, labelId, unit) {
 // can restore it when they switch AWAY from event_preparation. While on
 // event_preparation the field is greyed/disabled and shows the value
 // auto-computed from event_date.
-// v1.8.9 Bug 8 — weeks Ôåö date are now bi-directionally bound; neither
+// v1.8.9 Bug 8 — weeks 📊 date are now bi-directionally bound; neither
 // input is disabled. _planSyncing flag prevents oninput infinite-loop.
 let _planWeeksManualCache = null;
 let _planSyncing = false;
@@ -12714,13 +12714,13 @@ function _syncPlanWeeksToDate() {
 // "continuous" left the Goal dropdown. DOM is the source of truth
 // (data-selected on the cards) so the selection survives re-renders and
 // round-trips from populatePlanFormFromGoal. Cards absent (harness / legacy
-// markup) ÔçÆ goal mode.
+// markup) 🔍 goal mode.
 function _planTrainingMode() {
   const el = document.getElementById('plan-mode-card-continuous');
   return (el && el.dataset && el.dataset.selected === '1') ? 'continuous' : 'goal';
 }
 
-// The ONE mode-aware goal read: continuous card selected ÔçÆ 'continuous'
+// The ONE mode-aware goal read: continuous card selected 🔍 'continuous'
 // (the option is no longer in the dropdown), else the dropdown value.
 // generatePlan / refreshPlanPreview consume this so their payloads stay
 // byte-identical to the dropdown era.
@@ -13157,9 +13157,9 @@ async function _entryFetchStrip(weeks) {
   } catch (_) { return null; }
 }
 
-// L4-UX 2 — horizontal phase strip: one segment per phase (width ÔêØ weeks,
+// L4-UX 2 — horizontal phase strip: one segment per phase (width 📊eeks,
 // per-phase week counts), entry-week hatching over the credited span, a
-// "you are here Ôû╝" marker at the entry boundary, end date on the right.
+// "you are here 🌙" marker at the entry boundary, end date on the right.
 function _entryStripHtml(phases, elapsedWeeks, endIso) {
   const total = (phases || []).reduce((s, p) => s + (p.weeks || 1), 0);
   if (!total) return '';
@@ -13245,7 +13245,7 @@ function _phaseSplitBlocked() {
   if (ps.disabled || ps.state !== 'custom' || !ps.M) return false;
   return (_phaseSplitSum() + (ps.lockedWeeks || 0)) !== ps.M;
 }
-// Payload for generatePlan: only when custom AND Ôëá recommendation (A3 — an
+// Payload for generatePlan: only when custom AND 📋 recommendation (A3 — an
 // identical vector is not a custom split and must not be sent/stored).
 function _phaseSplitPayload() {
   const ps = _phaseSplit;
@@ -13334,7 +13334,7 @@ function _syncPhaseSplitError() {
 
 // v4.6.0 B2: live phase preview — call /api/plan/preview so the right
 // panel uses the SAME derive_phases() logic as /api/plan/generate.
-// v1.8.8 Bug 6 — weeksÔåöevent-date single source of truth. Earlier the
+// v1.8.8 Bug 6 — weeks📊event-date single source of truth. Earlier the
 // preview call could end up reading the OLD slider value (set before the
 // computed value landed). Now: derive the canonical weeks first, push it
 // onto the slider, then read it BACK off the slider for the preview call.
@@ -13344,7 +13344,7 @@ async function refreshPlanPreview() {
   // scan card / clear a re-armed recognized backdate BEFORE the preview
   // reads plan-sdate, so the right panel never previews a stale anchor.
   try { _entryScanCheckStale(); } catch (_) {}
-  // 3.4.2 M6 ┬º5: mode-aware goal (continuous card ÔçÆ 'continuous').
+  // 3.4.2 M6 ┬º5: mode-aware goal (continuous card 🔍 'continuous').
   const goal = _planGoalValue();
   const isEvent = _isEventGoal(goal);
   const eventDate = isEvent ? $('plan-edate').value : '';
@@ -13476,7 +13476,7 @@ function _renderPlanPreviewPhases(phases, planWeeks, goal, eventDate, resp) {
     if (editable) {
       const lo = _pwFloor(row.name), hi = _pwCeil(row.name);
       weeksCell = `<span style="display:inline-flex;align-items:center;gap:4px;margin-left:6px;">
-        <button class="btn" style="padding:0 7px;font-size:12px;line-height:18px;" ${val <= lo ? 'disabled' : ''} onclick="phaseStepperClick('${row.name}',-1)" title="One week less">ÔêÆ</button>
+        <button class="btn" style="padding:0 7px;font-size:12px;line-height:18px;" ${val <= lo ? 'disabled' : ''} onclick="phaseStepperClick('${row.name}',-1)" title="One week less">📈</button>
         <span style="font-size:12px;font-weight:700;min-width:14px;text-align:center;">${val}</span>
         <button class="btn" style="padding:0 7px;font-size:12px;line-height:18px;" ${val >= hi ? 'disabled' : ''} onclick="phaseStepperClick('${row.name}',1)" title="One week more">+</button>
         <span style="font-size:11px;color:var(--text2);">wk${val === 1 ? '' : 's'}${row.name === 'base' ? ' ┬À absorbs extra weeks' : ''}</span>
@@ -13630,11 +13630,11 @@ function renderAvailCalendar() {
     if (data.type === 'unavailable' || data.type === 'injury' || data.type === 'illness') {
       bgColor = 'rgba(239,68,68,0.2)';
       textColor = 'var(--red)';
-      label = data.type === 'injury' ? '' : data.type === 'illness' ? '' : 'Ô£ê´©Å';
+      label = data.type === 'injury' ? '' : data.type === 'illness' ? '' : '📊©Å';
     } else if (data.type === 'holiday') {
       bgColor = 'rgba(234,179,8,0.15)';
       textColor = 'var(--yellow)';
-      label = 'Ô£ê´©Å';
+      label = '📊©Å';
     } else if (data.hours === 0 || data.type === 'rest') {
       bgColor = 'var(--surface2)';
       textColor = 'var(--text3)';
@@ -13703,7 +13703,7 @@ function cycleAvailDay(dateKey) {
         <span>Unavailable (holiday / injury / illness)</span>
       </label>
       <div id="avail-unavail-type" style="margin-top:6px;display:${isUnavail?'flex':'none'};gap:6px;">
-        <button onclick="_setAvailDay('${escJs(dateKey)}',0,'holiday')" class="btn" style="font-size:10px;padding:3px 8px;">Ô£ê´©Å Holiday</button>
+        <button onclick="_setAvailDay('${escJs(dateKey)}',0,'holiday')" class="btn" style="font-size:10px;padding:3px 8px;">📊©Å Holiday</button>
         <button onclick="_setAvailDay('${escJs(dateKey)}',0,'injury')" class="btn" style="font-size:10px;padding:3px 8px;"> Injury</button>
         <button onclick="_setAvailDay('${escJs(dateKey)}',0,'illness')" class="btn" style="font-size:10px;padding:3px 8px;"> Illness</button>
       </div>
@@ -13887,7 +13887,7 @@ function addBcRaceRow(ev) {
     '<div class="form-group"><label>Name</label><input type="text" class="bc-name" placeholder="e.g. Local crit" style="width:140px;"></div>' +
     '<div class="form-group"><label>Distance (km)</label><input type="number" class="bc-km" style="width:70px;"></div>' +
     '<div class="form-group"><button type="button" class="btn btn-sm" title="Remove" ' +
-      'onclick="this.closest(\'.plan-bc-row\').remove();">Ô£ò</button></div>';
+      'onclick="this.closest(\'.plan-bc-row\').remove();">📅button></div>';
   if (ev.date) row.querySelector('.bc-date').value = ev.date;
   if (ev.priority === 'C') row.querySelector('.bc-prio').value = 'C';
   if (ev.name) row.querySelector('.bc-name').value = ev.name;
@@ -14013,7 +14013,7 @@ async function generatePlan(opts) {
     // v3.1.0 MODE 1 — backdated start ("I've been training already").
     start_date: ((($('plan-backdate-on')||{}).checked) && $('plan-sdate') && $('plan-sdate').value)
       ? $('plan-sdate').value : null,
-    // v3.2.0 phase-split editor — sent ONLY when custom AND Ôëá recommendation
+    // v3.2.0 phase-split editor — sent ONLY when custom AND 📋 recommendation
     // (A3); undefined otherwise so the payload stays byte-identical.
     phase_weeks: _phaseSplitPayload(),
   };
@@ -14377,7 +14377,7 @@ async function renderPlanJSON(plan) {
 
       const isPast = dayStr < todayStr;
       const dayActuals = actualByDate[dayStr] || [];
-      const SPORT_ICON = {Ride:'🚴',VirtualRide:'🚴',GravelRide:'🚴',Run:'🏃',TrailRun:'🏃',RockClimbing:'🧗',Hike:'🥾',Workout:'🏋',IceSkate:'Ôø©´©Å',Swim:'🍎'};
+      const SPORT_ICON = {Ride:'🚴',VirtualRide:'🚴',GravelRide:'🚴',Run:'🏃',TrailRun:'🏃',RockClimbing:'🧗',Hike:'🥾',Workout:'🏋',IceSkate:'🌅©Å',Swim:'🍎'};
 
       if (s && s.session_type !== 'rest') {
         // v4.3.0 B6 — card_state (server-emitted) drives styling.
@@ -15543,7 +15543,7 @@ function _planCfgSet(open) {
   body.hidden = !open;
   bar.setAttribute('aria-expanded', open ? 'true' : 'false');
   // Name the ACTION, not the state — "a small arrow" was the complaint.
-  if (hint) hint.textContent = open ? 'Hide' : 'ÔÜÖ Change settings / regenerate';
+  if (hint) hint.textContent = open ? 'Hide' : '⚙️hange settings / regenerate';
 }
 
 function togglePlanConfig() {
@@ -15709,7 +15709,7 @@ function calJumpToToday(behavior) {
   // — the one 2 rows above my mouse opens; after I scroll the page it works").
   // Root cause: this scrolls the INNER container, and on a fresh app open the
   // container is still BELOW THE FOLD (measured: page scrollY 0, #cal-body top
-  // at yÔëê1435 in a 720px window). WebKit does not reliably re-map hit-test
+  // at y📊 1435 in a 720px window). WebKit does not reliably re-map hit-test
   // regions for an overflow scroller it scrolled while off-screen, so the rows
   // paint scrolled but clicks resolve against the pre-scroll geometry — an
   // offset of about the sticky header + a row. The user's manual page scroll is
@@ -15797,7 +15797,7 @@ function _blockEvalHtml(b) {
     short_blocks:  ['✓ all blocks, cut short', 'var(--yellow)'],
     cut_short:     ['⚠ stopped early',          'var(--yellow)'],
     off_plan:      ['⚠ blocks missing',         'var(--yellow)'],
-    not_attempted: ['Ô£ò no blocks ridden',       'var(--text3)'],
+    not_attempted: ['📅o blocks ridden',       'var(--text3)'],
   };
   const o = OUT[b.outcome] || [esc(String(b.outcome || '')), 'var(--text2)'];
   const _ridden = (b.reps_done || 0) + (b.reps_partial || 0);
@@ -16401,7 +16401,7 @@ function renderThisWeekFromCalendar(data) {
       doneBadge = `<span class="twk-done-badge" title="${esc(exTip)}">✓ ${Math.round(execBlock.score)}</span>`;
     }
     else if (actual) doneBadge = '<span class="twk-done-badge">✓ done</span>';
-    else if (planned && isPast && cs !== 'rest') doneBadge = '<span class="twk-missed-badge">Ô£ò missed</span>';
+    else if (planned && isPast && cs !== 'rest') doneBadge = '<span class="twk-missed-badge">📅issed</span>';
     html += `<div class="twk-day ${stateCls}${tintCls ? ' ' + tintCls : ''}${isToday ? ' wc-today twk-is-today' : ''}"
       data-cs="${cs}" data-date="${d.date}" style="${cursorRule}"${tipAttrTW}
       onclick="calOpenDay('${d.date}')">
@@ -16643,7 +16643,7 @@ function populatePlanFormFromGoal(goal) {
     if (goal.plan_mode === 'template' && goal.template_id) parts.push(String(goal.template_id).replace(/_/g, ' '));
     const races = (goal.events || []).filter(e => e && e.priority && e.priority !== 'A').length;
     if (races) parts.push(races + ' race' + (races > 1 ? 's' : ''));
-    cfgEl.textContent = 'ÔÜÖ ' + parts.join(' ┬À ');
+    cfgEl.textContent = '⚙️ ' + parts.join(' ┬À ');
   }
   // 3.3.3 (L4-UX 5): arm change-safety for the repopulated backdate — any
   // later goal/length/event-date change clears it instead of silently
@@ -16883,13 +16883,13 @@ async function runPlanOpenSequence() {
     if (!stepsEl) return;
     stepsEl.innerHTML = STEPS.map(s => {
       const st = state[s.key];
-      let icon = 'Ôù»', color = 'var(--text3)';
+      let icon = '📅 color = 'var(--text3)';
       if (st && st.status === 'done') { icon = '✓'; color = 'var(--green)'; }
       else if (st && st.status === 'warn') { icon = '⚠'; color = 'var(--yellow)'; }
-      else if (st && st.status === 'error') { icon = 'Ô£ò'; color = 'var(--red)'; }
+      else if (st && st.status === 'error') { icon = '📅 color = 'var(--red)'; }
       // Active step no longer shows a spinner glyph — the top loading BAR is the
       // single progress indicator now. A filled dot just marks "in progress".
-      else if (s.key === activeKey) { icon = 'ÔùÅ'; color = 'var(--accent)'; }
+      else if (s.key === activeKey) { icon = '📅 color = 'var(--accent)'; }
       const detail = (st && st.detail) ? st.detail : '';
       return `<div style="display:flex;align-items:center;gap:9px;padding:5px 0;font-size:13px;color:${color};">
                 <span style="width:16px;text-align:center;">${icon}</span>
@@ -17817,7 +17817,7 @@ async function loadIcuConnection() {
       statusEl.style.fontWeight = '600';
     }
     if (oauthBlk) {
-      // v1.4.3 FIX: nascondi il blocco OAuth quando il client_secret non ├¿
+      // v1.4.3 FIX: nascondi il blocco OAuth quando il client_secret non ?
       // configurato — evita che l'utente clicchi un bottone che fallirá sempre.
       if (!c.oauth_available && !oauth) {
         oauthBlk.style.display = 'none';
@@ -17867,7 +17867,7 @@ const _DIGEST_EMOJI = {
   morning_readiness: '🌅', rlgl_flag: '🚦', workout_of_day: '🏆',
   workout_swap: '🍎', fueling_reminder: '🍎', hrv_trend: '📉',
   monotony_alert: '🍎', weekly_review: '📤', prerace_countdown: '🏁',
-  pr_detect: '📈', etftp_drift: '📈', missed_workout: 'ÔÅ¡´©Å',
+  pr_detect: '📈', etftp_drift: '📈', missed_workout: '📊©Å',
 };
 async function loadDailyDigest() {
   const host = document.getElementById('digest-items');
@@ -17931,7 +17931,7 @@ async function openPlanVersions() {
     }
     openModal(`
       <h2>📜 Cronologia piano</h2>
-      <div class="modal-meta">Le ultime ${d.count} versioni (le pi├╣ recenti prima). Il ripristino ├¿ sicuro: il piano attuale viene ruotato in .bak e resta recuperabile.</div>
+      <div class="modal-meta">Le ultime ${d.count} versioni (le più recenti prima). Il ripristino ? sicuro: il piano attuale viene ruotato in .bak e resta recuperabile.</div>
       <div style="display:flex;flex-direction:column;gap:8px;">${rows.join('')}</div>`);
   } catch (e) {
     showToast('Errore: ' + e, 4000, 'error');
@@ -18021,7 +18021,7 @@ function icuPushToastFromResult(r, verb) {
 
 async function icuPushNow() {
   const btn = $('btn-icu-push');
-  if (btn) { btn.disabled = true; btn.textContent = 'Pushing… ÔÅ│'; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Pushing… 📊'; }
   try {
     const r = await (await fetch('/api/icu/push', { method: 'POST',
       headers: { 'Content-Type': 'application/json' }, body: '{}' })).json();
@@ -18292,7 +18292,7 @@ const TIPS = {
   hrv: {title:'HRV — Heart Rate Variability', desc:'Parasympathetic nervous system indicator. Higher = better recovered. Tracked as LnRMSSD 7-day average.'},
   rhr: {title:'RHR — Resting Heart Rate', desc:'Nightly minimum from Garmin. Rising RHR signals fatigue or illness.'},
   sleep: {title:'Sleep Duration', desc:'Total sleep from Garmin. Target: ↑7.5h. Below 7h = 1.7× injury risk (Milewski 2014).'},
-  ea: {title:'EA — Energy Availability', desc:'(kcal intake ÔêÆ training kcal) / LBM kg. Below 35 = LEA risk (RED-S). Below 30 = stop training.'},
+  ea: {title:'EA — Energy Availability', desc:'(kcal intake 📈 training kcal) / LBM kg. Below 35 = LEA risk (RED-S). Below 30 = stop training.'},
   ftp: {title:'FTP — Functional Threshold Power', desc:'Max power sustainable for ~1 hour. All zones calculated from this.'},
   z1: {title:'Z1 — Recovery', desc:'<55% FTP. Active recovery, blood flow.'},
   z2: {title:'Z2 — Endurance', desc:'56–75% FTP. Aerobic base building. Should be 80% of total training (Seiler 80/20).'},
@@ -18563,7 +18563,7 @@ function _classifyExposure(act, lthr) {
 // Rowing/Ski/Kayak/RockClimbing/IceSkate/Elliptical/StairStepper — all fell
 // back to 🏃 which actively misleads (a skier rendering as a runner isn't
 // "missing info", it's wrong info). Now covers common cycling/fitness sports
-// and falls back to ÔØô for truly unknown tokens.
+// and falls back to 🌲or truly unknown tokens.
 const _SPORT_ICON = {
   'Ride': '🚴', 'VirtualRide': '🚴', 'EBikeRide': '🚴',
   'Run': '🏃', 'TrailRun': '🏃', 'Treadmill': '🏃', 'Running': '🏃',
@@ -18571,14 +18571,14 @@ const _SPORT_ICON = {
   'Swim': '🍎', 'Yoga': '🧘',
   'Workout': '💢', 'WeightTraining': '🏋', 'Weight': '🏋',
   'Rowing': '🛶', 'Kayak': '🛶', 'Sup': '⛷️', 'Paddle': '🛶',
-  'Ski': '⛷️', 'SkiTouring': '⛷️', 'NordicSki': 'ÔøÀ´©Å', 'BackcountrySki': '⛷️',
-  'Snowboard': '❄️', 'Snowshoe': 'ÔØä´©Å',
-  'IceSkate': 'Ôø©´©Å', 'InlineSkate': '🛼', 'Skate': '🛼',
+  'Ski': '⛷️', 'SkiTouring': '⛷️', 'NordicSki': '🌅´©Å', 'BackcountrySki': '⛷️',
+  'Snowboard': '❄️', 'Snowshoe': '🌿©Å',
+  'IceSkate': '🌅©Å', 'InlineSkate': '🛼', 'Skate': '🛼',
   'RockClimbing': '🧗',
   'Elliptical': '🪜', 'StairStepper': '🪜',
   'Surfing': '⛷️', 'Kitesurf': '🪁', 'Windsurf': '⛷️',
 };
-function _sportEmoji(sport) { return _SPORT_ICON[sport] || 'ÔØô'; }
+function _sportEmoji(sport) { return _SPORT_ICON[sport] || '🌲'; }
 
 // Aggregate a day's activity list into a dominant exposure label + total stats.
 // If activities span >1 exposure band, returns "MIXED".
@@ -18708,14 +18708,14 @@ async function loadWeeklyCalendar() {
     };
 
     // fix26 ┬º6.4 — status badge palette
-    //   pending  ÔÅ│ grey  done ✓ green  missed ⚠ red  moved Ôåö blue
-    //   dismissed Ô£ò muted grey  ambiguous ? amber  done_partial ✓Ôéé light green
+    //   pending  📊 grey  done ✓ green  missed ⚠ red  moved 📊 blue
+    //   dismissed 📅uted grey  ambiguous ? amber  done_partial ✓💎 light green
     const STATUS_META = {
-      pending:       { emoji: 'ÔÅ│', color: 'var(--text3)', bg: '#5a5a5a22', label: 'PENDING' },
+      pending:       { emoji: '📊', color: 'var(--text3)', bg: '#5a5a5a22', label: 'PENDING' },
       done:          { emoji: '✓',  color: '#22c55e',     bg: '#22c55e22', label: 'DONE' },
-      done_partial:  { emoji: '✓Ôéé', color: '#86efac',     bg: '#86efac22', label: 'PARTIAL' },
+      done_partial:  { emoji: '✓💎', color: '#86efac',     bg: '#86efac22', label: 'PARTIAL' },
       missed:        { emoji: '⚠',  color: '#ef4444',     bg: '#ef444422', label: 'MISSED' },
-      dismissed:     { emoji: 'Ô£ò',  color: '#6b7280',     bg: '#6b728022', label: 'DISMISSED' },
+      dismissed:     { emoji: '📅  color: '#6b7280',     bg: '#6b728022', label: 'DISMISSED' },
       ambiguous:     { emoji: '?',  color: '#eab308',     bg: '#eab30822', label: 'REVIEW' },
     };
     // moved_from:<date> is dynamic — computed below
@@ -18741,7 +18741,7 @@ async function loadWeeklyCalendar() {
       const movedTo = isMovedFrom ? rawStatus.split(':', 2)[1] : '';
       const statusKey = isMovedFrom ? 'moved' : rawStatus;
       const statusMeta = isMovedFrom
-        ? { emoji: 'Ôåö', color: '#60a5fa', bg: '#60a5fa22', label: `MOVED TO ${movedTo}` }
+        ? { emoji: '📊', color: '#60a5fa', bg: '#60a5fa22', label: `MOVED TO ${movedTo}` }
         : (STATUS_META[rawStatus] || STATUS_META.pending);
       const isDismissed = rawStatus === 'dismissed';
       const isUserMoved = !!s.user_moved;
@@ -18810,7 +18810,7 @@ async function loadWeeklyCalendar() {
       // ┬º6.4 — drag handle (only for pending non-rest sessions so users can move
       // Thursday's VO2max onto Monday without the recomputer fighting back)
       const dragHandle = (s.session_type !== 'rest' && rawStatus === 'pending')
-        ? `<div class="wc-drag-handle" title="Drag to move" style="position:absolute;top:2px;left:2px;cursor:grab;font-size:10px;color:var(--text3);user-select:none;">Ôá┐</div>`
+        ? `<div class="wc-drag-handle" title="Drag to move" style="position:absolute;top:2px;left:2px;cursor:grab;font-size:10px;color:var(--text3);user-select:none;">📊/div>`
         : '';
       // ┬º6.8 — un-dismiss action when dismissed
       const undismissBtn = isDismissed
@@ -19438,13 +19438,13 @@ async function loadTodaySession() {
       html += '<div style="display:flex;gap:12px;margin-bottom:8px;flex-wrap:wrap;">';
       if (hr.rpe) {
         html += `<div style="background:var(--surface2);padding:4px 8px;border-radius:4px;font-size:11px;">
-          ÔØñ´©Å <b>RPE ${esc(hr.rpe)}</b> <span style="color:var(--text3);">${esc(hr.note || 'by feel')}</span></div>`;
+          🌲©Å <b>RPE ${esc(hr.rpe)}</b> <span style="color:var(--text3);">${esc(hr.note || 'by feel')}</span></div>`;
       } else if (hr.ceiling_only && hr.high) {
         html += `<div style="background:var(--surface2);padding:4px 8px;border-radius:4px;font-size:11px;">
-          ÔØñ´©Å <b>Ôëñ${hr.high} bpm</b> <span style="color:var(--text3);">${hr.name || ''}</span></div>`;
+          🌲©Å <b>📋${hr.high} bpm</b> <span style="color:var(--text3);">${hr.name || ''}</span></div>`;
       } else if (hr.low) {
         html += `<div style="background:var(--surface2);padding:4px 8px;border-radius:4px;font-size:11px;">
-          ÔØñ´©Å <b>${hr.low}–${hr.high} bpm</b> <span style="color:var(--text3);">${hr.name || ''}</span></div>`;
+          🌲©Å <b>${hr.low}–${hr.high} bpm</b> <span style="color:var(--text3);">${hr.name || ''}</span></div>`;
       }
       if (pw.low && !pw.suppressed && !hrOnly) {
         html += `<div style="background:var(--surface2);padding:4px 8px;border-radius:4px;font-size:11px;">
@@ -19781,7 +19781,7 @@ function openTodaySessionDetail() {
   html += `<div class="metric"><div class="mv">${adj.tss_estimate}</div><div class="ml">TSS Target</div></div>`;
   // hr target_mode (red-team F3): converter-consistent chip; watts suppressed.
   if (hr.rpe) html += `<div class="metric"><div class="mv" style="color:var(--red);">RPE ${esc(hr.rpe)}</div><div class="ml">Effort (by feel)</div></div>`;
-  else if (hr.ceiling_only && hr.high) html += `<div class="metric"><div class="mv" style="color:var(--red);">Ôëñ${hr.high}</div><div class="ml">HR Target (bpm)</div></div>`;
+  else if (hr.ceiling_only && hr.high) html += `<div class="metric"><div class="mv" style="color:var(--red);">📋${hr.high}</div><div class="ml">HR Target (bpm)</div></div>`;
   else if (hr.low) html += `<div class="metric"><div class="mv" style="color:var(--red);">${hr.low}–${hr.high}</div><div class="ml">HR Target (bpm)</div></div>`;
   if (pw.low && !pw.suppressed && d.target_mode !== 'hr') html += `<div class="metric"><div class="mv" style="color:var(--accent);">${pw.low}–${pw.high}</div><div class="ml">Power Target (W)</div></div>`;
   html += `<div class="metric"><div class="mv">${d.readiness ? Math.round(d.readiness) : '—'}</div><div class="ml">Readiness</div></div>`;
@@ -20414,7 +20414,7 @@ async function openDayWorkout(sessionIdx, day) {
     if (type === 'vo2max' || type === 'anaerobic' || type === 'sprint') {
       html += `<div class="metric"><div class="mv" style="color:var(--red);">RPE 8–9</div><div class="ml">Effort (by feel)</div></div>`;
     } else if (rowFor === 'z1') {
-      html += `<div class="metric"><div class="mv" style="color:var(--red);">Ôëñ${R.z1[1]}</div><div class="ml">HR (bpm)</div></div>`;
+      html += `<div class="metric"><div class="mv" style="color:var(--red);">📋${R.z1[1]}</div><div class="ml">HR (bpm)</div></div>`;
     } else if (rowFor && R[rowFor]) {
       html += `<div class="metric"><div class="mv" style="color:var(--red);">${R[rowFor][0]}-${R[rowFor][1]}</div><div class="ml">HR (bpm)</div></div>`;
     }
@@ -20778,7 +20778,7 @@ async function _rematchAccept(day) {
   const paintProgress = (currentKey, sessionsModified) => {
     if (!resultEl) return;
     const rows = stages.map(s => {
-      let icon = 'Ôù»';
+      let icon = '📅';
       let color = 'var(--text3)';
       const idx = stages.findIndex(x => x.key === s.key);
       const curIdx = stages.findIndex(x => x.key === currentKey);
@@ -20884,7 +20884,7 @@ function buildPowerBlocks(type, durationMin, ftp, secondaryFlags) {
   // Generate workout structure as blocks for visualization.
   // v4.5.4 FIX-UI-SHAPE: STEADY blocks emit pctLow === pctHigh so the SVG
   // renderer draws FLAT rectangles. INTERVAL workouts emit alternating
-  // tall+short bars. The previous implementation used pctLowÔëápctHigh ramp
+  // tall+short bars. The previous implementation used pctLow📋pctHigh ramp
   // values for tempo / recovery / default which made every Z2/Z3/Z4
   // workout render as a sligly diagonal block — addresses user complaint.
   const blocks = [];
@@ -21345,7 +21345,7 @@ async function downloadFIT(type, durationMin, name, zwoFile = null, view = null,
   // exact ZWO library file into FIT (matching content + matching basename).
   let url = `/api/export/fit-workout?session_type=${encodeURIComponent(type)}&duration_min=${durationMin}&name=${encodeURIComponent(name)}`;
   if (zwoFile) url += `&zwo_file=${encodeURIComponent(zwoFile)}`;
-  // modal ➕/ÔØñ toggle: the FIT matches the view you're looking at (WYSIWYG).
+  // modal ➕/🌲 toggle: the FIT matches the view you're looking at (WYSIWYG).
   if (view) url += `&view=${encodeURIComponent(view)}`;
   // task #24: cap=1 = PROMPT APPROVE — cap short reps to measured power.
   if (cap) url += `&cap=1`;
@@ -21805,7 +21805,7 @@ function renderOnTrackBar(data) {
   const cmpPct = Number(summary.compliance_pct_this_week || 0);
   const cmpBand = summary.compliance_band || 'red';
   const cmpColor = cmpBand === 'green' ? 'var(--green)' : cmpBand === 'amber' ? 'var(--yellow)' : 'var(--red)';
-  const cmpEmoji = cmpBand === 'green' ? 'Ô£à' : cmpBand === 'amber' ? '⚠' : 'ÔØî';
+  const cmpEmoji = cmpBand === 'green' ? '📊: cmpBand === 'amber' ? '⚠' : '🌲;
   const cmpChipBg = cmpBand === 'green' ? 'rgba(34,197,94,0.15)' : cmpBand === 'amber' ? 'rgba(234,179,8,0.15)' : 'rgba(239,68,68,0.15)';
 
   // CTL delta vs target
@@ -22204,7 +22204,7 @@ function renderActivityModal(p) {
     </div>
     <div style="display:flex;gap:6px;align-items:center;">
       ${icuLinkHtml}
-      <button class="btn" onclick="closeActivityModal()" style="font-size:14px;padding:4px 10px;">Ô£ò</button>
+      <button class="btn" onclick="closeActivityModal()" style="font-size:14px;padding:4px 10px;">📅button>
     </div>
   </div>`;
 
@@ -22214,7 +22214,7 @@ function renderActivityModal(p) {
   if (eftp > 0 && ftp > 0 && eftp > ftp) {
     const delta = Math.round(eftp - ftp);
     html += `<div style="background:rgba(239,68,68,0.12);border:1px solid var(--red);color:var(--red);padding:8px 12px;border-radius:8px;font-size:12px;font-weight:700;margin-bottom:14px;">
-      Ô¡É FTP +${delta} W from this ride (eFTP ${Math.round(eftp)}W → prior ${Math.round(ftp)}W)
+      🚀TP +${delta} W from this ride (eFTP ${Math.round(eftp)}W → prior ${Math.round(ftp)}W)
     </div>`;
   }
 
@@ -22750,7 +22750,7 @@ async function loadHrvTab() {
     if (dev && dev.deviation_pct != null) {
       const up = dev.deviation_pct >= 0;
       devEl.style.color = up ? 'var(--green)' : '#f97316';
-      devEl.textContent = (up ? 'Ôû▓ +' : 'Ôû╝ ') + dev.deviation_pct + '% vs 7g';
+      devEl.textContent = (up ? '📍 +' : '🌙 ') + dev.deviation_pct + '% vs 7g';
     } else { devEl.textContent = ''; }
 
     document.getElementById('hrv-quality-tab').textContent =
@@ -22769,8 +22769,8 @@ async function loadHrvTab() {
 
 function renderHrvMetricsTable(L) {
   const rows = [
-    ['RMSSD', L.rmssd_ms, 'ms', 'S├¼'],
-    ['SDNN', L.sdnn_ms, 'ms', 'S├¼'],
+    ['RMSSD', L.rmssd_ms, 'ms', 'S✓'],
+    ['SDNN', L.sdnn_ms, 'ms', 'S✓'],
     ['Mean HR', L.mean_hr, 'bpm', 'No'],
     ['pNN50', L.pnn50_pct, '%', 'No'],
     ['SDANN', L.sdann_ms, 'ms', 'No'],
@@ -22782,8 +22782,8 @@ function renderHrvMetricsTable(L) {
   const body = document.getElementById('hrv-metrics-body');
   body.innerHTML = rows.map(r => {
     const val = (r[1] == null) ? '<span style="color:var(--text3)">n/d</span>' : r[1];
-    const synced = r[3] === 'S├¼'
-      ? '<span style="color:var(--green)">S├¼</span>'
+    const synced = r[3] === 'S✓'
+      ? '<span style="color:var(--green)">S✓</span>'
       : '<span style="color:var(--text3)">locale</span>';
     return '<tr><td style="padding:4px 8px;">' + r[0] + '</td>'
       + '<td style="padding:4px 8px;font-weight:600;">' + val + '</td>'
@@ -22923,7 +22923,7 @@ async function loadMetabolicProfile() {
     }
     host.innerHTML = `
       <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px;">
-        <div><b style="font-size:18px;color:var(--accent);">${vo2 != null ? vo2 : '—'}</b> <span style="font-size:10px;color:var(--text3);">VOÔéémax ml/kg/min</span></div>
+        <div><b style="font-size:18px;color:var(--accent);">${vo2 != null ? vo2 : '—'}</b> <span style="font-size:10px;color:var(--text3);">VO💎max ml/kg/min</span></div>
         <div><b style="font-size:18px;color:var(--accent);">${vla != null ? vla : '—'}</b> <span style="font-size:10px;color:var(--text3);">VLamax mmol/L/s</span></div>
         <div><b style="font-size:18px;color:var(--accent);">${fat != null ? fat + ' W' : '—'}</b> <span style="font-size:10px;color:var(--text3);">FatMax (~${d.fatmax_pct_ftp || 58}% FTP)</span></div>
       </div>
@@ -22964,7 +22964,7 @@ async function loadCpepLatest() {
     const found = d.found || [];
     if (!found.length) { host.innerHTML = '<span style="color:var(--text3);">Nessun test lab importato. Il profilo metabolico usa stime da power-duration.</span>'; return; }
     const label = {
-      vo2max_ml_kg_min: 'VOÔéémax', hr_max: 'HRmax', vt1_power_w: 'VT1',
+      vo2max_ml_kg_min: 'VO💎max', hr_max: 'HRmax', vt1_power_w: 'VT1',
       vt2_power_w: 'VT2', lactate_max_mmol: 'Lattato max', vlamax_mmol_l_s: 'VLamax',
       fatmax_w: 'FatMax', cp_w: 'CP',
     };
@@ -22990,7 +22990,7 @@ async function loadNutriPlan() {
   if (src === 'none') { host.innerHTML = '<i>Nessun piano alimentare (gestisci da solo).</i>'; return; }
   if (src === 'nutritionist') {
     if (window.__nutriPdf) { renderNutriPdf(host, window.__nutriPdf); }
-    else { host.innerHTML = '<i>Importa il PDF del nutrizionista (bottone Ôñô).</i>'; }
+    else { host.innerHTML = '<i>Importa il PDF del nutrizionista (bottone 🎯.</i>'; }
     return;
   }
   try {
@@ -23016,7 +23016,7 @@ async function loadNutriPlan() {
         html += `<div style="margin:3px 0;font-size:10px;"><span style="font-weight:600;">${esc(m.name)}</span> <span style="color:var(--text3);">${esc(m.timing)}</span><div style="color:var(--text2);">${esc((m.foods||[]).join(', '))}${grams?' — <b>'+grams+'</b>':''}</div><div style="color:var(--text3);">C ${Math.round(m.carb_g)}g ┬À P ${Math.round(m.protein_g)}g ┬À F ${Math.round(m.fat_g)}g</div></div>`;
         if (m.note) html += `<div style="color:var(--text3);font-style:italic;">${esc(m.note)}</div>`;
       }
-      if (d.avoid && d.avoid.length) html += `<div style="font-size:10px;color:var(--red);margin-top:2px;">ÔØî Evita: ${esc(d.avoid.join(', '))}</div>`;
+      if (d.avoid && d.avoid.length) html += `<div style="font-size:10px;color:var(--red);margin-top:2px;">🌲 Evita: ${esc(d.avoid.join(', '))}</div>`;
       html += `</div>`;
     }
     host.innerHTML = html;
@@ -23050,7 +23050,7 @@ function renderNutriPdf(host, j) {
       html += `<div style="margin:3px 0;font-size:10px;"><b>${esc(m.name)}</b></div>`;
       for (const it of (m.items||[])) {
         const sel = it.is_alt ? 'color:var(--text3);cursor:pointer;' : 'font-weight:600;';
-        const tag = it.is_alt ? ' Ôùï' : '';
+        const tag = it.is_alt ? ' 📅: '';
         html += `<div style="${sel}" onclick="toggleAlt(this)">${esc(it.name)} ${it.grams}g${tag} <span style="color:var(--text3);">${it.kcal} kcal</span></div>`;
       }
     }
@@ -23237,7 +23237,7 @@ async function syncBIAicu() {
     const j = await res.json();
     if (!j.ok) { msg.textContent = '⚠ ' + (j.error||'errore'); msg.style.color='var(--red)'; return; }
     msg.style.color = 'var(--green)';
-    msg.textContent = `Ôçº ${j.synced} misurazione/i sincronizzata/e su Intervals.icu`;
+    msg.textContent = `🔧{j.synced} misurazione/i sincronizzata/e su Intervals.icu`;
   } catch (e) { msg.textContent = 'Errore sync'; }
 }
 
@@ -23483,7 +23483,7 @@ async function loadStrength() {
     if (sp && sp.summary) {
       const s = sp.summary;
       sumEl.innerHTML = `<b>${esc(s.phase)}</b>: ${s.sessions_per_week}×/sett, ${s.sets}×${s.reps} al ${s.pct_1rm}% 1RM` +
-        (oneRm ? ` <b style="color:var(--accent);">(Ôëê${Math.round(oneRm * s.pct_1rm / 100)} kg)</b>` : '') +
+        (oneRm ? ` <b style="color:var(--accent);">(📊${Math.round(oneRm * s.pct_1rm / 100)} kg)</b>` : '') +
         (s.exercises.length ? ` — ${s.exercises.map(esc).join(', ')}` : '') +
         `<br><span style="font-size:10px;color:var(--text3);">${esc(s.source)}</span>`;
     } else {
@@ -23539,7 +23539,7 @@ async function loadMyCalendar() {
       const icuBtn = `<button class="btn" style="font-size:10px;padding:2px 8px;" onclick="openIcuCalendar()">↗ Vedi su intervals.icu</button>`;
       return `<div style="margin:6px 0;">
         <div style="font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          ${esc(r.week_label)} <span style="color:${flagColor[r.flag]||'var(--text2)'};">ÔùÅ ${r.flag}</span>
+          ${esc(r.week_label)} <span style="color:${flagColor[r.flag]||'var(--text2)'};">📅{r.flag}</span>
           <span style="color:var(--text3);font-size:10px;"> ┬À ${esc(r.phase)} ┬À aderenza ${Math.round(r.tss_ratio*100)}%</span>
           ${icuBtn}
         </div>
@@ -23550,7 +23550,7 @@ async function loadMyCalendar() {
         <div style="font-size:10px;color:var(--text3);">Pianif ${Math.round(r.planned_tss)} TSS ┬À Eseguito ${Math.round(r.actual_tss)} TSS (╬ö${r.delta_tss>=0?'+':''}${r.delta_tss})</div>
       </div>`;
     }).join('');
-    host.innerHTML = `<div style="font-size:10px;color:var(--text3);margin-bottom:4px;">Ôûá pianificato &nbsp; Ôûá eseguito</div>` + body + (j.note? `<div style="font-size:10px;color:var(--text3);margin-top:6px;">${esc(j.note)}</div>`:'');
+    host.innerHTML = `<div style="font-size:10px;color:var(--text3);margin-bottom:4px;">📍 pianificato &nbsp; 📍 eseguito</div>` + body + (j.note? `<div style="font-size:10px;color:var(--text3);margin-top:6px;">${esc(j.note)}</div>`:'');
   } catch (e) { host.textContent = 'Calendario non disponibile'; }
   finally { window._myCalLoading = false; }
 }
@@ -23626,7 +23626,7 @@ window.chooseAssessmentTest = async function(kind) {
     if (res.ok && d.plan_json) {
       await renderPlanJSON(d.plan_json);
       dismissAssessmentBanner();
-      showToast('Piano rigenerato con test ' + kind + ' Ô£à', 5000, 'success');
+      showToast('Piano rigenerato con test ' + kind + ' 📊 5000, 'success');
     } else {
       showToast('Errore: ' + (d.detail || d.error || 'generazione fallita'), 5000);
     }
@@ -23654,7 +23654,7 @@ window.skipAssessment = async function() {
     if (res.ok && d.plan_json) {
       await renderPlanJSON(d.plan_json);
       dismissAssessmentBanner();
-      showToast('Piano generato senza valutazione Ô£à', 5000, 'success');
+      showToast('Piano generato senza valutazione 📊 5000, 'success');
     } else {
       showToast('Errore: ' + (d.detail || d.error || 'generazione fallita'), 5000);
     }
