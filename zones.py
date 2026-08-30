@@ -2,7 +2,9 @@
 training_live, ride_storage, app.py, and the planner. Coggan 7-zone power
 and Friel 5-zone HR conventions."""
 from __future__ import annotations
+
 from typing import NamedTuple
+
 
 class Zone(NamedTuple):
     low: int        # inclusive lower bound (W for power, bpm for HR)

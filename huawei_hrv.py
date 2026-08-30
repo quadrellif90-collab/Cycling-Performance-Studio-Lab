@@ -23,15 +23,14 @@ from __future__ import annotations
 import json
 import logging
 import sqlite3
-from dataclasses import dataclass
-from datetime import datetime, timezone, date
-from typing import Optional, List, Dict, Any
+from datetime import UTC, datetime
+from typing import Any
 
 log = logging.getLogger("pcc.huawei_hrv")
 
 # Import del modello DB esistente del progetto
 try:
-    from db import get_db, _maybe_add_column
+    from db import _maybe_add_column, get_db
 except Exception:  # pragma: no cover
     get_db = None
     _maybe_add_column = None
@@ -152,7 +151,7 @@ def migrate_hrv_schema(db=None) -> None:
 # Storage: salvataggio idempotente (task #17)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def store_raw_records(records: List[Dict[str, Any]], db=None) -> int:
+def store_raw_records(records: list[dict[str, Any]], db=None) -> int:
     """Inserisce record grezzi con fingerprint per idempotenza."""
     if get_db is None or not records:
         return 0
@@ -176,7 +175,7 @@ def store_raw_records(records: List[Dict[str, Any]], db=None) -> int:
     return n
 
 
-def store_rr_intervals(points: List[Dict[str, Any]], db=None) -> int:
+def store_rr_intervals(points: list[dict[str, Any]], db=None) -> int:
     """Salva RR/NN (raw + clean separati). Idempotente via fingerprint."""
     if get_db is None or not points:
         return 0
@@ -202,7 +201,7 @@ def store_rr_intervals(points: List[Dict[str, Any]], db=None) -> int:
     return n
 
 
-def store_daily_hrv(daily: Dict[str, Any], category: str = "morning", db=None) -> bool:
+def store_daily_hrv(daily: dict[str, Any], category: str = "morning", db=None) -> bool:
     """Salva/aggiorna DailyHRV. Idempotente via (date, source, category)."""
     if get_db is None or not daily:
         return False
@@ -227,7 +226,7 @@ def store_daily_hrv(daily: Dict[str, Any], category: str = "morning", db=None) -
     return True
 
 
-def store_baseline(b: Dict[str, Any], db=None) -> None:
+def store_baseline(b: dict[str, Any], db=None) -> None:
     if get_db is None:
         return
     conn = db or get_db()
@@ -235,14 +234,14 @@ def store_baseline(b: Dict[str, Any], db=None) -> None:
         """INSERT INTO hrv_baseline
            (computed_on, window_days, mean_rmssd, median_rmssd, std_rmssd, cv_pct, count)
            VALUES (?,?,?,?,?,?,?)""",
-        (datetime.now(timezone.utc).isoformat(), b.get("window_days"),
+        (datetime.now(UTC).isoformat(), b.get("window_days"),
          b.get("mean_rmssd"), b.get("median_rmssd"), b.get("std_rmssd"),
          b.get("cv_pct"), b.get("count", 0)),
     )
     conn.commit()
 
 
-def _fp(prefix: str, d: Dict[str, Any]) -> str:
+def _fp(prefix: str, d: dict[str, Any]) -> str:
     import hashlib
     key = f"{prefix}|{d.get('timestamp_utc') or d.get('timestamp')}|{d.get('raw_value', d.get('interval_ms'))}"
     return hashlib.sha256(key.encode()).hexdigest()[:16]
@@ -252,7 +251,7 @@ def _fp(prefix: str, d: Dict[str, Any]) -> str:
 # Adapter Intervals.icu (task #8/#14) — estende il pattern SyncTarget
 # ─────────────────────────────────────────────────────────────────────────────
 
-def to_icu_wellness_bulk(daily: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def to_icu_wellness_bulk(daily: dict[str, Any]) -> dict[str, Any] | None:
     """
     Mappa DailyHRV → campo wellness-bulk di Intervals.icu.
 
@@ -283,8 +282,8 @@ def to_icu_wellness_bulk(daily: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     return item if len(item) > 1 else None
 
 
-def push_daily_hrv_to_icu(daily: Dict[str, Any], athlete_id: str, api_key: str,
-                          db=None) -> Dict[str, Any]:
+def push_daily_hrv_to_icu(daily: dict[str, Any], athlete_id: str, api_key: str,
+                          db=None) -> dict[str, Any]:
     """
     Pusha un DailyHRV su Intervals.icu via wellness-bulk PUT.
 
@@ -316,7 +315,7 @@ def push_daily_hrv_to_icu(daily: Dict[str, Any], athlete_id: str, api_key: str,
 # Query / export (task #19)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def get_daily_hrv_range(start: str, end: str, db=None) -> List[Dict[str, Any]]:
+def get_daily_hrv_range(start: str, end: str, db=None) -> list[dict[str, Any]]:
     if get_db is None:
         return []
     conn = db or get_db()
@@ -327,7 +326,7 @@ def get_daily_hrv_range(start: str, end: str, db=None) -> List[Dict[str, Any]]:
     return [dict(zip(cols, r)) for r in cur.fetchall()]
 
 
-def import_icu_hrv(db=None) -> Dict[str, Any]:
+def import_icu_hrv(db=None) -> dict[str, Any]:
     """
     Legge i dati HRV da Intervals.icu (già sincronizzati nel DB locale wellness)
     e li normalizza rispettando la regola #15/#31:
@@ -417,7 +416,7 @@ def import_icu_hrv(db=None) -> Dict[str, Any]:
     }
 
 
-def export_csv(daily_list: List[Dict[str, Any]], path: str) -> None:
+def export_csv(daily_list: list[dict[str, Any]], path: str) -> None:
     """Esporta DailyHRV in CSV (task #19)."""
     import csv
     cols = ["date", "timestamp", "rmssd_ms", "sdnn_ms", "mean_hr",
@@ -430,6 +429,6 @@ def export_csv(daily_list: List[Dict[str, Any]], path: str) -> None:
             w.writerow(d)
 
 
-def export_json(daily_list: List[Dict[str, Any]], path: str) -> None:
+def export_json(daily_list: list[dict[str, Any]], path: str) -> None:
     with open(path, "w", encoding="utf-8") as f:
         json.dump(daily_list, f, indent=2, default=str)

@@ -13,10 +13,9 @@ from __future__ import annotations
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
 
 
-def _plan_path() -> Optional[Path]:
+def _plan_path() -> Path | None:
     try:
         from profile_manager import ProfileManager
         pm = ProfileManager.get()
@@ -60,7 +59,7 @@ def build_ics() -> str:
         "PRODID:-//PCC//Performance Cycling Coach//EN",
         "CALSCALE:GREGORIAN",
         "METHOD:PUBLISH",
-        f"X-WR-CALNAME:PCC - Piano di allenamento",
+        "X-WR-CALNAME:PCC - Piano di allenamento",
         f"DTSTAMP:{_dtstamp()}",
     ]
     uid_base = _dtstamp()

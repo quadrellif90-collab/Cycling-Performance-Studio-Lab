@@ -1,6 +1,4 @@
 """Tests for core Domestique modules merged into CPSL."""
-import pytest
-from pathlib import Path
 
 
 class TestZones:
@@ -40,7 +38,7 @@ class TestZones:
         assert estimated_hr_max(70) < 160
 
     def test_zone_distribution_basic(self):
-        from zones import zone_distribution, Zone
+        from zones import Zone, zone_distribution
         zones = [Zone(0, 100, "Z1"), Zone(100, 200, "Z2")]
         samples = [(150, 60), (120, 120)]
         dist = zone_distribution(samples, zones)
@@ -48,7 +46,7 @@ class TestZones:
         assert sum(dist) == 180
 
     def test_zone_distribution_empty(self):
-        from zones import zone_distribution, Zone
+        from zones import Zone, zone_distribution
         zones = [Zone(0, 100, "Z1")]
         dist = zone_distribution([], zones)
         assert dist == [0]
@@ -111,7 +109,7 @@ class TestTrainingPlanner:
         assert any("HRV" in s for s in result["signals"])
 
     def test_adjust_today_session_beta_factor(self):
-        from training_planner import adjust_today_session, PlannedSession
+        from training_planner import PlannedSession, adjust_today_session
         ps = PlannedSession(
             day=__import__("datetime").date.today(),
             day_name="Mon", session_type="threshold",
@@ -138,7 +136,7 @@ class TestUserProfile:
         assert cpsl_home is not None
 
     def test_domestique_home_alias(self):
-        from user_home import domestique_home, cpsl_home
+        from user_home import cpsl_home, domestique_home
         assert domestique_home == cpsl_home
 
 

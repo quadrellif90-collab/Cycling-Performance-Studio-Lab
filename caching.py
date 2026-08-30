@@ -19,13 +19,13 @@ Usage:
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
 import threading
 import time
 from collections import OrderedDict
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, Dict, Optional, TypeVar, Union
+from typing import Any, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ class TTLCache:
         self._hits = 0
         self._misses = 0
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         with self._lock:
             if key in self._cache:
                 value, timestamp = self._cache[key]
@@ -99,7 +99,7 @@ class TTLCache:
         return removed
 
     @property
-    def stats(self) -> Dict[str, Any]:
+    def stats(self) -> dict[str, Any]:
         total = self._hits + self._misses
         return {
             "size": len(self._cache),
@@ -120,7 +120,7 @@ class ProfileCache:
     """Per-profile cache manager."""
 
     def __init__(self, ttl: float = 300.0) -> None:
-        self._caches: Dict[str, TTLCache] = {}
+        self._caches: dict[str, TTLCache] = {}
         self._default_ttl = ttl
         self._lock = threading.Lock()
 
@@ -131,7 +131,7 @@ class ProfileCache:
                     self._caches[profile_id] = TTLCache(maxsize=64, ttl=self._default_ttl)
         return self._caches[profile_id]
 
-    def get(self, profile_id: str, key: str) -> Optional[Any]:
+    def get(self, profile_id: str, key: str) -> Any | None:
         return self._get_cache(profile_id).get(key)
 
     def set(self, profile_id: str, key: str, value: Any) -> None:
@@ -160,7 +160,7 @@ class ProfileCache:
         return total
 
     @property
-    def stats(self) -> Dict[str, Any]:
+    def stats(self) -> dict[str, Any]:
         return {
             "profiles": len(self._caches),
             "total_entries": sum(len(c) for c in self._caches.values()),

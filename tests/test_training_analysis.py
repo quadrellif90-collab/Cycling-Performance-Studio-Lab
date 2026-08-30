@@ -1,5 +1,4 @@
 """Tests for training, analysis, and performance modules."""
-import pytest
 
 
 class TestCPModels:

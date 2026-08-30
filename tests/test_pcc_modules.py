@@ -1,9 +1,4 @@
 """Tests for PCC modules integrated into CPSL."""
-import pytest
-import json
-import os
-import tempfile
-from pathlib import Path
 
 
 class TestZones:
@@ -30,7 +25,7 @@ class TestZones:
         assert 175 < hrmax < 185
 
     def test_zone_distribution(self):
-        from zones import zone_distribution, Zone
+        from zones import Zone, zone_distribution
         zones = [Zone(0, 100, "Z1"), Zone(100, 200, "Z2")]
         samples = [(150, 60), (120, 120)]  # (value, duration) pairs
         dist = zone_distribution(samples, zones)

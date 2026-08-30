@@ -26,13 +26,12 @@ from __future__ import annotations
 import json
 from datetime import date, timedelta
 from pathlib import Path
-from typing import Optional
 
 from training_planner import rematch_week  # noqa: F401  (engine reuse)
 
 
 # IF-band -> dominant protocol (Coggan/Allen zones). IF = avg_power / FTP.
-def classify_protocol_from_if(if_value: Optional[float]) -> str:
+def classify_protocol_from_if(if_value: float | None) -> str:
     if if_value is None or if_value <= 0:
         return "sconosciuto"
     if if_value < 0.60:
@@ -87,7 +86,7 @@ def build_activity_insights(
     activities: list[dict],
     plan: dict,
     profile_dir: Path,
-    ftp: Optional[float],
+    ftp: float | None,
     days: int = 14,
 ) -> list[dict]:
     """Assemble per-ride insight rows (protocol, match, RPE, unplanned)."""

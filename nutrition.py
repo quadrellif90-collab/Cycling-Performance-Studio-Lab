@@ -19,8 +19,8 @@ card UI / export PDF (Fase 7c).
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Optional
 
 # ── Periodizzazione carboidrati (g/kg BM) per tipo di giorno ────────────────
 # Basato su GSSI SSE 231 "fuel for the work required".

@@ -17,7 +17,6 @@ from typing import Any
 
 from PIL import Image, ImageDraw, ImageFont
 
-
 # Canvas
 W, H = 1600, 900
 BG = (13, 17, 23)          # --surface

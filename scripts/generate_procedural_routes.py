@@ -30,12 +30,10 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import statistics
 import sys
 import time
 from pathlib import Path
-from typing import Optional
 
 from route_archetypes import (
     ARCHETYPE_REGISTRY,
@@ -47,7 +45,6 @@ from route_archetypes import (
     apply_smoothing,
     seeded_random,
 )
-
 
 HERE = Path(__file__).resolve().parent
 COURSES_DIR = HERE / "courses" / "virtual"
@@ -315,7 +312,7 @@ def compute_surface_mix(surface_segments: list[dict], total_km: float) -> tuple[
     if total_km > 0:
         pct = {k: round(100.0 * v / total_km) for k, v in totals.items()}
     else:
-        pct = {k: 0 for k in totals}
+        pct = dict.fromkeys(totals, 0)
     # Correct rounding so sum == 100
     diff = 100 - sum(pct.values())
     if diff != 0:
@@ -387,7 +384,7 @@ def est_tss(distance_km: float, climb_m: int, max_grade: float,
 
 def compute_climb_count(segs: list[float], grades: list[float],
                         min_grade: float = 5.0,
-                        min_len_km: float = 0.5) -> tuple[int, Optional[dict]]:
+                        min_len_km: float = 0.5) -> tuple[int, dict | None]:
     """Walk the profile counting sustained >=5% segments >=500m. Return primary.
 
     Delegates to ``route_archetypes._detect_climbs`` (canonical) so the two
@@ -630,7 +627,7 @@ def build_route_entry(region: str, idx: int, name: str, slug: str,
                       archetype_name: str, spec: ArchetypeSpec,
                       segs: list[float], grades: list[float],
                       surface_segments: list[dict],
-                      lap_meta: Optional[dict] = None) -> tuple[dict, Optional[list[dict]], list[dict]]:
+                      lap_meta: dict | None = None) -> tuple[dict, list[dict] | None, list[dict]]:
     metrics = compute_physical_metrics(segs, grades)
     output = ArchetypeOutput(
         segs=segs, grades=grades, surface_segments=surface_segments,
@@ -763,7 +760,7 @@ def build_route_entry(region: str, idx: int, name: str, slug: str,
     return entry, surface_entry, []
 
 
-def compute_category_from_primary(metrics: dict, primary_climb: Optional[dict]) -> str:
+def compute_category_from_primary(metrics: dict, primary_climb: dict | None) -> str:
     if not primary_climb:
         # still flat check — any significant climbing?
         if metrics["climb_m"] < 80 or metrics["avg_grade_abs"] < 2.0:
@@ -969,7 +966,11 @@ def build_lap_base_profile(archetype_name: str, base_km: float,
 def _base_flat_tt(base_km: float, seed: int):
     """Pan-flat TT with layered aperiodic noise (not single-octave Perlin)."""
     from route_archetypes import (
-        SEG_KM, segment_lengths, uniform_surface, _fbm_1d, _value_noise_1d,
+        SEG_KM,
+        _fbm_1d,
+        _value_noise_1d,
+        segment_lengths,
+        uniform_surface,
     )
     segs = segment_lengths(base_km, seed, SEG_KM)
     grades = []
@@ -990,8 +991,14 @@ def _base_rolling(base_km: float, seed: int):
     800m) and aperiodic climb blocks placed by Poisson spacing so no two laps
     repeat their peaks.
     """
-    from route_archetypes import (SEG_KM, segment_lengths, uniform_surface,
-                                  _fbm_1d, _value_noise_1d, _poisson_positions)
+    from route_archetypes import (
+        SEG_KM,
+        _fbm_1d,
+        _poisson_positions,
+        _value_noise_1d,
+        segment_lengths,
+        uniform_surface,
+    )
     segs = segment_lengths(base_km, seed, SEG_KM)
     n = len(segs)
     grades = []
@@ -1029,8 +1036,11 @@ def _base_climb(base_km: float, seed: int):
     together because each base is unique per-seed.
     """
     from route_archetypes import (
-        SEG_KM, segment_lengths, uniform_surface,
-        _fbm_1d, _value_noise_1d,
+        SEG_KM,
+        _fbm_1d,
+        _value_noise_1d,
+        segment_lengths,
+        uniform_surface,
     )
     segs = segment_lengths(base_km, seed, SEG_KM)
     n = len(segs)
@@ -1081,8 +1091,11 @@ def _base_punchy_kicker(base_km: float, seed: int):
     identical placement when laps are stitched.
     """
     from route_archetypes import (
-        SEG_KM, segment_lengths, uniform_surface,
-        _fbm_1d, _value_noise_1d,
+        SEG_KM,
+        _fbm_1d,
+        _value_noise_1d,
+        segment_lengths,
+        uniform_surface,
     )
     segs = segment_lengths(base_km, seed, SEG_KM)
     n = len(segs)
@@ -1117,7 +1130,11 @@ def _base_punchy_kicker(base_km: float, seed: int):
 def _base_criterium(base_km: float, seed: int):
     """Pure criterium: layered fBm for aperiodic micro-undulations."""
     from route_archetypes import (
-        SEG_KM, segment_lengths, uniform_surface, _fbm_1d, _value_noise_1d,
+        SEG_KM,
+        _fbm_1d,
+        _value_noise_1d,
+        segment_lengths,
+        uniform_surface,
     )
     segs = segment_lengths(base_km, seed, 0.05)
     grades = []

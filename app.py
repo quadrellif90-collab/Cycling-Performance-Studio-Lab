@@ -9,6 +9,7 @@ Pure HTML + CSS + vanilla JS. No npm, no frameworks.
 import sys as _sys
 from pathlib import Path as _Pt
 
+
 def _startup_log(msg):
     try:
         _lp = _Pt.home() / ".cpsl" / "pcc_debug.log"
@@ -32,7 +33,7 @@ import time
 import uuid
 import xml.etree.ElementTree as ET
 from contextlib import asynccontextmanager
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 # ═══════════════════════════════════════════
@@ -121,17 +122,7 @@ _ensure_critical_modules()
 # 📦 IMPORTS POST-BOOTSTRAP (sicuri ora)
 # ════════════════════════════════════════════
 
-import collections
-import functools
 import json
-import sys
-import threading
-import time
-import uuid
-import xml.etree.ElementTree as ET
-from contextlib import asynccontextmanager
-from datetime import date, datetime, timedelta, timezone
-from pathlib import Path
 
 # Load .env file if present (secrets) — check multiple locations
 _env_candidates = [
@@ -147,9 +138,10 @@ for _env_path in _env_candidates:
                 os.environ.setdefault(k.strip(), v.strip())
         break
 
-import asyncio
 import logging
+
 import log_config
+
 _log = log_config.get_logger("app")
 log = log_config.get_logger(__name__)
 
@@ -166,6 +158,7 @@ log_ride_import = log_config.get_logger("domestique.ride_import")
 # appends an entry to the in-process ring buffer that
 # ``/api/diag/recent-errors`` reads.
 import error_codes
+
 _DIAG_RING_MAX = 256
 _DIAG_RING: collections.deque = collections.deque(maxlen=_DIAG_RING_MAX)
 _DIAG_RING_LOCK = threading.Lock()
@@ -187,7 +180,7 @@ def _log_error(code: str, exc: Exception | None = None, **context) -> None:
         meta = error_codes.metadata(code)
         severity = (meta or {}).get("severity", "ERROR")
         entry: dict = {
-            "ts": datetime.now(timezone.utc).isoformat(),
+            "ts": datetime.now(UTC).isoformat(),
             "code": code,
             "severity": severity,
             "context": dict(context),
@@ -229,22 +222,23 @@ def _diag_ring_snapshot(limit: int = 50, since_iso: str | None = None) -> list[d
         items = [e for e in items if e.get("ts", "") > since_iso]
     return items[:limit]
 
-from fastapi import FastAPI, File, Form, Request, Query, UploadFile, HTTPException, Body
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, Response
+from fastapi import Body, FastAPI, File, HTTPException, Query, Request, UploadFile
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from training import get_today_metrics, fetch_wellness, fetch_activities, TRIMP_TO_TSS_FACTOR
-from sleep import get_sleep_metrics
+import config
+import continuous_policy as cpol  # 3.4.0 W2 — continuous-mode deload + rotation policy
+import db
+import training_planner as tp  # module-level: every plan endpoint uses tp.plan_write_lock()
+import zones as _zones_mod
 from readiness import compute_readiness
 from readiness_composite import compute_readiness_composite  # v1.1.0 IMPL-HRV-RECOVERY
-import config
-import db
-import zones as _zones_mod
-import training_planner as tp  # module-level: every plan endpoint uses tp.plan_write_lock()
-import continuous_policy as cpol  # 3.4.0 W2 — continuous-mode deload + rotation policy
+from sleep import get_sleep_metrics
+from training import TRIMP_TO_TSS_FACTOR, fetch_activities, fetch_wellness, get_today_metrics
+
 # v1.6.1 — register _log_error as the planner's observability hook so any
 # planner-internal failure (generate_plan phase build, reforecast, match_zwo
 # library scan) lands in the shared diag ring buffer. Hook indirection
@@ -260,6 +254,7 @@ except Exception:
 # legacy ~/.chickencycling/ dir into place). _plan_dir() below mkdirs
 # on demand, so deferring this is safe.
 from user_home import cpsl_home
+
 _user_data_dir = cpsl_home()  # 3.4.3: DOMESTIQUE_HOME-aware
 
 COURSE_DIR    = Path(__file__).parent / "courses"
@@ -865,13 +860,13 @@ app = FastAPI(title="Cycling Performance Studio Lab", version=_VERSION, lifespan
 # ── PCC Enhanced Routes (registered early to avoid frozen-exe issues) ─────
 try:
     import bia_parser as _bia
+    import caching as _cache
+    import data_export as _dexp
     import gpx_parser as _gpx
     import session_manager as _sess
-    import caching as _cache
-    import injury_manager as _inj
-    import data_export as _dexp
-    from fitness_estimation import estimate_ftp as _pcc_ftp, compute_fitness_signature as _pcc_sig, compute_cp_wprime as _pcc_cp
-    from power_curve import aggregate_power_curve as _pcc_pc
+    from fitness_estimation import compute_cp_wprime as _pcc_cp
+    from fitness_estimation import compute_fitness_signature as _pcc_sig
+    from fitness_estimation import estimate_ftp as _pcc_ftp
 
     @app.post("/api/fitness/estimate-ftp")
     async def api_pcc_estimate_ftp(request: Request):
@@ -981,6 +976,7 @@ except Exception as _pcc_err:
 from starlette.requests import Request as StarletteRequest
 from starlette.responses import JSONResponse as StarletteJSONResponse
 
+
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: StarletteRequest, exc: Exception):
     log.exception(f"Unhandled exception in {request.url.path}")
@@ -1003,6 +999,7 @@ async def _get_json_body(request) -> dict:
 # Request logging middleware — logs all API errors
 from starlette.middleware.base import BaseHTTPMiddleware
 
+
 class ErrorLoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         try:
@@ -1022,6 +1019,7 @@ app.add_middleware(ErrorLoggingMiddleware)
 # GZipMiddleware only kicks in above minimum_size so small /api/* payloads
 # pass through uncompressed.
 from starlette.middleware.gzip import GZipMiddleware
+
 app.add_middleware(GZipMiddleware, minimum_size=10_000)
 
 
@@ -1277,8 +1275,9 @@ def setup_check_activities(body: dict):
     if not athlete_id:
         return {"ok": False, "error": "Couldn't detect your athlete from that API key."}
 
-    import httpx
     from datetime import timedelta as _td
+
+    import httpx
     today = date.today()
     oldest = (today - _td(days=42)).isoformat()
     newest = today.isoformat()
@@ -1379,7 +1378,8 @@ def setup_icu_hr(athlete_id: str = Query(""), api_key: str = Query("")):
         # Get recent activities to find max HR and threshold HR.
         # Rolling 12-month window (W2d): the old hardcoded 2024→2026 range was
         # both a staleness source and a Jan-2027 time bomb.
-        from datetime import date as _date, timedelta as _td
+        from datetime import date as _date
+        from datetime import timedelta as _td
         _new = (_date.today() + _td(days=1)).isoformat()
         _old = (_date.today() - _td(days=365)).isoformat()
         url = f"https://intervals.icu/api/v1/athlete/{athlete_id}/activities?oldest={_old}&newest={_new}"
@@ -1779,6 +1779,7 @@ _cache_ts = {}
 # concurrent same-key requests don't both compute and don't race the
 # lazy-GC pass against the cache-write.
 import threading as _threading_for_fr
+
 _fatigue_resistance_locks: dict[str, _threading_for_fr.Lock] = {}
 _fatigue_resistance_locks_master = _threading_for_fr.Lock()
 
@@ -2739,8 +2740,9 @@ def api_profile_fatigue_resistance(window_days: int = Query(365, ge=1, le=3650),
     Falls back to ``insufficient_data`` on any exception so the dashboard
     never gets a 500.
     """
-    import power_curve
     from fastapi import HTTPException
+
+    import power_curve
     # PATCH G5 — only 1500 and 2000 are valid thresholds. W2B-G6: prior
     # implementation silently coerced other values to 1500 → response
     # said kj_threshold:1500 but the request asked for something else.
@@ -2998,7 +3000,8 @@ def api_profile_dfa_rides():
         n_total, n_computed, n_stale_version }
     """
     import statistics as _stats
-    from datetime import datetime as _dt, timedelta as _td
+    from datetime import datetime as _dt
+    from datetime import timedelta as _td
     try:
         from analytics import DFA_AGG_MIN_R2 as _AGG_R2
     except Exception:
@@ -3758,7 +3761,7 @@ def _recent_dfa_diagnostic() -> dict:
     )
     recent = merged[:5]
     values: list[float] = []
-    last_computed_at: "str | None" = None
+    last_computed_at: str | None = None
     n_no_rr = 0
     n_fetch_failed = 0
     for r in recent:
@@ -4030,6 +4033,7 @@ def api_readiness(subjective: float = Query(None)):
     severity_reasons: list = []
     try:
         from datetime import date as _date_cls
+
         from readiness_composite import compute_training_severity as _cts
         sev = _cts("default", _date_cls.today().isoformat()) or {}
         if isinstance(sev, dict):
@@ -4281,7 +4285,7 @@ async def api_readiness_apply_tier_down(request: Request):
                 current_tsb = training_snap.get("tsb")
             except Exception:
                 current_tsb = None
-            tsb_series: "dict | None" = None
+            tsb_series: dict | None = None
             if current_tsb is not None:
                 tsb_series = {}
                 for w in plan.get("weeks", []) or []:
@@ -4574,7 +4578,7 @@ async def api_plan_auto_adjust(request: Request):
                 current_tsb = training_snap.get("tsb")
             except Exception:
                 current_tsb = None
-            tsb_series: "dict | None" = None
+            tsb_series: dict | None = None
             if current_tsb is not None:
                 tsb_series = {}
                 for w in working.get("weeks", []) or []:
@@ -6491,6 +6495,7 @@ def api_workout_detail(category: str, filename: str, view: str | None = Query(No
         _hr_mode = _pm.target_mode == "hr"
     if _hr_mode:
         from functools import partial
+
         from hr_targets import power_target_to_hr as _pt2hr
         # int() — save_athlete's range validator stores numerics as float;
         # bpm maths rounds anyway but the UI shows this value verbatim.
@@ -8854,7 +8859,7 @@ def _write_update_check_cache(payload):
     try:
         p.parent.mkdir(parents=True, exist_ok=True)
         body = dict(payload)
-        body["cache_written_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        body["cache_written_at"] = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
         p.write_text(json.dumps(body, indent=2), encoding="utf-8")
     except Exception:
         pass
@@ -8877,7 +8882,7 @@ def _cache_is_fresh(cache, now):
     if not written:
         return False
     try:
-        ts = datetime.strptime(written, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+        ts = datetime.strptime(written, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
     except ValueError:
         return False
     return (now - ts).total_seconds() < _UPDATE_CHECK_CACHE_TTL_S
@@ -9016,10 +9021,12 @@ def api_oauth_icu_start(return_to: str = Query("/")):
     Blank client_id (not yet provisioned) → bounce back with ?icu=unavailable.
     ``return_to`` (validated local path) is where the callback bounces afterward
     so the setup wizard can resume on its own step and show the linked account."""
-    from fastapi.responses import RedirectResponse
-    from profile_manager import ProfileManager
     import secrets as _secrets
     from urllib.parse import urlencode
+
+    from fastapi.responses import RedirectResponse
+
+    from profile_manager import ProfileManager
     if not getattr(config, "ICU_OAUTH_CLIENT_ID", ""):
         return RedirectResponse(url="/?icu=unavailable")
     now = time.time()
@@ -9049,6 +9056,7 @@ def api_oauth_icu_callback(code: str = Query(""), state: str = Query(""),
     2-min window, persist it to the active profile, then bounce to the app.
     Never echoes the code/secret into a redirect."""
     from fastapi.responses import RedirectResponse
+
     from profile_manager import ProfileManager
     now = time.time()
     _icu_oauth_prune(now)
@@ -9297,7 +9305,8 @@ async def api_import_garmin(request: Request):
 @app.post("/api/import/fit")
 async def api_import_fit(file: UploadFile = File(...)):
     """Parse an uploaded .FIT activity file into a compact summary."""
-    import tempfile, os
+    import os
+    import tempfile
     data = await file.read()
     with tempfile.NamedTemporaryFile(suffix=".fit", delete=False) as tmp:
         tmp.write(data)
@@ -9315,7 +9324,8 @@ async def api_import_fit(file: UploadFile = File(...)):
 @app.post("/api/import/gpx")
 async def api_import_gpx(file: UploadFile = File(...)):
     """Parse an uploaded .GPX file into a compact summary."""
-    import tempfile, os
+    import os
+    import tempfile
     data = await file.read()
     with tempfile.NamedTemporaryFile(suffix=".gpx", delete=False) as tmp:
         tmp.write(data)
@@ -9366,14 +9376,15 @@ async def api_mcp_call(request: Request):
 @app.post("/api/metrics/power-analysis")
 async def api_metrics_power_analysis(file: UploadFile = File(...)):
     """CP/W' fit + W' balance from an uploaded .FIT power file."""
-    import tempfile, os
+    import os
+    import tempfile
     data = await file.read()
     with tempfile.NamedTemporaryFile(suffix=".fit", delete=False) as tmp:
         tmp.write(data)
         tmp_path = tmp.name
     try:
-        from importers import parse_fit_summary
         from advanced_metrics import fit_critical_power, w_balance
+        from importers import parse_fit_summary
         summ = parse_fit_summary(tmp_path)
         if not summ.get("ok"):
             return {"ok": False, "error": summ.get("error", "fit_parse_failed")}
@@ -9465,7 +9476,7 @@ async def api_export_athlete_page(days: int = 90):
     import datetime as _dt
     out: dict = {"ok": True}
     try:
-        from ride_storage import load_recent_wellness, list_rides
+        from ride_storage import list_rides, load_recent_wellness
         w = load_recent_wellness(days=days)
         ctl = [r.get("ctl") for r in w if r.get("ctl") is not None]
         atl = [r.get("atl") for r in w if r.get("atl") is not None]
@@ -10002,10 +10013,11 @@ def api_update_check(force: int = Query(0)):
     (the cache held a stale ``latest`` and the banner never appeared).
     """
     import httpx
-    from packaging.version import parse as _vparse, InvalidVersion
+    from packaging.version import InvalidVersion
+    from packaging.version import parse as _vparse
 
     plat = sys.platform
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     cache = _read_update_check_cache()
 
     def _overlay_live_current(out):
@@ -10669,7 +10681,6 @@ def api_gpx_data(region: str, filename: str):
     if not path or not path.exists():
         return JSONResponse({"error": "GPX not found", "tried": gpx_name}, 404)
 
-    import math
     ns = {"gpx": "http://www.topografix.com/GPX/1/1"}
     try:
         tree = ET.parse(path)
@@ -11763,7 +11774,7 @@ def _days_since_last_anaerobic(rides: list[dict], today: date,
     """Days since the last ride with ≥ ANAEROBIC_Z67_MIN_S of Z6+Z7 time
     (the sprint contract's t150 bar). None = nothing on record in window."""
     cutoff = (today - timedelta(days=window_days)).isoformat()
-    newest: "str | None" = None
+    newest: str | None = None
     for r in rides or []:
         d = _ride_started_local_iso_date(r) or ""
         if not d or d < cutoff or d > today.isoformat():
@@ -11797,10 +11808,10 @@ def _continuous_family_deficits(week_json: "dict | None", rides: list[dict],
     duration. Actual side: ride time_in_zone (z1+z2 | z3+z4+z5 | z6+z7).
     Positive deficit = still owed this week. Advisory precision only.
     """
-    planned = {f: 0.0 for f in cpol.FAMILIES}
-    actual = {f: 0.0 for f in cpol.FAMILIES}
+    planned = dict.fromkeys(cpol.FAMILIES, 0.0)
+    actual = dict.fromkeys(cpol.FAMILIES, 0.0)
     if not week_json:
-        return {f: 0 for f in cpol.FAMILIES}
+        return dict.fromkeys(cpol.FAMILIES, 0)
     try:
         lib_by_file = {row.get("File"): row for row in tp.load_workout_library()}
     except Exception:  # noqa: BLE001
@@ -13269,8 +13280,9 @@ async def api_plan_generate(request: Request):
         days_since_last_ride = None
         tsb_at_generation = None
         try:
-            import ride_storage as _rs2
             from datetime import date as _date
+
+            import ride_storage as _rs2
             last = max((r.get("started_at") or "")[:10]
                        for r in _rs2.load_all_rides())
             if last:
@@ -15055,6 +15067,7 @@ def _fit_apply_hr_target(step, pct_lo: float, pct_hi: float, dur_s: float,
     right. The CEILING is the useful half ("keep it under X"); keep only it.
     """
     from fit_tool.profile.profile_type import WorkoutStepTarget
+
     from hr_targets import power_target_to_hr
 
     tgt = power_target_to_hr(pct_lo, pct_hi, dur_s, lthr, max_hr,
@@ -15098,7 +15111,14 @@ def _build_fit_workout(name: str, blocks: list[dict], ftp: int,
     from fit_tool.profile.messages.file_id_message import FileIdMessage
     from fit_tool.profile.messages.workout_message import WorkoutMessage
     from fit_tool.profile.messages.workout_step_message import WorkoutStepMessage
-    from fit_tool.profile.profile_type import FileType, Manufacturer, Sport, Intensity, WorkoutStepDuration, WorkoutStepTarget
+    from fit_tool.profile.profile_type import (
+        FileType,
+        Intensity,
+        Manufacturer,
+        Sport,
+        WorkoutStepDuration,
+        WorkoutStepTarget,
+    )
 
     builder = FitFileBuilder()
 
@@ -15218,7 +15238,12 @@ def _build_fit_workout_from_zwo(name: str, zwo_path: Path, ftp: int,
     from fit_tool.profile.messages.workout_message import WorkoutMessage
     from fit_tool.profile.messages.workout_step_message import WorkoutStepMessage
     from fit_tool.profile.profile_type import (
-        FileType, Manufacturer, Sport, Intensity, WorkoutStepDuration, WorkoutStepTarget,
+        FileType,
+        Intensity,
+        Manufacturer,
+        Sport,
+        WorkoutStepDuration,
+        WorkoutStepTarget,
     )
 
     if zwo_text is not None:
@@ -15856,7 +15881,7 @@ def _compute_missed_suggestions(plan: dict, today: date) -> list[dict]:
             continue
         iso_year, iso_week = missed_d.isocalendar()[:2]
         same_week_dates: list[str] = []
-        for d_iso in sess_by_day.keys():
+        for d_iso in sess_by_day:
             try:
                 dd = date.fromisoformat(d_iso)
             except ValueError:
@@ -16448,7 +16473,7 @@ def _enrich_plan_for_response_uncached(plan_dict: dict, today_iso: str) -> dict:
             try:
                 _st = _f.stat()
                 _ddt = datetime.fromtimestamp(
-                    _st.st_mtime, timezone.utc,
+                    _st.st_mtime, UTC,
                 ).astimezone().date().isoformat()
                 rides_by_date[_ddt] = True
             except OSError:
@@ -19174,7 +19199,7 @@ async def api_ride_import(
         raise HTTPException(status_code=400, detail="file too small to be a FIT")
 
     # Stable id: upload time in ISO form (filesystem-safe ":" replacement).
-    now = datetime.now(timezone.utc).astimezone()
+    now = datetime.now(UTC).astimezone()
     ride_id = now.strftime("%Y-%m-%dT%H-%M-%S")
     fit_path = _rides_fit_dir() / f"{ride_id}.fit"
 
@@ -19420,8 +19445,8 @@ def _sync_icu_wellness(force: bool = False, days: int = 90) -> dict:
                 total = 0
             return {"added": 0, "total": total, "skipped": "throttled"}
 
-    import training as _training
     import ride_storage as _rs
+    import training as _training
 
     # AC1: snapshot the owning profile at TASK START — the fetch below runs
     # outside any lock; every write section is gated on the snapshot.
@@ -19548,10 +19573,10 @@ def _augment_icu_record_with_dfa(rec_path: Path, external_id: str,
     is persisted with ``dfa_alpha1_status='timeout'`` so the next sync
     retries it.
     """
-    import json as _json
-    import tempfile as _tempfile
-    import os as _os
     import concurrent.futures as _futures
+    import json as _json
+    import os as _os
+    import tempfile as _tempfile
 
     try:
         rec = _json.loads(rec_path.read_text(encoding="utf-8"))
@@ -19601,8 +19626,12 @@ def _augment_icu_record_with_dfa(rec_path: Path, external_id: str,
         # all three fail. Runs in a worker thread so the outer
         # .result(timeout=_DFA_AUGMENT_TIMEOUT_S) can abandon it.
         from analytics import (
-            compute_dfa_alpha1_from_hrv_stream as _dfa_from_stream,
             compute_dfa_alpha1_for_fit as _dfa_from_fit,
+        )
+        from analytics import (
+            compute_dfa_alpha1_from_hrv_stream as _dfa_from_stream,
+        )
+        from analytics import (
             compute_dfa_threshold_analysis as _dfa_thresholds,
         )
 
@@ -19678,7 +19707,7 @@ def _augment_icu_record_with_dfa(rec_path: Path, external_id: str,
                 except OSError:
                     pass
 
-    dfa: "dict | None" = None
+    dfa: dict | None = None
     timed_out = False
     # v2.0.5 — fresh records (and the explicit force=backfill path) get the full
     # 45s for heavy-FIT parses; a record already stuck at 'timeout' failed once
@@ -19808,8 +19837,8 @@ def _sync_icu_activities_locked(force: bool = False) -> dict:
                 "last_sync_at": last,
             }
 
-    import training as _training
     import ride_storage as _rs
+    import training as _training
 
     # AC1: snapshot the owning profile at TASK START (this function runs on the
     # domestique.icu_sync daemon thread and on forced request threads). The
@@ -20066,7 +20095,7 @@ def _aggregate_best_efforts_90d(rides: list[dict] | None = None,
     if rides is not None:
         # Legacy mode (capability-projection): walk the supplied rides + aggregate
         # per-tier max watts. Honours caller's filtering.
-        result: dict[int, int] = {d: 0 for d in target_durations}
+        result: dict[int, int] = dict.fromkeys(target_durations, 0)
         for r in rides:
             efforts = r.get("efforts") or []
             for e in efforts:
@@ -20180,7 +20209,7 @@ async def api_ride_rpe(ride_id: str, request: Request):
         body = await _get_json_body(request)
     except Exception:
         body = {}
-    raw = body.get("rpe", None)
+    raw = body.get("rpe")
     if raw is None:
         rpe = None
     else:
@@ -21188,7 +21217,7 @@ def api_rides_legacy_envelope():
                 "ride_id": f.stem, "source": "fit",
                 "size_bytes": st.st_size,
                 "mtime": datetime.fromtimestamp(
-                    st.st_mtime, timezone.utc
+                    st.st_mtime, UTC
                 ).astimezone().isoformat(),
             })
     except Exception:
@@ -21417,7 +21446,8 @@ def _build_programme_summary(plan: dict) -> dict:
     is_continuous = goal_type == "continuous" or any(
         (w.get("phase") or "") == "continuous" for w in weeks[:1])
     if is_continuous and start_date:
-        from datetime import date as _date, timedelta as _td
+        from datetime import date as _date
+        from datetime import timedelta as _td
         trailing = (_date.today() - _td(days=28)).isoformat()
         if trailing < start_date:
             start_date = trailing
@@ -21612,7 +21642,7 @@ def _build_programme_summary(plan: dict) -> dict:
     }
 
     # ── Polarization index ─────────────────────────────────────────────────
-    from analytics import compute_polarization_block, classify_distribution
+    from analytics import classify_distribution, compute_polarization_block
     pol_indices = []
     for r in in_window:
         block = compute_polarization_block(r.get("zones") or {})
@@ -22063,7 +22093,7 @@ def api_diag_health(request: Request):
     result = {
         "ok": overall_ok,
         "checks": checks,
-        "ts": datetime.now(timezone.utc).isoformat(),
+        "ts": datetime.now(UTC).isoformat(),
         "ring_size": len(_DIAG_RING),
     }
     _DIAG_HEALTH_CACHE["result"] = result
@@ -22193,8 +22223,8 @@ def api_daily_adapt():
     carico + raccomandazione, basato su HRV-guided training (Casanova-Lizón
     2025) + Hooper (1995) + DFA α1 (Rogers 2021).
     """
-    from training_planner import daily_recalculate_adjustment, _hooper_index_today
     from training import get_today_metrics
+    from training_planner import _hooper_index_today, daily_recalculate_adjustment
     try:
         m = get_today_metrics()
     except Exception:
@@ -22224,8 +22254,8 @@ def api_strength_plan(phase: str = Query("base"), weeks: int = Query(4),
     con set/rep/%1RM evidence-based, mantenute in-season.
     one_rm_kg: 1RM Squat dell'atleta → carichi assoluti in kg (se 0, dal profilo).
     """
-    from strength_mobility import build_strength_plan, strength_summary
     from profile_manager import ProfileManager
+    from strength_mobility import build_strength_plan, strength_summary
     if not one_rm_kg:
         a = (ProfileManager.get()._athlete or {})
         one_rm_kg = float(a.get("one_rm_kg") or 0.0)
@@ -22252,8 +22282,9 @@ async def api_inject_strength(request: Request):
     Legge current_plan.json, aggiunge sedute strength (2×/sett base, 1× peak)
     e mobility (quotidiana 15min) nei giorni non-rest. Salva il piano modificato.
     """
-    from profile_manager import ProfileManager
     import json as _json
+
+    from profile_manager import ProfileManager
     body = {}
     try:
         raw = await request.body()
@@ -22274,7 +22305,7 @@ async def api_inject_strength(request: Request):
         raise HTTPException(404, "Nessun piano generato. Genera prima il piano.")
     plan = _json.loads(plan_path.read_text(encoding="utf-8"))
 
-    from strength_mobility import build_strength_plan, STRENGTH_PROTOCOLS, MOBILITY_ROUTINE
+    from strength_mobility import STRENGTH_PROTOCOLS, build_strength_plan
     proto = STRENGTH_PROTOCOLS.get(phase, STRENGTH_PROTOCOLS["base"])
     sessions_per_week = proto["sessions_per_week"]
     strength_plan = build_strength_plan(phase, len(plan.get("weeks", [])), one_rm_kg=one_rm)
@@ -22374,11 +22405,12 @@ async def api_inject_multidiscipline(request: Request):
     Cosi un atleta multidisciplinare vede nel piano anche corsa/MTB con
     distribuzione evidence-based (Stöggl 2015 per running, impatti MTB).
     """
-    import random
-    from profile_manager import ProfileManager
-    from strength_mobility import build_strength_plan, STRENGTH_PROTOCOLS
-    from pathlib import Path as _P
     import json as _json
+    import random
+    from pathlib import Path as _P
+
+    from profile_manager import ProfileManager
+    from strength_mobility import STRENGTH_PROTOCOLS, build_strength_plan
     body = {}
     try:
         raw = await request.body()
@@ -22534,10 +22566,11 @@ def api_nutrition_auto(goal_type: str = Query("maintain")):
     l'allenamento previsto, il carico cala; se l'ha svolto o è più alto, sale.
     Nessun select manuale: l'app ragiona sui dati reali.
     """
+    import datetime as _dt
+
+    from my_progress import fetch_actual_tss_by_week, iso_week_monday, load_plan_weeks
     from nutrition import day_macros, supplement_doses
     from profile_manager import ProfileManager
-    from my_progress import load_plan_weeks, fetch_actual_tss_by_week, iso_week_monday
-    import datetime as _dt
     pm = ProfileManager.get()
     a = pm._athlete or {}
     bw = float(a.get("weight_kg") or 72.0)
@@ -22686,7 +22719,7 @@ async def api_diet_pdf_import(request: Request):
     """
     try:
         body = await request.body()
-        from diet_parser import parse_diet_pdf, day_macros_summary
+        from diet_parser import day_macros_summary, parse_diet_pdf
         struct = parse_diet_pdf(body)
         struct["summary"] = day_macros_summary(struct)
         # rimuovi raw_text pesante dall'output API (gia in struct se serve)
@@ -22840,7 +22873,7 @@ def api_calendar_ics():
 
 @app.get("/api/injury/blocks")
 def api_injury_blocks():
-    from injury_manager import load_blocks, active_blocks
+    from injury_manager import active_blocks, load_blocks
     return {"blocks": load_blocks(), "active_today": len(active_blocks()) > 0}
 
 
@@ -22897,6 +22930,7 @@ def _bia_history_path():
     """File storico BIA nel profile attivo (bianco/neutro, coerente con athlete.json)."""
     try:
         from pathlib import Path as _P
+
         from profile_manager import ProfileManager
         pm = ProfileManager.get()
         aid = getattr(pm, "_active_id", None) or "default"
@@ -22953,7 +22987,6 @@ async def api_bia_import(request: Request):
     - JSON: {date, weight_kg, fat_mass_kg, ...} letto direttamente.
     Salva la misurazione nello storico BIA del profilo.
     """
-    import io
     import json as _json
     try:
         ctype = request.headers.get("content-type", "")
@@ -22962,7 +22995,7 @@ async def api_bia_import(request: Request):
         # JSON esplicito
         if "application/json" in ctype or body.lstrip().startswith(b"{"):
             data = _json.loads(body.decode("utf-8") or "{}")
-            from bia_parser import BIAReading, to_icu_wellness, parse_bia_text
+            from bia_parser import BIAReading, parse_bia_text, to_icu_wellness
             # testo incollato: fai il parse regex invece di leggerlo come campi strutturati
             if data.get("raw_text"):
                 res = parse_bia_text(data["raw_text"])
@@ -22982,7 +23015,7 @@ async def api_bia_import(request: Request):
                        "rejected_fields": [], "note": None}
         else:
             # multipart: file PDF
-            from bia_parser import parse_bia_pdf, BIAReading, to_icu_wellness
+            from bia_parser import BIAReading, parse_bia_pdf, to_icu_wellness
             form = await request.form()
             f = form.get("file")
             if not f:
@@ -23062,8 +23095,9 @@ async def api_bia_sync_icu(request: Request):
     visceralFat, metabolicAge per ogni misurazione dello storico.
     Richiede Intervals.icu configurato (Settings → Connessione ICU).
     """
-    import httpx
     import json as _json
+
+    import httpx
     body = {}
     try:
         raw = await request.body()
@@ -23165,8 +23199,8 @@ async def api_self_update(request: Request):
     Ritorna prima di completare l'install perche' l'app deve liberare i file.
     """
     import shutil
-    import subprocess
     import tempfile
+
     import httpx
 
     # Usa update check per ottenere download URL
@@ -23279,9 +23313,9 @@ def api_export_plan_html(athlete: str = Query("Atleta"), goal: str = Query(""),
                          phase: str = Query("base")):
     """BETA Fase 7c — compone il piano integrato (ciclismo+forza+mobilità+nutrizione)
     in un HTML autonomo stampabile → PDF dal browser. Usato da DIY e Coach."""
+    from nutrition import compute_nutrition, race_fueling, supplement_list
     from plan_export import build_plan_html
-    from strength_mobility import build_strength_plan, strength_summary, build_mobility_plan
-    from nutrition import compute_nutrition, supplement_list, race_fueling
+    from strength_mobility import build_mobility_plan, build_strength_plan, strength_summary
     try:
         sp = build_strength_plan(phase, 4)
         ss = strength_summary(phase)
@@ -23289,7 +23323,7 @@ def api_export_plan_html(athlete: str = Query("Atleta"), goal: str = Query(""),
         nut = compute_nutrition("high_intensity", 72, 120)
         sup = supplement_list()
         rf = race_fueling(3.0, 72)
-    except Exception as e:
+    except Exception:
         sp, ss, mp, nut, sup, rf = [], {}, [], {}, [], {}
     html = build_plan_html(
         athlete_name=athlete, goal_name=goal,
@@ -23308,6 +23342,7 @@ def api_my_calendar():
     vs eseguito. Legge il piano di PCC (tss_target) e le attività reali
     del profilo self da intervals.icu (se le credenziali ci sono)."""
     import datetime as _dt
+
     from my_progress import compute_my_adherence, fetch_actual_tss_by_week, load_plan_weeks
     from profile_manager import ProfileManager
     plan_weeks = load_plan_weeks()
@@ -23347,9 +23382,10 @@ def api_my_push_plan():
     """BETA Fase 7c/7e (DIY) — pusha il piano integrato sul proprio calendario
     intervals.icu (self). Invia un EVENTO per ogni seduta del piano con
     dettagli specifici: ciclismo, forza, mobilità, running, MTB, nutrizione."""
+    import httpx
+
     from my_progress import load_plan_weeks
     from profile_manager import ProfileManager
-    import httpx
     plan_weeks = load_plan_weeks()
     if not plan_weeks:
         return {"error": "Nessun piano da pushare", "pushed": 0, "errors": []}
@@ -23418,8 +23454,8 @@ def api_my_push_plan():
 @app.get("/api/cp-models")
 def api_cp_models(window_days: int = Query(90, ge=7, le=3650)):
     try:
-        from power_curve import aggregate_power_curve
         from cp_models import compute_cp_models, cp_models_to_dict
+        from power_curve import aggregate_power_curve
         from profile_manager import ProfileManager
         curve = aggregate_power_curve(None, window_days=window_days)
         best_efforts = {int(p["duration_s"]): int(p["watts"])
@@ -23438,8 +23474,8 @@ def api_cp_models(window_days: int = Query(90, ge=7, le=3650)):
 @app.get("/api/metabolic-profile")
 def api_metabolic_profile(window_days: int = Query(90, ge=7, le=3650)):
     try:
-        from power_curve import aggregate_power_curve
         from metabolic_decoder import decode_metabolic_profile, profile_to_dict
+        from power_curve import aggregate_power_curve
         from profile_manager import ProfileManager
         curve = aggregate_power_curve(None, window_days=window_days)
         best_efforts = {int(p["duration_s"]): int(p["watts"])
@@ -23503,7 +23539,7 @@ def api_metabolic_profile(window_days: int = Query(90, ge=7, le=3650)):
             _score["fatmax"] = min(100, max(0, int(_fm * 2)))
         if _wkg:
             _score["wkg"] = min(100, max(0, int((_wkg - 1) / 5 * 100)))
-        _score["ctl"] = min(100, max(0, int((curve.get("current_ctl") or 0))))
+        _score["ctl"] = min(100, max(0, int(curve.get("current_ctl") or 0)))
 
         out["classification"] = {
             "type": _type,
@@ -23532,9 +23568,13 @@ def api_espe(window_days: int = Query(84, ge=14, le=365)):
     try:
         import espe as espe_mod
         from power_curve import (
-            aggregate_power_curve, _load_cached_rides,
-            _filter_rides_by_window, _is_cycling_power_ride,
-            _profile_ftp_weight, is_sensor_glitch)
+            _filter_rides_by_window,
+            _is_cycling_power_ride,
+            _load_cached_rides,
+            _profile_ftp_weight,
+            aggregate_power_curve,
+            is_sensor_glitch,
+        )
     except Exception as e:
         return {"ok": False, "error": f"import_failed: {e}"}
 
@@ -23674,8 +23714,9 @@ def api_coach_decision():
 
     # Load trend from weekly TSS (last 14 days vs prior 14)
     try:
-        import ride_storage as _rs
         import datetime as _dt
+
+        import ride_storage as _rs
         today = _dt.date.today()
         by_day: dict[str, float] = {}
         for r in _rs.load_all_rides():
@@ -23745,8 +23786,8 @@ def espe_mod_cache() -> dict:
 def api_athlete_recommendations(window_days: int = Query(90, ge=7, le=3650)):
     """Raccomandazioni intelligenti basate sul profilo metabolico."""
     try:
-        from power_curve import aggregate_power_curve
         from metabolic_decoder import decode_metabolic_profile
+        from power_curve import aggregate_power_curve
         from profile_manager import ProfileManager
         curve = aggregate_power_curve(None, window_days=window_days)
         best_efforts = {int(p["duration_s"]): int(p["watts"]) for p in curve.get("rider_curve", []) if "duration_s" in p and "watts" in p}
@@ -23916,13 +23957,19 @@ def api_workout_import(request: Request):
 # ═══════════════════════════════════════════════════════════════════════════════
 # AI Coach APIs (v1.0.0) ──────────────────────────────────────────────────
 from fastapi import Request
-from fastapi.responses import JSONResponse
-from ai_coach import get_client, generate_weekly_analysis, generate_weekly_plan, generate_goal_plan
-from ai_coach.friel_coaching import build_friel_assessment, FRIEL_SYSTEM_PROMPT, WEEKLY_ANALYSIS_PROMPT, GENERATE_PLAN_PROMPT
+
+from ai_coach import generate_weekly_analysis, generate_weekly_plan, get_client
+from ai_coach.friel_coaching import (
+    FRIEL_SYSTEM_PROMPT,
+    GENERATE_PLAN_PROMPT,
+    WEEKLY_ANALYSIS_PROMPT,
+    build_friel_assessment,
+)
+
 
 # Dependency: gets LLM client from app state or config
 def _get_llm_client():
-    from config import AI_LLM_PROVIDER, AI_LLM_API_KEY, AI_LLM_MODEL
+    from config import AI_LLM_API_KEY, AI_LLM_MODEL, AI_LLM_PROVIDER
     return get_client(config_section={
         "provider": AI_LLM_PROVIDER,
         "api_key": AI_LLM_API_KEY,
@@ -24295,9 +24342,11 @@ def api_notifications_digest():
     blocco è best-effort con try/except così un dato mancante non uccide il
     digest. Il motore notifications.py esisteva da v1.x ma era cablato al 6%.
     """
+    from datetime import date as _date
+    from datetime import timedelta as _td
+
     import notifications as _notif
     import ride_storage
-    from datetime import date as _date, timedelta as _td
 
     items: list[dict] = []
     day_st = None
@@ -24484,6 +24533,7 @@ async def api_export_gpx_to_gc(request: Request):
     except (TypeError, ValueError):
         smooth = 5
     import tempfile
+
     import gpx_to_gc as _g2g
     tmp_in = None
     try:
@@ -24650,6 +24700,7 @@ async def api_ai_health():
 @app.get("/", response_class=HTMLResponse)
 def dashboard(request: Request):
     from fastapi.responses import RedirectResponse
+
     from profile_manager import ProfileManager
     active_profile_id = ""
     try:
@@ -24687,8 +24738,8 @@ def dashboard(request: Request):
 @app.get("/player/{workout_filename}", response_class=HTMLResponse)
 def workout_player_page(request: Request, workout_filename: str = ""):
     """Serve the workout player UI for a given .zwo file."""
-    from workout_player import resolve_workout_path, ZWOParser
     from profile_manager import ProfileManager
+    from workout_player import ZWOParser, resolve_workout_path
     pm = ProfileManager.get()
     _entry = _active_profile_entry(pm)
     ftp = _entry.get("ftp", 250.0) if _entry else 250.0
@@ -24725,8 +24776,8 @@ _WEB_DIR = BASE_DIR / "web"
 if _WEB_DIR.exists():
     @app.get("/{full_path:path}", response_class=HTMLResponse, include_in_schema=False)
     async def montisfork_spa(full_path: str):
-        from fastapi.responses import FileResponse
         from fastapi import HTTPException
+        from fastapi.responses import FileResponse
         if not full_path or full_path.startswith("api/") or full_path == "api":
             raise HTTPException(status_code=404)
         try:

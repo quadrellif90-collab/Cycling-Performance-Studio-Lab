@@ -17,8 +17,9 @@ Uso:
 """
 import os
 import sys
-import webbrowser
 import threading
+import webbrowser
+
 import uvicorn
 
 
@@ -40,7 +41,7 @@ def main():
             webbrowser.open(url)
         threading.Thread(target=_open, daemon=True).start()
 
-    print(f"\nPCC — Performance Cycling Coach (web mode)")
+    print("\nPCC — Performance Cycling Coach (web mode)")
     print(f"Interfaccia: {url}\n")
     if host == "0.0.0.0":
         import socket

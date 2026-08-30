@@ -34,10 +34,9 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from typing import Optional
 
 
-def _to_float(x: str) -> Optional[float]:
+def _to_float(x: str) -> float | None:
     try:
         return float(x.replace(",", "."))
     except (ValueError, AttributeError):
@@ -93,11 +92,12 @@ def parse_cpep_pdf(pdf_bytes: bytes) -> dict:
     (found) or None (not found in the PDF). Also returns ``raw_text_len`` and
     ``found`` (list of metric keys extracted).
     """
-    result: dict = {k: None for k in _PATTERNS}
+    result: dict = dict.fromkeys(_PATTERNS)
     raw_text = ""
     try:
-        from PyPDF2 import PdfReader
         import io
+
+        from PyPDF2 import PdfReader
         reader = PdfReader(io.BytesIO(pdf_bytes))
         parts = []
         for page in reader.pages:
@@ -126,7 +126,7 @@ def parse_cpep_pdf(pdf_bytes: bytes) -> dict:
 
 # ── storage (mirrors bia_history.json pattern) ────────────────────────────
 
-def _cpep_history_path() -> Optional[Path]:
+def _cpep_history_path() -> Path | None:
     try:
         from profile_manager import ProfileManager
         pm = ProfileManager.get()
@@ -160,7 +160,7 @@ def save_cpep_record(record: dict) -> bool:
         return False
 
 
-def load_latest_cpep() -> Optional[dict]:
+def load_latest_cpep() -> dict | None:
     p = _cpep_history_path()
     if p and p.exists():
         try:

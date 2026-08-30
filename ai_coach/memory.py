@@ -21,9 +21,8 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Optional
 
 # DATA_DIR is imported lazily to avoid a circular import at module load.
 _DATA_DIR = None
@@ -67,7 +66,7 @@ def add_memory(
     profile_id: str,
     role: str,
     content: str,
-    tags: Optional[list[str]] = None,
+    tags: list[str] | None = None,
 ) -> int:
     """Store one memory entry. Returns the new row id."""
     c = _conn()
@@ -80,7 +79,7 @@ def add_memory(
                 role,
                 content,
                 json.dumps(tags or []),
-                datetime.now(timezone.utc).isoformat(),
+                datetime.now(UTC).isoformat(),
             ),
         )
         c.commit()
@@ -150,7 +149,7 @@ def clear_memory(profile_id: str) -> int:
 # Rider-context RAG — pulls the rider's REAL data into the prompt
 # ──────────────────────────────────────────────────────────────────────────
 
-def build_rider_context(profile_id: Optional[str] = None) -> dict:
+def build_rider_context(profile_id: str | None = None) -> dict:
     """Collect the rider's current analytics into a compact context dict.
 
     Best-effort: any module that fails to import or returns nothing is simply
@@ -245,7 +244,7 @@ def build_rider_context(profile_id: Optional[str] = None) -> dict:
     return ctx
 
 
-def rider_context_prompt(profile_id: Optional[str] = None) -> str:
+def rider_context_prompt(profile_id: str | None = None) -> str:
     """Render the rider context as a compact text block for the LLM prompt."""
     ctx = build_rider_context(profile_id)
     parts = ["[RIDER CONTEXT — ground every answer in THIS data]"]

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Test leak tab: dopo ogni switch, quante sezioni sono visibili?"""
+import os
 import subprocess
 import sys
 import time
-import os
 
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
@@ -14,6 +14,7 @@ proc = subprocess.Popen(
     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 import urllib.request
+
 for _ in range(40):
     try:
         urllib.request.urlopen('http://127.0.0.1:22400/api/version', timeout=2)
@@ -22,6 +23,7 @@ for _ in range(40):
         time.sleep(1)
 
 from playwright.sync_api import sync_playwright
+
 chrome = os.path.expandvars(
     r'%LOCALAPPDATA%\ms-playwright\chromium-1228\chrome-win64\chrome.exe')
 cproc = subprocess.Popen([

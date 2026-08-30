@@ -23,10 +23,9 @@ import io
 import json
 import zipfile
 from pathlib import Path
-from typing import Optional
 
 
-def _profile_dir() -> Optional[Path]:
+def _profile_dir() -> Path | None:
     try:
         from profile_manager import ProfileManager
         pm = ProfileManager.get()
@@ -62,7 +61,6 @@ def build_bundle() -> tuple[bytes, str]:
             from profile_manager import ProfileManager
             prof = ProfileManager.get().to_dict() if hasattr(ProfileManager.get(), "to_dict") else {}
             if not prof:
-                import os
                 aj = pdir / "athlete.json"
                 if aj.exists():
                     prof = json.loads(aj.read_text(encoding="utf-8"))

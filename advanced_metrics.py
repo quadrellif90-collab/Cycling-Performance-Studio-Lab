@@ -39,8 +39,8 @@ def _fit_cp_3param(pts):
     "CP/W'/Pmax" models favoured in recent literature.
     """
     try:
-        from scipy.optimize import curve_fit
         import numpy as np
+        from scipy.optimize import curve_fit
 
         ts = np.array([t for t, _ in pts], dtype=float)
         ps = np.array([p for _, p in pts], dtype=float)

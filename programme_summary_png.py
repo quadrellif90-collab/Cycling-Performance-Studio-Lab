@@ -24,12 +24,9 @@ References (cited inline + in commit):
 from __future__ import annotations
 
 import io
-import math
 from pathlib import Path
-from typing import Any
 
 from PIL import Image, ImageDraw, ImageFont
-
 
 # Canvas
 W, H = 1200, 1600

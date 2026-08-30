@@ -25,8 +25,7 @@ the open-source CPSL context.
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
 
 
 @dataclass

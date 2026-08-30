@@ -70,8 +70,7 @@ Public API (used by IMPL-3D-INGEST):
 from __future__ import annotations
 
 import math
-from typing import Iterable, Sequence
-
+from collections.abc import Sequence
 
 # ═════════════════════════════════════════════════════════════════════════════
 # CONSTANTS
@@ -257,7 +256,7 @@ def compute_xss_components(
             xss_w  += ss * (P_W_share / P)
 
         # ─── W'bal update (Skiba 2012, mirror training_live.py:514-523) ──
-        if P > cp_f:
+        if cp_f < P:
             w_bal -= (P - cp_f) * dt
         else:
             dcp = max(0.0, cp_f - P)
@@ -268,7 +267,7 @@ def compute_xss_components(
             w_bal_min = w_bal
 
         # ─── Pmax_bal update (PCr depletion/recovery) ────────────────────
-        if P > cp_f:
+        if cp_f < P:
             pmax_bal -= (P_Pmax_share / pmax_drain_window) * dt
         else:
             pmax_bal += (pmax_f - pmax_bal) * (
@@ -372,7 +371,7 @@ def _compute_sr_series(
         count += 1
 
         # ─── W'bal update (Skiba 2012, mirror compute_xss_components) ──────
-        if P > cp_f:
+        if cp_f < P:
             w_bal -= (P - cp_f) * dt
         else:
             dcp = max(0.0, cp_f - P)
@@ -383,7 +382,7 @@ def _compute_sr_series(
         # ─── Pmax_bal update (PCr depletion/recovery) ─────────────────────
         # Need P_Pmax share for the drain term — recompute the attribution
         # locally rather than allocate a tuple per second.
-        if P > cp_f:
+        if cp_f < P:
             excess = P - cp_f
             denom = pmax_f - cp_f
             P_Pmax_share = (excess * excess) / denom if denom > 0 else 0.0

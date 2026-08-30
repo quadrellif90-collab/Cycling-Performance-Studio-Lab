@@ -10,21 +10,31 @@ Ogni test usa input noti con output calcolato a mano per verificare che
 l'implementazione corrisponda alla formula pubblicata.
 """
 import math
-import pytest
-import sys
 import os
+import sys
+
+import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from hrv_engine import (
-    RRPoint, CleanNN, clean_rr, compute_quality,
-    compute_hrv_metrics, compute_advanced_metrics,
-    compute_baseline, hrv_deviation, rolling_average,
-    _rmssd, _sdnn, _pnn50, _hr_from_nn,
-    MIN_NN_COUNT, MIN_DURATION_S, MIN_QUALITY_FOR_SYNC,
-    RR_MIN_MS, RR_MAX_MS, ARTIFACT_RATIO,
+    MIN_QUALITY_FOR_SYNC,
+    RR_MAX_MS,
+    RR_MIN_MS,
+    CleanNN,
+    RRPoint,
+    _hr_from_nn,
+    _pnn50,
+    _rmssd,
+    _sdnn,
+    clean_rr,
+    compute_advanced_metrics,
+    compute_baseline,
+    compute_hrv_metrics,
+    compute_quality,
+    hrv_deviation,
+    rolling_average,
 )
-
 
 # ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -349,11 +359,10 @@ class TestICUWriteBack:
         assert result["hrvSdnn"] == 82.1
 
     def test_low_quality_not_synced(self):
-        from hrv_engine import MIN_QUALITY_FOR_SYNC
         from huawei_hrv import to_icu_wellness_bulk
         daily = {"date": "2026-08-22", "valid": True,
                  "rmssd_ms": 65.3, "quality_score": 0.2}  # sotto soglia
-        assert MIN_QUALITY_FOR_SYNC > daily["quality_score"]  # sanity
+        assert daily["quality_score"] < MIN_QUALITY_FOR_SYNC  # sanity
         result = to_icu_wellness_bulk(daily)
         assert result is None  # qualità troppo bassa → non sincronizzare
 

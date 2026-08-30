@@ -24,16 +24,17 @@ Per-profile WORKOUT_DIR resolution order (used on switch):
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 import shutil
 import threading
 import time
-import logging
-from datetime import datetime, timezone
+from collections.abc import Callable
+from datetime import UTC, datetime
 from pathlib import Path
+
 from user_home import domestique_home
-from typing import Callable, Optional
 
 log = logging.getLogger("domestique.profiles")
 
@@ -71,13 +72,13 @@ PROFILE_COLORS = [
 class ProfileManager:
     """Singleton managing the active profile and its config values."""
 
-    _instance: Optional["ProfileManager"] = None
+    _instance: ProfileManager | None = None
 
     def __init__(self):
         self._base = domestique_home()  # 3.4.3: DOMESTIQUE_HOME-aware
         self._profiles_dir = self._base / "profiles"
         self._registry_path = self._base / "profiles.json"
-        self._active_id: Optional[str] = None
+        self._active_id: str | None = None
         self._athlete: dict = {}
         self._env: dict = {}
         self._prefs: dict = {}
@@ -87,7 +88,7 @@ class ProfileManager:
         self._on_switch_callbacks: list[Callable] = []
 
     @classmethod
-    def get(cls) -> "ProfileManager":
+    def get(cls) -> ProfileManager:
         if cls._instance is None:
             cls._instance = cls()
             cls._instance._maybe_migrate_data_dir()
@@ -121,7 +122,7 @@ class ProfileManager:
     # ── Properties: active profile data ──────────────────────────────────
 
     @property
-    def active_id(self) -> Optional[str]:
+    def active_id(self) -> str | None:
         return self._active_id
 
     @property
@@ -195,15 +196,15 @@ class ProfileManager:
         return 190
 
     @property
-    def hrv_baseline_mean(self) -> Optional[float]:
+    def hrv_baseline_mean(self) -> float | None:
         return self._athlete.get("hrv_baseline_mean")
 
     @property
-    def hrv_baseline_sd(self) -> Optional[float]:
+    def hrv_baseline_sd(self) -> float | None:
         return self._athlete.get("hrv_baseline_sd")
 
     @property
-    def rhr_baseline(self) -> Optional[int]:
+    def rhr_baseline(self) -> int | None:
         return self._athlete.get("rhr_baseline")
 
     @property
@@ -657,7 +658,7 @@ class ProfileManager:
         import training_planner
         training_planner.PLAN_DIR = self.plan_dir
 
-        wp_dir: Optional[Path] = None
+        wp_dir: Path | None = None
         paths = self._load_json(self.active_dir / "user_paths.json")
         custom = paths.get("workout_dir")
         if custom:
@@ -1005,7 +1006,7 @@ class ProfileManager:
         if method not in ("coggan_20min", "ramp", "manual"):
             raise ValueError(f"unknown method {method!r}")
         entry = {
-            "date": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "date": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
             "method": method,
             "ftp": ftp,
             "source": str(source or ""),
@@ -1082,7 +1083,7 @@ class ProfileManager:
         return None
 
     def save_env(self, icu_athlete_id: str, icu_api_key: str,
-                 icu_access_token: "str | None" = None) -> None:
+                 icu_access_token: str | None = None) -> None:
         """Save Intervals.icu credentials to active profile's .env.
 
         Strips leading/trailing whitespace and rejects embedded newlines
@@ -1124,11 +1125,11 @@ class ProfileManager:
         os.environ["ICU_API_KEY"] = icu_api_key
         os.environ["ICU_ACCESS_TOKEN"] = icu_access_token
 
-    def save_icu_token(self, access_token: str, icu_athlete_id: "str | None" = None,
-                       icu_athlete_name: "str | None" = None,
-                       refresh_token: "str | None" = None,
-                       expires_in: "int | float | None" = None,
-                       granted_scopes: "str | None" = None) -> None:
+    def save_icu_token(self, access_token: str, icu_athlete_id: str | None = None,
+                       icu_athlete_name: str | None = None,
+                       refresh_token: str | None = None,
+                       expires_in: int | float | None = None,
+                       granted_scopes: str | None = None) -> None:
         """Persist an OAuth bearer token (+ athlete id / display name) to the
         active profile, keeping the existing API key. Pass access_token="" to
         disconnect. ``icu_athlete_name`` (when given) is stored in athlete.json
@@ -1337,7 +1338,7 @@ class ProfileManager:
         """Atomic JSON write (tmp + fsync + os.replace)."""
         self._write_text_atomic(path, json.dumps(data, indent=2))
 
-    def _write_text_atomic(self, path: Path, content: str, *, mode: Optional[int] = None) -> None:
+    def _write_text_atomic(self, path: Path, content: str, *, mode: int | None = None) -> None:
         """Atomic text write: write to .tmp, fsync, os.replace onto target.
 
         Uses `os.replace` (atomic rename on POSIX + Windows) and fsync the tmp
@@ -1409,7 +1410,7 @@ class ProfileManager:
 # ── Module-private helpers (not on the class so they can't be monkey-patched
 # as an instance-level bypass) ───────────────────────────────────────────────
 
-def _safe_profile_dir(pm: "ProfileManager", profile_id: str) -> Path:
+def _safe_profile_dir(pm: ProfileManager, profile_id: str) -> Path:
     """Validate a caller-supplied profile_id and return the absolute on-disk
     path it maps to.
 

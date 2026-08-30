@@ -7,20 +7,15 @@ Replace any ".domestique" paths with ".cpsl" in the extracted code.
 Run: included in app.py via include_router or copy-paste
 """
 
-import collections
-import functools
-import hashlib
 import json
 import os
-import re
 import sys
-import threading
 import time
-import uuid
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime
 from pathlib import Path
-from fastapi import FastAPI, File, Form, Request, Query, UploadFile, HTTPException, Body
-from fastapi.responses import JSONResponse, FileResponse, HTMLResponse, RedirectResponse, PlainTextResponse, Response
+
+from fastapi import Body, FastAPI, HTTPException, Query, Request
+from fastapi.responses import JSONResponse, RedirectResponse, Response
 from starlette.background import BackgroundTask
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -285,7 +280,7 @@ def _write_update_check_cache(payload):
     try:
         p.parent.mkdir(parents=True, exist_ok=True)
         body = dict(payload)
-        body["cache_written_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        body["cache_written_at"] = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
         p.write_text(json.dumps(body, indent=2), encoding="utf-8")
     except Exception:
         pass
@@ -414,14 +409,14 @@ async def api_activity_rpe(request: Request):
         note = body.get("note", "") or ""
         if not ride_id:
             return JSONResponse({"error": "ride_id required"}, 400)
-        from training_planner import PLAN_DIR
         from activity_insights import save_rpe
+        from training_planner import PLAN_DIR
         prof_dir = Path(PLAN_DIR)
         entry = save_rpe(prof_dir, ride_id, rpe, note)
         return {"ok": True, "ride_id": ride_id, "rpe": entry["rpe"]}
     except (ValueError, TypeError) as e:
         return JSONResponse({"error": str(e)}, 400)
-    except Exception as e:
+    except Exception:
         return JSONResponse({"detail": "rpe failed"}, 500)
 
 
@@ -429,9 +424,9 @@ async def api_activity_rpe(request: Request):
 # @app.get("/api/activity-insights")
 def api_activity_insights(days: int = Query(14, ge=1, le=365)):
     try:
-        from training_planner import PLAN_DIR
         from activity_insights import build_activity_insights
         from profile_manager import ProfileManager
+        from training_planner import PLAN_DIR
         pm = ProfileManager.get()
         prof_dir = Path(PLAN_DIR)
         ftp = float(pm.ftp) if getattr(pm, "ftp", None) else None
@@ -490,7 +485,7 @@ def api_custom_charts_delete(chart_id: str):
 # @app.get("/api/custom-charts/data/{chart_id}")
 def api_custom_charts_data(chart_id: str, days: int = Query(365, ge=1, le=3650)):
     try:
-        from custom_charts import load_charts, compute_series
+        from custom_charts import compute_series, load_charts
         defs = load_charts()
         defn = next((c for c in defs if c.get("id") == chart_id), None)
         if not defn:
@@ -794,8 +789,9 @@ def api_profile_get():
 # @app.post("/api/profile")
 async def api_profile_put(request: Request):
     """Aggiorna il profilo atleta e (se connesso a ICU) sincronizza."""
-    from profile_manager import ProfileManager
     import httpx
+
+    from profile_manager import ProfileManager
     body = {}
     try:
         raw = await request.body()
@@ -1076,9 +1072,9 @@ def api_upstream_check():
 # @app.post("/api/self-update")
 async def api_self_update(request: Request):
     """PCC — auto-aggiornamento reale tramite GitHub Releases."""
-    import shutil
     import subprocess
     import tempfile
+
     import httpx
 
     info = api_update_check(force=1)
@@ -1155,7 +1151,6 @@ async def api_self_update(request: Request):
 # @app.get("/oauth/terra/start")
 def api_terra_start(return_to: str = Query("/")):
     """Start the Terra auth flow — redirect to Huawei consent page."""
-    from fastapi.responses import RedirectResponse
     import terra_sync
     url = terra_sync.build_auth_url(return_to)
     return RedirectResponse(url)
@@ -1166,7 +1161,6 @@ def api_terra_start(return_to: str = Query("/")):
 def api_terra_callback(user_id: str = Query(""), reference_id: str = Query(""),
                        error: str = Query("")):
     """Terra redirects here after Huawei consent. Exchange + bounce to app."""
-    from fastapi.responses import RedirectResponse
     import terra_sync
     ok, return_to, reason = terra_sync.handle_callback(user_id, reference_id)
     sep = "&" if "?" in return_to else "?"

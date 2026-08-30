@@ -16,8 +16,8 @@ pronti per essere renderizzati nel planner o esportati in PDF/HTML (Fase 7c).
 """
 
 from __future__ import annotations
-from dataclasses import dataclass, field
-from typing import Optional
+
+from dataclasses import dataclass
 
 # ── Libreria esercizi forza (heavy, compound, evidence-based) ────────────────
 # Ogni esercizio: nome, gruppo, note. %1RM dal protocollo Llanos-Lagos 2025.

@@ -6,14 +6,20 @@ Provides multi-provider LLM integration with 14 supported providers:
 
 All calls use httpx (already in requirements-common.txt), no new dependencies.
 """
-import sys
 import os
+import sys
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+from .friel_coaching import (
+    FRIEL_SYSTEM_PROMPT,
+    GENERATE_PLAN_PROMPT,
+    WEEKLY_ANALYSIS_PROMPT,
+    build_friel_assessment,
+)
 from .llm_client import LLMClient, get_client
+from .plan_generator import generate_goal_plan, generate_weekly_plan
 from .weekly_analysis import generate_weekly_analysis
-from .plan_generator import generate_weekly_plan, generate_goal_plan
-from .friel_coaching import build_friel_assessment, FRIEL_SYSTEM_PROMPT, WEEKLY_ANALYSIS_PROMPT, GENERATE_PLAN_PROMPT
 
 __all__ = [
     "LLMClient",

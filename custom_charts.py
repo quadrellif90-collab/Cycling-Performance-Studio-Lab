@@ -24,14 +24,12 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from typing import Optional
-
 
 # Whitelisted metric tokens used inside a derived expression.
 _TOKEN_RE = re.compile(r"\s*([ab0-9.()+\-*/]+)\s*")
 
 
-def _safe_eval(expr: str, a: Optional[float], b: Optional[float]) -> Optional[float]:
+def _safe_eval(expr: str, a: float | None, b: float | None) -> float | None:
     """Evaluate a whitelisted expression over a,b (no eval).
 
     Allowed: tokens `a`, `b`, numbers, `+ - * / ( )`. Returns None on any
@@ -94,7 +92,7 @@ def _safe_eval(expr: str, a: Optional[float], b: Optional[float]) -> Optional[fl
         return a
 
 
-def _charts_path() -> Optional[Path]:
+def _charts_path() -> Path | None:
     try:
         from profile_manager import ProfileManager
         pm = ProfileManager.get()

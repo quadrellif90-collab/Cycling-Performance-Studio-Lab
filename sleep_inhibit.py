@@ -4,10 +4,10 @@ macOS: caffeinate -i subprocess
 Windows: SetThreadExecutionState flags
 Linux: systemd-inhibit subprocess
 """
+import logging
+import os
 import platform
 import subprocess
-import os
-import logging
 
 log = logging.getLogger(__name__)
 

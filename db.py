@@ -6,7 +6,6 @@ import os
 import re
 import sqlite3
 import threading
-import time
 from contextlib import contextmanager
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -17,6 +16,7 @@ from pathlib import Path
 # empty ~/.domestique vs. a fresh install at boot. Otherwise this import
 # would race ahead and create the new dir before the v3 migration runs.
 from user_home import domestique_home
+
 _USER_DATA = domestique_home()  # 3.4.3: DOMESTIQUE_HOME-aware (dev preview sandbox)
 
 # Load .env — check user data dir first, then project dir
@@ -28,7 +28,7 @@ for _env_candidate in [_USER_DATA / ".env", Path(__file__).parent / ".env"]:
                 os.environ.setdefault(_k.strip(), _v.strip())
         break
 
-from training import fetch_wellness, fetch_activities, ICUCredentialsMissing
+from training import ICUCredentialsMissing, fetch_activities, fetch_wellness
 
 log = logging.getLogger(__name__)
 

@@ -16,10 +16,8 @@ Data flow:
 from __future__ import annotations
 
 import logging
-import math
 from collections import deque
 from dataclasses import dataclass
-from typing import Optional
 
 from training_live import RideSample
 
@@ -193,7 +191,7 @@ def extract_best_efforts(
 # FTP AUTO-ESTIMATION
 # ══════════════════════════════════════════════════════════════════════════════
 
-def estimate_ftp(best_efforts: dict[int, int]) -> Optional[int]:
+def estimate_ftp(best_efforts: dict[int, int]) -> int | None:
     """Estimate FTP from best-effort power data, preferring longer durations.
 
     Applies standard scaling factors to each qualifying effort. Prefers
@@ -802,7 +800,7 @@ def aerobic_decoupling(
     power_samples: list[int] | list[float],
     hr_samples: list[int] | list[float],
     sample_hz: int = 1,
-) -> Optional[float]:
+) -> float | None:
     """Pa:Hr drift over the ride (v3.6.0-fix25 canonical, §1.4 + §1.5).
 
     Unified with `MetricsEngine.decoupling` so live and post-hoc agree:
@@ -823,9 +821,9 @@ def aerobic_decoupling(
     ``summary.decoupling_pct`` was lost.
     """
     from training_live import (
-        _is_valid_decoupling_sample,
-        DECOUPLING_WARMUP_TRIM_S,
         DECOUPLING_MIN_FILTERED_S,
+        DECOUPLING_WARMUP_TRIM_S,
+        _is_valid_decoupling_sample,
     )
 
     if not power_samples or not hr_samples:

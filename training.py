@@ -1,17 +1,17 @@
 """Fetch training load metrics from Intervals.icu."""
+import base64
 import json
 import logging
-import math
 import os
 import pathlib
 import random
 import statistics
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
-import urllib.error
-import base64
 from datetime import date, timedelta
+
 import config
 
 _log = logging.getLogger("domestique.training")
@@ -681,8 +681,8 @@ def compute_monotony_strain(wellness: list[dict]) -> tuple[float | None, float |
     which is exactly what monotony tries to measure.
     Rest days count as load = 0 (critical for correct SD calculation).
     """
-    from collections import defaultdict
-    from datetime import date as dt_date, timedelta
+    from datetime import date as dt_date
+    from datetime import timedelta
 
     # Build a 7-day load map from wellness data (date → daily TSS)
     today = dt_date.today()
@@ -931,7 +931,7 @@ def _effective_taus_from_db() -> dict:
 
 def classify_acwr(acwr: float | None) -> str:
     """Gabbett (2016): 0.8-1.3 sweet spot. Low ACWR = undertraining risk."""
-    from config import ACWR_GREEN_LOW, ACWR_GREEN_HIGH, ACWR_ORANGE_HIGH
+    from config import ACWR_GREEN_HIGH, ACWR_GREEN_LOW, ACWR_ORANGE_HIGH
     if acwr is None:
         return "?"
     if ACWR_GREEN_LOW <= acwr <= ACWR_GREEN_HIGH:

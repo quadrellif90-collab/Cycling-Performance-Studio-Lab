@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """PCC — Terra API integration (Huawei Health / wearables).
 
 Bridge between a Terra (tryterra.co) developer app and PCC's local DB.
@@ -33,8 +32,7 @@ from __future__ import annotations
 import logging
 import secrets
 import time
-from datetime import date, datetime, timedelta
-from typing import Optional
+from datetime import date, timedelta
 
 log = logging.getLogger("pcc.terra")
 
@@ -85,6 +83,7 @@ def build_auth_url(return_to: str = "/") -> str:
     We store it in memory so the callback can verify it came from us.
     """
     import urllib.parse
+
     import config
     _prune_flows()
     reference_id = "pcc_" + secrets.token_hex(8)
@@ -165,8 +164,9 @@ def _fmt(d: date) -> str:
 
 
 def _get(profile_env: dict, path: str, params: dict) -> dict:
-    import config
     import httpx
+
+    import config
     url = f"{config.TERRA_BASE}{path}"
     resp = httpx.get(url, params=params, headers=_headers(profile_env), timeout=30)
     resp.raise_for_status()

@@ -7,8 +7,6 @@ Riferimenti: docs/SCIENCE_UPDATES_2025.md §1.
 """
 from __future__ import annotations
 
-from typing import Optional
-
 # ── Tabelle evidence-based ──────────────────────────────────────────────────
 
 def cho_rate_per_hour(duration_min: float, intensity: str = "moderate") -> float:

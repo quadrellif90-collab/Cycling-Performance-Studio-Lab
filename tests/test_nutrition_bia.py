@@ -1,5 +1,4 @@
 """Tests for nutrition, diet, and BIA modules."""
-import pytest
 
 
 class TestNutrition:
@@ -47,7 +46,7 @@ class TestDiet:
         assert callable(build_daily_diet)
 
     def test_food_constants(self):
-        from diet import FOODS, AVOID
+        from diet import AVOID, FOODS
         assert isinstance(FOODS, dict) or isinstance(FOODS, list)
         assert isinstance(AVOID, dict) or isinstance(AVOID, list)
 

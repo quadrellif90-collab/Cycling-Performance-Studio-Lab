@@ -19,8 +19,6 @@ Nessun dato viene perso: il testo grezzo e' preservato in `raw_text`.
 
 import re
 from dataclasses import dataclass, field
-from typing import Optional
-
 
 # ── DB nutrizionale (valori per 100 g, fonte: tavole INRAN/USDA approssimate)
 #    Copre gli alimenti del PDF "Filippo estate" + comuni. Se un alimento
@@ -164,7 +162,7 @@ class FoodItem:
     name: str
     grams: float
     is_alternative: bool = False
-    group_with: Optional[str] = None
+    group_with: str | None = None
     kcal: float = 0.0
     carb_g: float = 0.0
     protein_g: float = 0.0
@@ -264,7 +262,7 @@ def parse_diet_text(text: str) -> dict:
     cur_day = None
     cur_meal = None
     unknown_foods = []
-    last_primary: Optional[FoodItem] = None
+    last_primary: FoodItem | None = None
 
     for raw in lines:
         low = raw.lower().replace("quantità", "").strip()
@@ -319,8 +317,9 @@ def parse_diet_pdf(pdf_bytes: bytes) -> dict:
     Tesseract OCR before giving up. Self-contained: no cloud, degrades to a
     text-only parse (raw_text empty) if OCR is unavailable.
     """
-    from PyPDF2 import PdfReader
     import io
+
+    from PyPDF2 import PdfReader
     reader = PdfReader(io.BytesIO(pdf_bytes))
     text = "\n".join((pg.extract_text() or "") for pg in reader.pages)
     text = text.strip()

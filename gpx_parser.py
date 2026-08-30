@@ -16,7 +16,7 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -28,34 +28,34 @@ GARMIN_NS = "http://www.garmin.com/xmlschemas/TrackPointExtension/v1"
 class TrackPoint:
     lat: float
     lon: float
-    ele: Optional[float] = None
-    time: Optional[datetime] = None
-    power: Optional[float] = None
-    heart_rate: Optional[int] = None
-    cadence: Optional[int] = None
-    speed: Optional[float] = None
+    ele: float | None = None
+    time: datetime | None = None
+    power: float | None = None
+    heart_rate: int | None = None
+    cadence: int | None = None
+    speed: float | None = None
 
 
 @dataclass
 class TrackSegment:
-    points: List[TrackPoint] = field(default_factory=list)
+    points: list[TrackPoint] = field(default_factory=list)
 
     @property
-    def start_time(self) -> Optional[datetime]:
+    def start_time(self) -> datetime | None:
         for p in self.points:
             if p.time:
                 return p.time
         return None
 
     @property
-    def end_time(self) -> Optional[datetime]:
+    def end_time(self) -> datetime | None:
         for p in reversed(self.points):
             if p.time:
                 return p.time
         return None
 
     @property
-    def duration_seconds(self) -> Optional[float]:
+    def duration_seconds(self) -> float | None:
         start = self.start_time
         end = self.end_time
         if start and end:
@@ -92,35 +92,35 @@ class TrackSegment:
         return loss
 
     @property
-    def avg_power(self) -> Optional[float]:
+    def avg_power(self) -> float | None:
         powers = [p.power for p in self.points if p.power is not None]
         if powers:
             return sum(powers) / len(powers)
         return None
 
     @property
-    def max_power(self) -> Optional[float]:
+    def max_power(self) -> float | None:
         powers = [p.power for p in self.points if p.power is not None]
         if powers:
             return max(powers)
         return None
 
     @property
-    def avg_heart_rate(self) -> Optional[int]:
+    def avg_heart_rate(self) -> int | None:
         hrs = [p.heart_rate for p in self.points if p.heart_rate is not None]
         if hrs:
             return int(sum(hrs) / len(hrs))
         return None
 
     @property
-    def max_heart_rate(self) -> Optional[int]:
+    def max_heart_rate(self) -> int | None:
         hrs = [p.heart_rate for p in self.points if p.heart_rate is not None]
         if hrs:
             return max(hrs)
         return None
 
     @property
-    def avg_speed(self) -> Optional[float]:
+    def avg_speed(self) -> float | None:
         speeds = [p.speed for p in self.points if p.speed is not None]
         if speeds:
             return sum(speeds) / len(speeds)
@@ -133,9 +133,9 @@ class TrackSegment:
 
 @dataclass
 class GPXTrack:
-    name: Optional[str] = None
-    type: Optional[str] = None
-    segments: List[TrackSegment] = field(default_factory=list)
+    name: str | None = None
+    type: str | None = None
+    segments: list[TrackSegment] = field(default_factory=list)
 
     @property
     def total_points(self) -> int:
@@ -154,14 +154,14 @@ class GPXTrack:
         return sum(s.elevation_loss for s in self.segments)
 
     @property
-    def total_duration(self) -> Optional[float]:
+    def total_duration(self) -> float | None:
         durations = [s.duration_seconds for s in self.segments if s.duration_seconds]
         if durations:
             return sum(durations)
         return None
 
     @property
-    def start_time(self) -> Optional[datetime]:
+    def start_time(self) -> datetime | None:
         for s in self.segments:
             t = s.start_time
             if t:
@@ -169,7 +169,7 @@ class GPXTrack:
         return None
 
     @property
-    def avg_power(self) -> Optional[float]:
+    def avg_power(self) -> float | None:
         all_powers = []
         for s in self.segments:
             for p in s.points:
@@ -179,7 +179,7 @@ class GPXTrack:
             return sum(all_powers) / len(all_powers)
         return None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "name": self.name,
             "type": self.type,
@@ -196,7 +196,7 @@ class GPXTrack:
 
 @dataclass
 class GPXData:
-    tracks: List[GPXTrack] = field(default_factory=list)
+    tracks: list[GPXTrack] = field(default_factory=list)
     filename: str = ""
     creator: str = ""
     version: str = "1.1"
@@ -213,7 +213,7 @@ class GPXData:
     def total_elevation_gain(self) -> float:
         return sum(t.total_elevation_gain for t in self.tracks)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "filename": self.filename,
             "creator": self.creator,
@@ -235,7 +235,7 @@ def _haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
-def _parse_time(time_str: str) -> Optional[datetime]:
+def _parse_time(time_str: str) -> datetime | None:
     if not time_str:
         return None
     formats = [
@@ -253,7 +253,7 @@ def _parse_time(time_str: str) -> Optional[datetime]:
     return None
 
 
-def _parse_float(text: str) -> Optional[float]:
+def _parse_float(text: str) -> float | None:
     if text is None:
         return None
     try:
@@ -262,7 +262,7 @@ def _parse_float(text: str) -> Optional[float]:
         return None
 
 
-def _parse_int(text: str) -> Optional[int]:
+def _parse_int(text: str) -> int | None:
     if text is None:
         return None
     try:
@@ -271,7 +271,7 @@ def _parse_int(text: str) -> Optional[int]:
         return None
 
 
-def _find_text(element: ET.Element, tag: str, namespace: str = GPX_NS) -> Optional[str]:
+def _find_text(element: ET.Element, tag: str, namespace: str = GPX_NS) -> str | None:
     el = element.find(f"{{{namespace}}}{tag}")
     if el is None:
         el = element.find(tag)
@@ -387,7 +387,7 @@ def parse_gpx_string(gpx_content: str) -> GPXData:
     return data
 
 
-def gpx_to_route_entries(gpx_data: GPXData, profile_id: str) -> List[Dict[str, Any]]:
+def gpx_to_route_entries(gpx_data: GPXData, profile_id: str) -> list[dict[str, Any]]:
     entries = []
     for track in gpx_data.tracks:
         for seg_idx, segment in enumerate(track.segments):
@@ -416,7 +416,7 @@ def gpx_to_route_entries(gpx_data: GPXData, profile_id: str) -> List[Dict[str, A
 
 
 def register_routes(app: Any) -> None:
-    from fastapi import Request, UploadFile, File
+    from fastapi import File, Request, UploadFile
     from fastapi.responses import JSONResponse
 
     @app.post("/api/gpx/import")

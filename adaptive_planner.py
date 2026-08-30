@@ -21,8 +21,6 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from typing import Optional
-
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TRAINING METHODS (intensity distribution strategies)
@@ -165,7 +163,7 @@ class AdaptiveRecommendation:
     """Complete adaptive training recommendation."""
     goal: str
     goal_label: str
-    current_method: Optional[str]           # Detected current method
+    current_method: str | None           # Detected current method
     recommended_method: str
     recommended_method_label: str
     weekly_load: WeeklyLoadRecommendation
@@ -190,11 +188,11 @@ class AdaptiveRecommendation:
 
 
 def _compute_readiness_adjustment(
-    hrv_rmssd_pct: Optional[float] = None,
-    sleep_score: Optional[float] = None,
-    tsb: Optional[float] = None,
-    recent_tss_avg: Optional[float] = None,
-    monotony: Optional[float] = None,
+    hrv_rmssd_pct: float | None = None,
+    sleep_score: float | None = None,
+    tsb: float | None = None,
+    recent_tss_avg: float | None = None,
+    monotony: float | None = None,
 ) -> tuple[float, list[str]]:
     """Compute a readiness-based load adjustment multiplier (0.80 - 1.20).
 
@@ -252,7 +250,7 @@ def _compute_readiness_adjustment(
 
 
 def _detect_current_method(z1z2_pct: float, z3z4_pct: float,
-                           z5plus_pct: float) -> Optional[str]:
+                           z5plus_pct: float) -> str | None:
     """Detect which training method the athlete is currently using."""
     best_match = None
     best_dist = float("inf")
@@ -323,11 +321,11 @@ def generate_adaptive_recommendation(
     current_z3z4_pct: float = 15.0,
     current_z5plus_pct: float = 5.0,
     current_phase: str = "base",
-    hrv_rmssd_pct: Optional[float] = None,
-    sleep_score: Optional[float] = None,
-    tsb: Optional[float] = None,
-    recent_tss_avg: Optional[float] = None,
-    monotony: Optional[float] = None,
+    hrv_rmssd_pct: float | None = None,
+    sleep_score: float | None = None,
+    tsb: float | None = None,
+    recent_tss_avg: float | None = None,
+    monotony: float | None = None,
     current_weekly_tss: float = 300.0,
     current_weekly_hours: float = 6.0,
     athlete_level: str = "amateur",

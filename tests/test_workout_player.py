@@ -1,10 +1,7 @@
 """
 Tests for the workout_player module.
 """
-import json
-import os
 import tempfile
-import threading
 import time
 from pathlib import Path
 
@@ -39,7 +36,7 @@ class TestZWOParser:
         path.unlink(missing_ok=True)
 
     def test_parse_basic_workout(self, sample_zwo_file):
-        from workout_player import ZWOParser, IntervalType
+        from workout_player import IntervalType, ZWOParser
 
         timeline = ZWOParser.parse(sample_zwo_file, ftp=300.0)
 
@@ -115,7 +112,7 @@ class TestWorkoutPlayerSession:
 
     @pytest.fixture
     def sample_timeline(self):
-        from workout_player import ZWOParser, WorkoutTimeline, Interval, IntervalType
+        from workout_player import Interval, IntervalType, WorkoutTimeline
 
         timeline = WorkoutTimeline(
             name="Test",
@@ -132,7 +129,7 @@ class TestWorkoutPlayerSession:
         return timeline
 
     def test_session_start_pause_stop(self, sample_timeline):
-        from workout_player import WorkoutPlayerSession, PlaybackState
+        from workout_player import PlaybackState, WorkoutPlayerSession
 
         session = WorkoutPlayerSession(sample_timeline)
         assert session.status.state == PlaybackState.IDLE
@@ -149,7 +146,7 @@ class TestWorkoutPlayerSession:
         assert session.status.elapsed == 0.0
 
     def test_session_set_intensity(self, sample_timeline):
-        from workout_player import WorkoutPlayerSession, PlaybackState
+        from workout_player import WorkoutPlayerSession
 
         session = WorkoutPlayerSession(sample_timeline)
         session.set_intensity(0.85)
@@ -177,7 +174,7 @@ class TestWorkoutPlayerSession:
         assert len(session.status.power_history) == 1
 
     def test_session_get_status(self, sample_timeline):
-        from workout_player import WorkoutPlayerSession, PlaybackState
+        from workout_player import WorkoutPlayerSession
 
         session = WorkoutPlayerSession(sample_timeline)
         status = session.get_status()
@@ -206,7 +203,7 @@ class TestTrainerController:
     """Tests for trainer control abstraction."""
 
     def test_trainer_controller_base(self):
-        from workout_player import TrainerController, BLETrainer
+        from workout_player import TrainerController
 
         trainer = TrainerController(trainer_id="test123")
         assert trainer.trainer_id == "test123"
@@ -278,7 +275,7 @@ class TestWorkoutRegistry:
         assert registry.get_session("test_session_1") is None
 
     def test_registry_register_trainer(self):
-        from workout_player import WorkoutRegistry, TrainerController
+        from workout_player import TrainerController, WorkoutRegistry
 
         registry = WorkoutRegistry.get()
         trainer = TrainerController(trainer_id="reg_trainer")
@@ -326,7 +323,12 @@ class TestFullIntegration:
             assert timeline.duration_total > 0
 
     def test_workout_player_lifecycle(self):
-        from workout_player import ZWOParser, WorkoutPlayerSession, resolve_workout_path, PlaybackState
+        from workout_player import (
+            PlaybackState,
+            WorkoutPlayerSession,
+            ZWOParser,
+            resolve_workout_path,
+        )
 
         path = resolve_workout_path("z2_2x5min_90pct_64min.zwo")
         if path:

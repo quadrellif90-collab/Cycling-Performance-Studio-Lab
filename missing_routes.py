@@ -5,13 +5,10 @@ These routes fill the gaps identified in the comparison analysis.
 """
 
 import json
-import os
-import math
-from datetime import date, datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
-from fastapi import Request, Query, Body
+from fastapi import Query, Request
 from fastapi.responses import JSONResponse
 
 
@@ -266,7 +263,6 @@ def register_missing_routes(app):
             planned_ctl = plan.get("target_ctl", 0)
             actual_ctl = 0
             try:
-                from fitness_estimation import estimate_ftp
                 from ride_storage import load_recent_rides
                 rides = load_recent_rides(days=28)
                 if rides:
@@ -533,8 +529,8 @@ def register_missing_routes(app):
     ):
         """Fit the Power-Duration Model (mFTP, FRC, Pmax, TTE) to the rider's curve."""
         try:
-            from power_duration_model import fit_power_duration, predict_power_curve
             from power_curve import aggregate_power_curve
+            from power_duration_model import fit_power_duration
             curve = aggregate_power_curve(window_days=window_days)
             rider_curve = curve.get("rider_curve", [])
             best_efforts = {pt["duration_s"]: pt["watts"] for pt in rider_curve}
@@ -602,8 +598,12 @@ def register_missing_routes(app):
         """Compute durability score (power fade on long rides)."""
         try:
             from durability_score import compute_durability_score
-            from power_curve import _load_cached_rides, _filter_rides_by_window, _ride_power_stream
-            from power_curve import _profile_ftp_weight
+            from power_curve import (
+                _filter_rides_by_window,
+                _load_cached_rides,
+                _profile_ftp_weight,
+                _ride_power_stream,
+            )
             all_rides = _load_cached_rides()
             rides = _filter_rides_by_window(all_rides, window_days)
             ride_data = []
@@ -657,7 +657,13 @@ def register_missing_routes(app):
     async def create_alert_rule(request: Request):
         """Create a new custom alert rule."""
         try:
-            from custom_alerts import create_rule, save_rules, load_rules, SUPPORTED_METRICS, OPERATORS
+            from custom_alerts import (
+                OPERATORS,
+                SUPPORTED_METRICS,
+                create_rule,
+                load_rules,
+                save_rules,
+            )
             from user_home import cpsl_home
             body = await request.json()
             rule = create_rule(
@@ -697,8 +703,7 @@ def register_missing_routes(app):
     ):
         """Generate adaptive training recommendation."""
         try:
-            from adaptive_planner import generate_adaptive_recommendation, GOAL_PROFILES
-            from analytics import polarization_index
+            from adaptive_planner import GOAL_PROFILES, generate_adaptive_recommendation
             from user_home import cpsl_home
             profile_path = cpsl_home() / "profiles" / "default" / "athlete.json"
             athlete = {}
@@ -728,8 +733,12 @@ def register_missing_routes(app):
     ):
         """Compute polarization index and intensity distribution analytics."""
         try:
-            from analytics import polarization_index, treff_polarization_index, classify_distribution
-            from power_curve import _load_cached_rides, _filter_rides_by_window
+            from analytics import (
+                classify_distribution,
+                polarization_index,
+                treff_polarization_index,
+            )
+            from power_curve import _filter_rides_by_window, _load_cached_rides
             all_rides = _load_cached_rides()
             rides = _filter_rides_by_window(all_rides, window_days)
             zones_data = []
@@ -779,8 +788,8 @@ def register_missing_routes(app):
     async def player_get_workout(filename: str):
         """Parse a ZWO workout and return its timeline + intervals."""
         try:
-            from workout_player import resolve_workout_path, ZWOParser
             from profile_manager import ProfileManager
+            from workout_player import ZWOParser, resolve_workout_path
             pm = ProfileManager.get()
             ftp = pm.active_profile.get("ftp", 250) if pm.active_profile else 250.0
             path = resolve_workout_path(filename)
@@ -803,8 +812,8 @@ def register_missing_routes(app):
     async def player_start(request: Request):
         """Start or resume a workout playback session."""
         try:
-            from workout_player import WorkoutRegistry, ZWOParser, resolve_workout_path
             from profile_manager import ProfileManager
+            from workout_player import WorkoutRegistry, ZWOParser, resolve_workout_path
             body = await request.json()
             filename = body.get("filename")
             intensity_pct = body.get("intensity_pct", 1.0)
@@ -903,7 +912,7 @@ def register_missing_routes(app):
     async def trainer_connect(request: Request):
         """Connect to a smart trainer (ANT+ or BLE)."""
         try:
-            from workout_player import WorkoutRegistry, ANTPlusTrainer, BLETrainer
+            from workout_player import ANTPlusTrainer, BLETrainer, WorkoutRegistry
             body = await request.json()
             protocol = body.get("protocol", "ble")
             trainer_id = body.get("trainer_id", "")
@@ -956,6 +965,7 @@ def register_missing_routes(app):
         """Extract RR intervals from raw sensor data."""
         try:
             from dataclasses import asdict
+
             from hrv_engine import extract_rr_intervals
             body = await request.json()
             raw_data = body.get("data", [])
@@ -970,7 +980,8 @@ def register_missing_routes(app):
         """Clean RR intervals (remove artifacts)."""
         try:
             from dataclasses import asdict
-            from hrv_engine import clean_rr, compute_quality, RRPoint, extract_rr_intervals
+
+            from hrv_engine import clean_rr, extract_rr_intervals
             body = await request.json()
             raw_points = body.get("data", [])
             rr_min = body.get("rr_min", 250.0)
@@ -987,18 +998,18 @@ def register_missing_routes(app):
         """Calculate HRV metrics from cleaned NN intervals."""
         try:
             from dataclasses import asdict
-            from hrv_engine import (clean_rr, compute_hrv_metrics, QualityResult,
-                                    CleanNN, RRPoint)
+
+            from hrv_engine import CleanNN, RRPoint, compute_hrv_metrics
             body = await request.json()
             clean_data = body.get("data", [])
             raw_data = body.get("raw_data", [])
             hr = body.get("timestamp")
             source = body.get("source", "unknown")
-            
+
             # Parse clean data
             clean_nn = [CleanNN(**c) for c in clean_data]
             raw_rr = [RRPoint(**r) for r in raw_data]
-            
+
             m = compute_hrv_metrics(clean_nn, raw=raw_rr, source=source)
             return {"ok": True, "metrics": asdict(m)}
         except Exception as e:
@@ -1014,7 +1025,7 @@ def register_missing_routes(app):
             raw = body.get("raw", [])
             date = body.get("date", "")
             source = body.get("source", "unknown")
-            
+
             daily = build_daily_hrv(window, raw, date, source=source)
             return {"ok": True, "daily": daily}
         except Exception as e:
@@ -1028,7 +1039,7 @@ def register_missing_routes(app):
             body = await request.json()
             daily = body.get("daily", [])
             window_days = body.get("window_days", 7)
-            
+
             baseline = compute_baseline(daily, window_days=window_days)
             return {"ok": True, "baseline": baseline}
         except Exception as e:
@@ -1042,7 +1053,7 @@ def register_missing_routes(app):
             body = await request.json()
             today_rmssd = body.get("today_rmssd", 0.0)
             baseline_mean = body.get("baseline_mean", 0.0)
-            
+
             result = hrv_deviation(today_rmssd, baseline_mean)
             return {"ok": True, "deviation": result}
         except Exception as e:
@@ -1056,7 +1067,7 @@ def register_missing_routes(app):
             body = await request.json()
             daily = body.get("daily", [])
             days = body.get("days", 7)
-            
+
             result = rolling_average(daily, days=days)
             return {"ok": True, "rolling": result}
         except Exception as e:
@@ -1071,13 +1082,13 @@ def register_missing_routes(app):
             from nutrition import day_macros, supplement_doses
             from profile_manager import ProfileManager
             from user_home import cpsl_home
-            
+
             pm = ProfileManager.get()
             athlete_path = cpsl_home() / "profiles" / "default" / "athlete.json"
             athlete = {}
             if athlete_path.exists():
                 athlete = json.loads(athlete_path.read_text(encoding="utf-8"))
-            
+
             weight = athlete.get("weight_kg", 75)
             height = athlete.get("height_cm", 180)
             age = athlete.get("age", 30)

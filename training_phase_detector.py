@@ -23,10 +23,7 @@ Algorithm:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Optional
-import math
-
+from dataclasses import dataclass
 
 # Phase definitions with typical ranges
 PHASE_DEFINITIONS = {
@@ -158,7 +155,7 @@ class PhaseDetectionResult:
         }
 
 
-def _rolling_average(values: list[float], window: int = 3) -> list[Optional[float]]:
+def _rolling_average(values: list[float], window: int = 3) -> list[float | None]:
     """Compute rolling average with the given window size."""
     result = []
     for i in range(len(values)):

@@ -27,10 +27,8 @@ Phenotype classes:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Optional
 import math
-
+from dataclasses import dataclass, field
 
 # ══════════════════════════════════════════════════════════════════════════════
 # ELITE BENCHMARKS (W/kg) for each axis anchor duration
@@ -122,9 +120,9 @@ class RadarPoint:
     axis_key: str
     axis_label: str
     normalized_score: float    # 0-100 scale
-    actual_wkg: Optional[float] = None
-    elite_wkg: Optional[float] = None
-    duration_s: Optional[int] = None
+    actual_wkg: float | None = None
+    elite_wkg: float | None = None
+    duration_s: int | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -217,7 +215,7 @@ def _phenotype_distance(scores: dict[str, float],
 
 
 def classify_phenotype(best_efforts: dict[int, int],
-                       weight_kg: float) -> Optional[PhenotypeResult]:
+                       weight_kg: float) -> PhenotypeResult | None:
     """Classify athlete phenotype from best-effort power-duration curve.
 
     Args:
@@ -291,7 +289,7 @@ def classify_phenotype(best_efforts: dict[int, int],
 
 
 def get_radar_chart_data(best_efforts: dict[int, int],
-                         weight_kg: float) -> Optional[dict]:
+                         weight_kg: float) -> dict | None:
     """Get radar chart data in a format suitable for frontend rendering.
 
     Returns a dict with:

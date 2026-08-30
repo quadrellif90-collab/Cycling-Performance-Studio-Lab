@@ -5,10 +5,6 @@ metodologia Friel, integrati con l'analisi nativa di CPSL.
 """
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
-
-import httpx
-
 # ── System prompt Friel per AI Coach ──────────────────────────────────────
 
 FRIEL_SYSTEM_PROMPT = """Sei un coach ciclistico Friel certificato. La metodologia Friel
@@ -91,7 +87,7 @@ Mantieni il risposta tecnica, basata sui dati, e pratica."""
 
 # ── Helper: mappatura fenotipo → raccomandazioni ─────────────────────────
 
-PHENOTYPE_RECOMMENDATIONS: Dict[str, Dict[str, str]] = {
+PHENOTYPE_RECOMMENDATIONS: dict[str, dict[str, str]] = {
     "Sprinter": {
         "primary_focus": "Potenza massimale e ripetizioni brevi",
         "training_method": "HIIT + ripetizioni 30s-2min",
@@ -131,7 +127,7 @@ PHENOTYPE_RECOMMENDATIONS: Dict[str, Dict[str, str]] = {
 }
 
 
-def get_phenotype_recommendation(phenotype_primary: str) -> Dict[str, str]:
+def get_phenotype_recommendation(phenotype_primary: str) -> dict[str, str]:
     """Restituisce le raccomandazioni di training per il fenotipo specifico."""
     return PHENOTYPE_RECOMMENDATIONS.get(
         phenotype_primary,

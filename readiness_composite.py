@@ -30,7 +30,8 @@ import json
 import logging
 import math
 import statistics
-from datetime import date as _date, datetime as _datetime, timedelta as _td
+from datetime import date as _date
+from datetime import timedelta as _td
 from typing import Any
 
 import db

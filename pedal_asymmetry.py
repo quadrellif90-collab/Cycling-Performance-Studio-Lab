@@ -31,14 +31,12 @@ import csv
 import io
 import json
 from pathlib import Path
-from typing import Optional
-
 
 # Asymmetry threshold (fraction). > 0.10 = >10% disparity => flag.
 ASYMMETRY_FLAG = 0.10
 
 
-def _ai(left: Optional[float], right: Optional[float]) -> Optional[float]:
+def _ai(left: float | None, right: float | None) -> float | None:
     """Asymmetry Index = |L-R|/(L+R). None if either missing."""
     if left is None or right is None:
         return None
@@ -48,7 +46,7 @@ def _ai(left: Optional[float], right: Optional[float]) -> Optional[float]:
     return abs(left - right) / s
 
 
-def _coerce(v) -> Optional[float]:
+def _coerce(v) -> float | None:
     try:
         if v is None or v == "":
             return None
@@ -116,7 +114,7 @@ def parse_pedal_payload(body: bytes) -> dict:
     return parse_pedal_csv(text)
 
 
-def _history_path() -> Optional[Path]:
+def _history_path() -> Path | None:
     try:
         from profile_manager import ProfileManager
         pm = ProfileManager.get()
@@ -150,7 +148,7 @@ def save_record(rec: dict) -> bool:
         return False
 
 
-def load_latest() -> Optional[dict]:
+def load_latest() -> dict | None:
     p = _history_path()
     if p and p.exists():
         try:

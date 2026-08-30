@@ -36,7 +36,6 @@ import smtplib
 import ssl
 from dataclasses import dataclass, field
 from email.message import EmailMessage
-from typing import Any, Optional
 
 _log = logging.getLogger("domestique.notifications")
 
@@ -54,9 +53,9 @@ TSB_RED_FLOOR = -25      # mirrors continuous_policy.TSB_LOW_FLOOR
 TSB_YELLOW_FLOOR = -10   # below this (but > red) -> yellow
 
 
-def day_status(tsb: Optional[float] = None,
-               readiness_status: Optional[str] = None,
-               hrv_band: Optional[str] = None) -> str:
+def day_status(tsb: float | None = None,
+               readiness_status: str | None = None,
+               hrv_band: str | None = None) -> str:
     """Map today's signals to an RLGL-style day status.
 
     Red when deep fatigue (TSB < -25) OR HRV below band OR readiness POOR.
@@ -97,7 +96,7 @@ def render_morning_readiness(readiness: dict, day_st: str) -> dict:
     }
 
 
-def render_rlgl_flag(day_st: str, tsb: Optional[float] = None) -> Optional[dict]:
+def render_rlgl_flag(day_st: str, tsb: float | None = None) -> dict | None:
     if day_st != STATUS_RED:
         return None
     body = ("Red Day: deep fatigue detected"
@@ -111,7 +110,7 @@ def render_rlgl_flag(day_st: str, tsb: Optional[float] = None) -> Optional[dict]
     }
 
 
-def render_workout_of_day(session: Optional[dict]) -> Optional[dict]:
+def render_workout_of_day(session: dict | None) -> dict | None:
     if not session:
         return None
     name = session.get("session_type", "workout")
@@ -130,8 +129,8 @@ def render_workout_of_day(session: Optional[dict]) -> Optional[dict]:
     }
 
 
-def render_workout_swap(readiness_status: Optional[str],
-                         session: Optional[dict]) -> Optional[dict]:
+def render_workout_swap(readiness_status: str | None,
+                         session: dict | None) -> dict | None:
     """Advisory: low readiness + a hard planned session -> suggest swap."""
     if (readiness_status or "").upper() not in ("POOR", "MODERATE"):
         return None
@@ -149,7 +148,7 @@ def render_workout_swap(readiness_status: Optional[str],
     }
 
 
-def render_pr_detect(best_efforts: Optional[dict]) -> Optional[dict]:
+def render_pr_detect(best_efforts: dict | None) -> dict | None:
     """Xert-style: a new best power curve entry -> celebrate."""
     if not best_efforts:
         return None
@@ -166,8 +165,8 @@ def render_pr_detect(best_efforts: Optional[dict]) -> Optional[dict]:
     }
 
 
-def render_etftp_drift(old_etftp: Optional[float],
-                       new_etftp: Optional[float]) -> Optional[dict]:
+def render_etftp_drift(old_etftp: float | None,
+                       new_etftp: float | None) -> dict | None:
     if not old_etftp or not new_etftp or old_etftp <= 0:
         return None
     pct = (new_etftp - old_etftp) / old_etftp * 100.0
@@ -183,7 +182,7 @@ def render_etftp_drift(old_etftp: Optional[float],
     }
 
 
-def render_hrv_trend(hrv_7d_series: Optional[list]) -> Optional[dict]:
+def render_hrv_trend(hrv_7d_series: list | None) -> dict | None:
     """3+ consecutive days below baseline -> possible overreaching/illness."""
     if not hrv_7d_series or len(hrv_7d_series) < 3:
         return None
@@ -199,8 +198,8 @@ def render_hrv_trend(hrv_7d_series: Optional[list]) -> Optional[dict]:
     return None
 
 
-def render_hrv_cv_alert(cv_recent: Optional[float], cv_baseline: Optional[float],
-                        baseline_direction: Optional[str] = None) -> Optional[dict]:
+def render_hrv_cv_alert(cv_recent: float | None, cv_baseline: float | None,
+                        baseline_direction: str | None = None) -> dict | None:
     """Allarme precoce da coefficiente di variazione HRV (evidenze 2024-2026).
 
     Un CV in crescita con baseline in calo è l'indicatore più sensibile di
@@ -263,8 +262,8 @@ def render_weekly_review(summary: dict) -> dict:
     }
 
 
-def render_prerace_countdown(days_to_event: int, projected_tsb: Optional[float],
-                              taper_checklist: Optional[list]) -> dict:
+def render_prerace_countdown(days_to_event: int, projected_tsb: float | None,
+                              taper_checklist: list | None) -> dict:
     body = f"Event in {days_to_event} days."
     if projected_tsb is not None:
         body += f" Projected Form (TSB): {projected_tsb:.0f}."
@@ -278,7 +277,7 @@ def render_prerace_countdown(days_to_event: int, projected_tsb: Optional[float],
     }
 
 
-def render_fueling_reminder(session: Optional[dict]) -> Optional[dict]:
+def render_fueling_reminder(session: dict | None) -> dict | None:
     if not session:
         return None
     dur = session.get("duration_min") or 0
@@ -293,7 +292,7 @@ def render_fueling_reminder(session: Optional[dict]) -> Optional[dict]:
     }
 
 
-def render_monotony_alert(monotony: Optional[float]) -> Optional[dict]:
+def render_monotony_alert(monotony: float | None) -> dict | None:
     if monotony is None or monotony < 2.0:
         return None
     return {
@@ -390,8 +389,8 @@ class NotificationEngine:
         return results
 
     # -- convenience: build + dispatch the morning bundle --
-    def morning_bundle(self, readiness: dict, tsb: Optional[float],
-                       hrv_band: Optional[str]) -> list[dict]:
+    def morning_bundle(self, readiness: dict, tsb: float | None,
+                       hrv_band: str | None) -> list[dict]:
         st = day_status(tsb=tsb, readiness_status=readiness.get("status"),
                         hrv_band=hrv_band)
         notes = [render_morning_readiness(readiness, st)]

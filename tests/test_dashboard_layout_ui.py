@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Test finale layout: bottoni + drag logica reale via dispatched PointerEvents."""
-import os, subprocess, sys, time
+import os
+import subprocess
+import sys
+import time
+
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 SHOTS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'layout-final')
 os.makedirs(SHOTS, exist_ok=True)

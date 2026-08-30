@@ -1,6 +1,7 @@
 """Generate a CPSL app icon: a cycling/analytics emblem on a racing-gradient disc."""
-from PIL import Image, ImageDraw
 import math
+
+from PIL import Image, ImageDraw
 
 S = 512
 img = Image.new("RGBA", (S, S), (0, 0, 0, 0))

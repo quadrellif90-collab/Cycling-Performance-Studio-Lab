@@ -1,9 +1,10 @@
 """HRV, RHR and sleep metrics from Intervals.icu wellness data."""
 import math
 import statistics
-from datetime import date, timedelta
-from training import fetch_wellness
+from datetime import date
+
 import config
+from training import fetch_wellness
 
 
 def _ln_rmssd(hrv_ms: float | None) -> float | None:

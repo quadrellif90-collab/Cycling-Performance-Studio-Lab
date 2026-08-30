@@ -9,14 +9,8 @@ from __future__ import annotations
 
 import abc
 import asyncio
-import base64
-import json
 import logging
-import time
-from collections.abc import Callable
 from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Any, Optional
 
 import httpx
 
@@ -46,7 +40,7 @@ class SyncTarget(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def pull_wellness(self, since: Optional[datetime] = None) -> list[dict]:
+    def pull_wellness(self, since: datetime | None = None) -> list[dict]:
         """Pull wellness data from the target."""
         raise NotImplementedError
 
@@ -65,7 +59,7 @@ class SyncTarget(abc.ABC):
         """Restart sync process for this target."""
         raise NotImplementedError
 
-    def pull_activities(self, since: Optional[datetime] = None) -> list[dict]:
+    def pull_activities(self, since: datetime | None = None) -> list[dict]:
         """Pull activities (default: not implemented, override if supported)."""
         return []
 
@@ -82,7 +76,7 @@ def register_target(target: SyncTarget) -> None:
     logger.info(f"Registered sync target: {target.key} ({target.display_name})")
 
 
-def get_target(key: str) -> Optional[SyncTarget]:
+def get_target(key: str) -> SyncTarget | None:
     """Get a sync target by key from the registry."""
     return _REGISTRY.get(key)
 
@@ -121,9 +115,9 @@ class IntervalsIcuTarget(SyncTarget):
     def __init__(self) -> None:
         self._access_token: str = ""
         self._refresh_token: str = ""
-        self._expires_at: Optional[datetime] = None
+        self._expires_at: datetime | None = None
         self._patient_id: str = ""
-        self._http: Optional[httpx.AsyncClient] = None
+        self._http: httpx.AsyncClient | None = None
 
     def _load_credentials(self) -> None:
         """Load credentials from active profile's .env."""
@@ -180,7 +174,7 @@ class IntervalsIcuTarget(SyncTarget):
                     return True
             except Exception as e:
                 logger.warning(f"ICU token refresh failed: {e}")
-        
+
         return True  # assume valid if no refresh needed or attempted
 
     def is_configured(self) -> bool:
@@ -201,7 +195,7 @@ class IntervalsIcuTarget(SyncTarget):
             _log_error("E_SYNC_BLOCKING_SLOW", e)  # generic sync error
             return False
 
-    async def pull_wellness(self, since: Optional[datetime] = None) -> list[dict]:
+    async def pull_wellness(self, since: datetime | None = None) -> list[dict]:
         """Pull wellness data from Intervals.icu."""
         await self._ensure_auth()
         http = self._http_client()

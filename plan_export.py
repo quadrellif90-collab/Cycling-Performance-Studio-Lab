@@ -11,7 +11,6 @@ Il coach (verticale coach) usa lo stesso documento per consegnarlo all'atleta.
 """
 
 from __future__ import annotations
-from typing import Optional
 
 
 def _esc(s) -> str:

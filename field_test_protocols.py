@@ -24,8 +24,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Optional
-
 
 PROTOCOLS = {
     "20min": {
@@ -91,7 +89,7 @@ def estimate_ftp(protocol: str, values: dict) -> dict:
             "field": field, "input_value": val, "note": p["note"]}
 
 
-def _history_path() -> Optional[Path]:
+def _history_path() -> Path | None:
     try:
         from profile_manager import ProfileManager
         pm = ProfileManager.get()
@@ -140,6 +138,6 @@ def load_tests() -> list[dict]:
     return []
 
 
-def latest_ftp() -> Optional[float]:
+def latest_ftp() -> float | None:
     tests = load_tests()
     return tests[0]["ftp_w"] if tests else None

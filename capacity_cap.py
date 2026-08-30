@@ -25,7 +25,6 @@ from __future__ import annotations
 
 import math
 import re
-from typing import Optional
 
 # ── Constants (grill-locked) ────────────────────────────────────────────────
 TAU_S = 26.0            # envelope decay time constant (s); MEASURED-anchored
@@ -92,7 +91,7 @@ def _is_vo2_rep(ratio: float) -> bool:
 
 
 def _cap_ratio(ratio: float, t: float, ftp: float, cp: float, pmax: float
-               ) -> Optional[float]:
+               ) -> float | None:
     """Return the capped ratio for one rep, or None when the rep should NOT be
     touched (does not qualify, or is already within the rider's envelope).
 
@@ -182,7 +181,7 @@ def cap_zwo_text(txt: str, ftp: float, cp: float, pmax: float,
 
     n = 0
 
-    def _repl_elem(m: "re.Match") -> str:
+    def _repl_elem(m: re.Match) -> str:
         nonlocal n
         elem = m.group(0)
         tag = m.group(1)
@@ -212,7 +211,7 @@ def cap_zwo_text(txt: str, ftp: float, cp: float, pmax: float,
             return elem
 
         # Replace ONLY that one attribute value inside THIS element.
-        def _sub(mm: "re.Match") -> str:
+        def _sub(mm: re.Match) -> str:
             return f'{mm.group(1)}="{new_txt}"'
 
         elem2 = attr_re.sub(_sub, elem, count=1)

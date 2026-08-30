@@ -16,17 +16,12 @@ L'analisi include:
 from __future__ import annotations
 
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime
 
-import httpx
-
-from analytics import polarization_index, classify_distribution
-from power_duration_model import fit_power_duration
+from analytics import classify_distribution, polarization_index
 from phenotype import classify_phenotype
-from durability_score import compute_durability_score
+from power_duration_model import fit_power_duration
 from training_phase_detector import detect_training_phases
-from ai_coach import get_client
-
 
 # ── Helpers interni ────────────────────────────────────────────────────────
 
@@ -202,7 +197,7 @@ un paragrafo sintetico (massimo 150 parole) con:
 2. Punti di forza/debolezza
 3. Raccomandazione per la settimana successiva
 4. Eventuali segnali di sovrallenamento"""
-            
+
             messages = [{"role": "user", "content": f"""Ecco i dati dell'analisi settimanale:
 
 {context}

@@ -8,11 +8,7 @@ Genera piani di allenamento personalizzati basati su:
 """
 from __future__ import annotations
 
-from datetime import datetime, timedelta
-from typing import Any
-
-from adaptive_planner import GOAL_PROFILES, WeeklyLoadRecommendation
-
+from adaptive_planner import GOAL_PROFILES
 
 # ── Goal profile mapping ───────────────────────────────────────────────────
 

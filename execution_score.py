@@ -113,7 +113,7 @@ def _canon_type(session_type) -> str:
     return TYPE_ALIASES.get(st, st)
 
 
-def _tiz_seconds(tiz) -> "dict[int, float] | None":
+def _tiz_seconds(tiz) -> dict[int, float] | None:
     """{zone_index: seconds} from a ride time-in-zone dict; None if unusable.
 
     Accepts the canonical ride_storage shape {"z1"..."z7"[, "ss"]}. The "ss"
@@ -133,7 +133,7 @@ def _tiz_seconds(tiz) -> "dict[int, float] | None":
     return out
 
 
-def _ride_duration_min(ride: dict) -> "float | None":
+def _ride_duration_min(ride: dict) -> float | None:
     for key, scale in (("duration_min", 1.0), ("moving_s", 1 / 60.0),
                        ("duration_s", 1 / 60.0)):
         v = ride.get(key)
@@ -146,7 +146,7 @@ def _ride_duration_min(ride: dict) -> "float | None":
     return None
 
 
-def _ratio_axis(actual, planned) -> "dict | None":
+def _ratio_axis(actual, planned) -> dict | None:
     """One duration/load axis: uncapped ratio + capped score, or None."""
     try:
         a = float(actual)
@@ -159,7 +159,7 @@ def _ratio_axis(actual, planned) -> "dict | None":
     return {"ratio": round(r, 3), "score": round(min(r, 1.0), 3)}
 
 
-def _hr_band(power_zones: "tuple[int, ...]") -> "tuple[int, ...]":
+def _hr_band(power_zones: tuple[int, ...]) -> tuple[int, ...]:
     """ICU HR-frame buckets for a power band: same indices ±1, clamped 1..7."""
     keep: set[int] = set()
     for z in power_zones:
@@ -169,7 +169,7 @@ def _hr_band(power_zones: "tuple[int, ...]") -> "tuple[int, ...]":
     return tuple(sorted(keep))
 
 
-def _intensity_axis(tiz: "dict[int, float]", zones: "tuple[int, ...]",
+def _intensity_axis(tiz: dict[int, float], zones: tuple[int, ...],
                     expected: float, frame: str) -> dict:
     total = sum(tiz.values())
     in_band = sum(tiz.get(z, 0.0) for z in zones)
@@ -185,7 +185,7 @@ def _intensity_axis(tiz: "dict[int, float]", zones: "tuple[int, ...]",
     }
 
 
-def _verdict(ratios: "list[float]") -> str:
+def _verdict(ratios: list[float]) -> str:
     if not ratios:
         return "off_plan"
     lo, hi = min(ratios), max(ratios)
@@ -207,7 +207,7 @@ def _embedded_watts(ride: dict):
     return w if isinstance(w, list) and w else None
 
 
-def _ride_ftp(ride: dict) -> "float | None":
+def _ride_ftp(ride: dict) -> float | None:
     for key in ("ftp_at_ride", "eftp_at_ride"):
         try:
             f = float(ride.get(key))

@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any
 
 log = logging.getLogger("cpsl.mcp")
 
@@ -164,6 +163,5 @@ def run_stdio_loop() -> None:
 
 if __name__ == "__main__":
     import sys
-    from datetime import datetime, timedelta
     logging.basicConfig(level=logging.INFO, stream=sys.stderr)
     run_stdio_loop()

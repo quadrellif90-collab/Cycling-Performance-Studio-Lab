@@ -918,7 +918,7 @@ def _dfa_confidence(artifact_pct, window_yield, sport=None) -> str:
     return min(levels, key=lambda lvl: _DFA_CONF_RANK[lvl])
 
 
-def compute_dfa_alpha1_for_fit(fit_path: Path, sport: "str | None" = None) -> dict | None:
+def compute_dfa_alpha1_for_fit(fit_path: Path, sport: str | None = None) -> dict | None:
     """v1.0.7 — chain RR-extraction + sliding-window α1 for a FIT file.
 
     Returns a dict with these fields ALWAYS set (None values when no RR data

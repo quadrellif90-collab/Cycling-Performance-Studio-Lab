@@ -20,9 +20,8 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Optional
 
 log = logging.getLogger("domestique.fit_activity")
 
@@ -242,7 +241,7 @@ _FIT_SPORT_NAMES = {0: "generic", 1: "running", 2: "cycling", 5: "swimming",
                     11: "walking", 17: "hiking"}
 
 
-def read_session_sport(fit_path: Path) -> "str | None":
+def read_session_sport(fit_path: Path) -> str | None:
     """K1 — read the SOURCE FIT's session sport (lowercase name) so DFA α1 can
     gate by activity type. Reads the original file's ``SessionMessage.sport``, NOT
     Domestique's own CYCLING export stamp. Returns None when unreadable."""
@@ -280,7 +279,7 @@ def read_session_sport(fit_path: Path) -> "str | None":
     return None
 
 
-def parse_record_streams(fit_path: Path) -> "dict | None":
+def parse_record_streams(fit_path: Path) -> dict | None:
     """W4 (v2.5.0) — extract per-record power/HR streams + session totals
     for post-ride load (TSS) computation at FIT ingestion.
 
@@ -327,8 +326,8 @@ def parse_record_streams(fit_path: Path) -> "dict | None":
     power: list[int] = []
     hr: list[int] = []
     duration_s = 0
-    start_time_ms: "int | None" = None
-    file_tss: "float | None" = None
+    start_time_ms: int | None = None
+    file_tss: float | None = None
     try:
         for rec in ff.records:
             msg = rec.message
@@ -393,15 +392,15 @@ def _ride_start_dt(ride: dict) -> datetime:
         try:
             dt = datetime.fromisoformat(s)
             if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=timezone.utc)
-            return dt.astimezone(timezone.utc)
+                dt = dt.replace(tzinfo=UTC)
+            return dt.astimezone(UTC)
         except (TypeError, ValueError):
             pass
     summary = ride.get("summary", {}) or {}
     dur = int(summary.get("duration_sec", 0))
     # Fallback per docstring: "now - duration" so record timestamps don't run
     # into the future when started_at is missing/malformed.
-    return (datetime.now(timezone.utc) - timedelta(seconds=dur)).replace(microsecond=0)
+    return (datetime.now(UTC) - timedelta(seconds=dur)).replace(microsecond=0)
 
 
 def build_activity_fit(ride: dict, profile_id: str) -> bytes:
@@ -560,7 +559,7 @@ def build_activity_fit(ride: dict, profile_id: str) -> bytes:
         # a sane fallback so downstream consumers still see *some* start_time.
         log.warning("FIT start_time fallback: %s", e)
         dur = int(summary.get("duration_sec", 0))
-        fallback_dt = datetime.now(timezone.utc) - timedelta(seconds=dur)
+        fallback_dt = datetime.now(UTC) - timedelta(seconds=dur)
         try:
             session.start_time = int(fallback_dt.timestamp() * 1000)
         except Exception:

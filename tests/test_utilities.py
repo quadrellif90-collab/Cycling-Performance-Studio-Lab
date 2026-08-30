@@ -1,8 +1,4 @@
 """Tests for utility, infrastructure, and data modules."""
-import pytest
-import json
-import tempfile
-from pathlib import Path
 
 
 class TestCalendarICS:
@@ -49,7 +45,7 @@ class TestCustomCharts:
         assert load_charts() == charts
 
     def test_upsert_chart(self):
-        from custom_charts import upsert_chart, load_charts
+        from custom_charts import load_charts, upsert_chart
         chart = {"id": "test-1", "type": "scatter", "x_metric": "power", "y_metric": "hr"}
         upsert_chart(chart)
         charts = load_charts()
@@ -105,8 +101,10 @@ class TestNotifications:
 
     def test_render_functions(self):
         from notifications import (
-            render_morning_readiness, render_workout_of_day,
-            render_pr_detect, render_weekly_review
+            render_morning_readiness,
+            render_pr_detect,
+            render_weekly_review,
+            render_workout_of_day,
         )
         assert callable(render_morning_readiness)
         assert callable(render_workout_of_day)
@@ -202,7 +200,7 @@ class TestConfig:
         assert hasattr(config, 'ICU_BASE')
 
     def test_plan_constants(self):
-        from config import WEEKLY_LIT_PCT, WEEKLY_HIT_PCT
+        from config import WEEKLY_HIT_PCT, WEEKLY_LIT_PCT
         assert isinstance(WEEKLY_LIT_PCT, (int, float))
         assert isinstance(WEEKLY_HIT_PCT, (int, float))
 

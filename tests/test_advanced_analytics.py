@@ -1,6 +1,4 @@
 """Tests for v0.9.0 — Advanced Analytics Modules."""
-import pytest
-from pathlib import Path
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -344,7 +342,7 @@ class TestCustomAlerts:
         assert result.rules_evaluated == 1
 
     def test_save_load_rules(self, tmp_path):
-        from custom_alerts import create_rule, save_rules, load_rules
+        from custom_alerts import create_rule, load_rules, save_rules
         rule = create_rule("Test", "hr_bpm", ">", 160)
         save_rules([rule], tmp_path)
         loaded = load_rules(tmp_path)
@@ -432,64 +430,72 @@ class TestNewAPIRoutes:
     """Test that new API routes exist and are callable."""
 
     def test_power_duration_model_route(self):
-        from missing_routes import register_missing_routes
         from fastapi import FastAPI
+
+        from missing_routes import register_missing_routes
         app = FastAPI()
         register_missing_routes(app)
         routes = [r.path for r in app.routes]
         assert "/api/analytics/power-duration-model" in routes
 
     def test_phenotype_route(self):
-        from missing_routes import register_missing_routes
         from fastapi import FastAPI
+
+        from missing_routes import register_missing_routes
         app = FastAPI()
         register_missing_routes(app)
         routes = [r.path for r in app.routes]
         assert "/api/analytics/phenotype" in routes
 
     def test_breakthrough_route(self):
-        from missing_routes import register_missing_routes
         from fastapi import FastAPI
+
+        from missing_routes import register_missing_routes
         app = FastAPI()
         register_missing_routes(app)
         routes = [r.path for r in app.routes]
         assert "/api/analytics/breakthrough" in routes
 
     def test_durability_route(self):
-        from missing_routes import register_missing_routes
         from fastapi import FastAPI
+
+        from missing_routes import register_missing_routes
         app = FastAPI()
         register_missing_routes(app)
         routes = [r.path for r in app.routes]
         assert "/api/analytics/durability" in routes
 
     def test_training_phases_route(self):
-        from missing_routes import register_missing_routes
         from fastapi import FastAPI
+
+        from missing_routes import register_missing_routes
         app = FastAPI()
         register_missing_routes(app)
         routes = [r.path for r in app.routes]
         assert "/api/analytics/training-phases" in routes
 
     def test_alerts_routes(self):
-        from missing_routes import register_missing_routes
         from fastapi import FastAPI
+
+        from missing_routes import register_missing_routes
         app = FastAPI()
         register_missing_routes(app)
         routes = [r.path for r in app.routes]
         assert "/api/alerts/rules" in routes
 
     def test_adaptive_recommendation_route(self):
-        from missing_routes import register_missing_routes
         from fastapi import FastAPI
+
+        from missing_routes import register_missing_routes
         app = FastAPI()
         register_missing_routes(app)
         routes = [r.path for r in app.routes]
         assert "/api/analytics/adaptive-recommendation" in routes
 
     def test_polarization_route(self):
-        from missing_routes import register_missing_routes
         from fastapi import FastAPI
+
+        from missing_routes import register_missing_routes
         app = FastAPI()
         register_missing_routes(app)
         routes = [r.path for r in app.routes]

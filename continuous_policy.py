@@ -56,7 +56,7 @@ HIGH_OWED_MIN_MINUTES = 10
 ANAEROBIC_OWED_MIN_MINUTES = 2
 
 
-def foster_monotony(daily_tss) -> "float | None":
+def foster_monotony(daily_tss) -> float | None:
     """Raw Foster (1998) monotony over a daily-load window: mean / SD.
 
     ``daily_tss`` is a sequence of per-day loads (typically 7 entries, one
@@ -76,8 +76,8 @@ def foster_monotony(daily_tss) -> "float | None":
     return min(mean / sd, MONOTONY_CAP)
 
 
-def deload_trigger(monotony: "float | None",
-                   acwr: "float | None") -> "dict | None":
+def deload_trigger(monotony: float | None,
+                   acwr: float | None) -> dict | None:
     """Amendment C trip-wire: should the deload be pulled into THIS week?
 
     Returns None when neither series trips, else a JSON-safe record
@@ -115,8 +115,8 @@ def deload_trigger(monotony: "float | None",
     return None
 
 
-def hrv_band(ln_rmssd_7d: "float | None", swc_lower: "float | None",
-             swc_upper: "float | None") -> str:
+def hrv_band(ln_rmssd_7d: float | None, swc_lower: float | None,
+             swc_upper: float | None) -> str:
     """Where the 7-day LnRMSSD sits vs the SWC band (mean ± 0.5 SD).
 
     Returns "in_band" | "below" | "above" | "unknown". Two-sided on
@@ -134,9 +134,9 @@ def hrv_band(ln_rmssd_7d: "float | None", swc_lower: "float | None",
 
 def suggest_today_family(
     focus_pref: str,
-    deficits: "dict | None",
-    readiness: "dict | None",
-    days_since_last_anaerobic: "int | None",
+    deficits: dict | None,
+    readiness: dict | None,
+    days_since_last_anaerobic: int | None,
     deload_week: bool = False,
 ) -> dict:
     """Amendment D rotation policy — today's suggested stimulus family.

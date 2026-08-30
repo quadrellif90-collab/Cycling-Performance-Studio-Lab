@@ -33,7 +33,6 @@ from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Optional
 
 log = logging.getLogger(__name__)
 
@@ -232,8 +231,6 @@ def _sanitize_speed_inputs(
     return g, m
 
 
-import config  # noqa: E402  (import after constants to avoid circular lazy import)
-
 
 # ══════════════════════════════════════════════════════════════════════════════
 # ENUMS
@@ -424,7 +421,7 @@ class MetricsEngine:
 
         # "Time-to-empty at current P" predictive label guard.
         self._above_cp_run_s: float = 0.0
-        self._wbal_sustain_s: Optional[int] = None
+        self._wbal_sustain_s: int | None = None
 
         # WP snapshot window + ride-wide Coggan NP accumulator.
         self._wp_window = deque(maxlen=30)

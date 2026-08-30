@@ -21,10 +21,10 @@ from __future__ import annotations
 import io
 import json
 import logging
-import tempfile
 import os
-from datetime import datetime, timezone, date
-from typing import Dict, Any, List, Optional
+import tempfile
+from datetime import UTC, date, datetime
+from typing import Any
 
 from fastapi import Body
 
@@ -33,15 +33,24 @@ log = logging.getLogger("pcc.huawei_api")
 # Import del progetto
 try:
     from hrv_engine import (
-        extract_rr_intervals, clean_rr, compute_hrv_metrics,
-        detect_morning_window, build_daily_hrv, compute_baseline,
-        hrv_deviation, fingerprint, RRPoint,
+        RRPoint,
+        build_daily_hrv,
+        clean_rr,
+        compute_baseline,
+        compute_hrv_metrics,
+        detect_morning_window,
+        extract_rr_intervals,
     )
     from huawei_discovery import import_huawei_export
     from huawei_hrv import (
-        migrate_hrv_schema, store_raw_records, store_rr_intervals,
-        store_daily_hrv, store_baseline, to_icu_wellness_bulk,
-        get_daily_hrv_range, export_csv, export_json, push_daily_hrv_to_icu,
+        export_csv,
+        get_daily_hrv_range,
+        migrate_hrv_schema,
+        push_daily_hrv_to_icu,
+        store_baseline,
+        store_daily_hrv,
+        store_raw_records,
+        store_rr_intervals,
     )
 except Exception as e:  # pragma: no cover
     log.error("Import hrv module fallito: %s", e)
@@ -51,7 +60,7 @@ except Exception as e:  # pragma: no cover
 # POST /api/huawei/hrv  (task #25)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def api_huawei_hrv_calculate(payload: Dict[str, Any]) -> Dict[str, Any]:
+def api_huawei_hrv_calculate(payload: dict[str, Any]) -> dict[str, Any]:
     """
     Accetta:
         { "timestamp": "...", "rr_intervals": [812, 804, ...], "source": "..." }
@@ -63,7 +72,7 @@ def api_huawei_hrv_calculate(payload: Dict[str, Any]) -> Dict[str, Any]:
     source = payload.get("source", "api")
     # normalizza input
     if "rr_intervals" in payload:
-        ts0 = _parse_ts(payload.get("timestamp")) or datetime.now(timezone.utc).timestamp()
+        ts0 = _parse_ts(payload.get("timestamp")) or datetime.now(UTC).timestamp()
         step = payload.get("step_ms", 1000)  # default 1 battito/s
         pts = [RRPoint(ts0 + i * step / 1000.0, v, source=source)
                for i, v in enumerate(payload["rr_intervals"])]
@@ -101,8 +110,8 @@ def api_huawei_hrv_calculate(payload: Dict[str, Any]) -> Dict[str, Any]:
 
 def api_huawei_import(path: str, source: str = "huawei_health",
                        sync_to_icu: bool = False,
-                       athlete_id: Optional[str] = None,
-                       api_key: Optional[str] = None) -> Dict[str, Any]:
+                       athlete_id: str | None = None,
+                       api_key: str | None = None) -> dict[str, Any]:
     """
     Importa un export Huawei dal disco, calcola DailyHRV e (opzionale) push ICU.
 
@@ -177,7 +186,7 @@ def api_huawei_import(path: str, source: str = "huawei_health",
 # GET /api/huawei/hrv/daily + export (task #19)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def api_huawei_daily(start: str, end: str) -> List[Dict[str, Any]]:
+def api_huawei_daily(start: str, end: str) -> list[dict[str, Any]]:
     migrate_hrv_schema()
     return get_daily_hrv_range(start, end)
 
@@ -191,7 +200,7 @@ def api_huawei_export(format: str = "csv", start: str = "2000-01-01",
     # usa export_csv di huawei_hrv
     tmp = os.path.join(tempfile.gettempdir(), "hrv_export_tmp.csv")
     export_csv(rows, tmp)
-    with open(tmp, "r", encoding="utf-8") as f:
+    with open(tmp, encoding="utf-8") as f:
         data = f.read()
     os.unlink(tmp)
     return data.encode("utf-8")
@@ -201,7 +210,7 @@ def api_huawei_export(format: str = "csv", start: str = "2000-01-01",
 # GET /api/huawei/hrv/debug  (task #21)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def api_huawei_debug(path: str) -> Dict[str, Any]:
+def api_huawei_debug(path: str) -> dict[str, Any]:
     """Trace SOURCE FILE → FIELD → RAW → NORM → CALC → DEST."""
     data = import_huawei_export(path)
     trace = []
@@ -226,7 +235,7 @@ def api_huawei_debug(path: str) -> Dict[str, Any]:
 # Health Sync compatibility (task #24)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def health_sync_to_hrv(health_sync_record: Dict[str, Any]) -> Dict[str, Any]:
+def health_sync_to_hrv(health_sync_record: dict[str, Any]) -> dict[str, Any]:
     """
     Normalizza un record esportato da Health Sync.
 
@@ -251,7 +260,7 @@ def health_sync_to_hrv(health_sync_record: Dict[str, Any]) -> Dict[str, Any]:
     return out
 
 
-def _parse_ts(v: Any) -> Optional[float]:
+def _parse_ts(v: Any) -> float | None:
     from hrv_engine import _to_epoch
     return _to_epoch(v) if v is not None else None
 
@@ -283,11 +292,12 @@ def api_huawei_manual_hrv(payload: dict) -> dict:
         "icu_response": {"ok": True, "synced": 1}
     }
     """
-    import httpx
-    import json
-    from hrv_engine import MIN_QUALITY_FOR_SYNC
     from datetime import datetime
-    
+
+    import httpx
+
+    from hrv_engine import MIN_QUALITY_FOR_SYNC
+
     # Estrai campi dal body
     rmssd_ms = payload.get("rmssd_ms")
     sdnn_ms = payload.get("sdnn_ms")
@@ -297,19 +307,19 @@ def api_huawei_manual_hrv(payload: dict) -> dict:
     notes = payload.get("notes")
     athlete_id = payload.get("athlete_id")
     api_key = payload.get("api_key")
-    
+
     # Regola #15: rmssd_ms è obbligatorio per la sync, altrimenti fallisce
     if rmssd_ms is None:
         return {"ok": False, "error": "Serve rmssd_ms calcolato localmente"}
-    
+
     # Quality gate
     quality = payload.get("quality_score")
     if quality is not None and quality < MIN_QUALITY_FOR_SYNC:
         return {"ok": False, "error": f"Qualità {quality} < soglia {MIN_QUALITY_FOR_SYNC}, sync impedito"}
-    
+
     # Costruisci payload per Intervals - solo campi valorizzati
     item = {"id": datetime.utcnow().strftime("%Y-%m-%d")}
-    
+
     if rmssd_ms is not None:
         item["hrvRmssd"] = round(rmssd_ms, 1)
     if sdnn_ms is not None:
@@ -322,14 +332,14 @@ def api_huawei_manual_hrv(payload: dict) -> dict:
         item["sportInfo"] = sport_info
     if notes is not None:
         item["notes"] = notes
-    
+
     # Il payload deve avere almeno hrvRmssd o hrvSdnn per essere valido
     if "hrvRmssd" not in item and "hrvSdnn" not in item:
         return {"ok": False, "error": "Nessun campo scrivibile presente"}
-    
+
     # Costruisci URL e headers
     url = f"https://intervals.icu/api/v1/athlete/{athlete_id}/wellness-bulk" if athlete_id else ""
-    
+
     written_fields = []
     if "hrvRmssd" in item:
         written_fields.append("hrvRmssd")
@@ -343,18 +353,18 @@ def api_huawei_manual_hrv(payload: dict) -> dict:
         written_fields.append("sportInfo")
     if "notes" in item:
         written_fields.append("notes")
-    
+
     if not url:
         return {"ok": True, "written_fields": written_fields, "icu_response": None, "note": "Nessun athlete_id specificato"}
-    
+
     try:
         headers = {}
         if api_key:
             headers["Authorization"] = f"Basic {api_key}"
-        
+
         payload_data = [item] if item else []
         resp = httpx.put(url, headers=headers, json=payload_data, timeout=20)
-        
+
         if resp.status_code in (200, 210):
             written = {}
             if "hrvRmssd" in item: written["hrvRmssd"] = round(rmssd_ms, 1)
@@ -363,7 +373,7 @@ def api_huawei_manual_hrv(payload: dict) -> dict:
             if "weight" in item: written["weight"] = weight_kg
             if "sportInfo" in item: written["sportInfo"] = sport_info
             if "notes" in item: written["notes"] = notes
-            
+
             # Aggiorna eventualmente il DB locale
             if athlete_id:
                 try:
@@ -376,7 +386,7 @@ def api_huawei_manual_hrv(payload: dict) -> dict:
                     conn.commit()
                 except Exception:
                     pass
-            
+
             return {
                 "ok": True,
                 "written_fields": written_fields,
@@ -384,7 +394,7 @@ def api_huawei_manual_hrv(payload: dict) -> dict:
             }
         else:
             return {
-                "ok": False, 
+                "ok": False,
                 "error": f"ICU {resp.status_code}: {resp.text[:200]}",
                 "written_fields": written_fields
             }
@@ -423,8 +433,9 @@ def api_huawei_manual_hrv(body: dict = Body(default={})) -> dict:
     }
     """
     import httpx
+
     from hrv_engine import MIN_QUALITY_FOR_SYNC
-    
+
     # Estrai campi dal body
     rmssd_ms = body.get("rmssd_ms")
     sdnn_ms = body.get("sdnn_ms")
@@ -432,19 +443,19 @@ def api_huawei_manual_hrv(body: dict = Body(default={})) -> dict:
     weight_kg = body.get("weight_kg")
     sport_info = body.get("sport_info")
     notes = body.get("notes")
-    
+
     # Regola #15: rmssd_ms è obbligatorio per la sync, altrimenti fallisce
     if rmssd_ms is None:
         return {"ok": False, "error": "Serve rmssd_ms calcolato localmente"}
-    
+
     # Quality gate
     quality = body.get("quality_score")
     if quality is not None and quality < MIN_QUALITY_FOR_SYNC:
         return {"ok": False, "error": f"Qualità {quality} < soglia {MIN_QUALITY_FOR_SYNC}, sync impedito"}
-    
+
     # Costruisci payload per Intervals - solo campi valorizzati
     item = {"id": datetime.utcnow().strftime("%Y-%m-%d")}
-    
+
     if rmssd_ms is not None:
         item["hrvRmssd"] = round(rmssd_ms, 1)
     if sdnn_ms is not None:
@@ -457,15 +468,15 @@ def api_huawei_manual_hrv(body: dict = Body(default={})) -> dict:
         item["sportInfo"] = sport_info
     if notes is not None:
         item["notes"] = notes
-    
+
     # Il payload deve avere almeno hrvRmssd o hrvSdnn per essere valido
     if "hrvRmssd" not in item and "hrvSdnn" not in item:
         return {"ok": False, "error": "Nessun campo scrivibile presente"}
-    
+
     # Esegui PUT su Intervals
     athlete_id = body.get("athlete_id")  # opzionale, se noto
     url = f"https://intervals.icu/api/v1/athlete/{athlete_id}/wellness-bulk" if athlete_id else ""
-    
+
     written_fields = []
     if "hrvRmssd" in item:
         written_fields.append("hrvRmssd")
@@ -479,18 +490,18 @@ def api_huawei_manual_hrv(body: dict = Body(default={})) -> dict:
         written_fields.append("sportInfo")
     if "notes" in item:
         written_fields.append("notes")
-    
+
     if not url:
         return {"ok": True, "written_fields": written_fields, "icu_response": None, "note": "Nessun athlete_id specificato, scrittura locale solo"}
-    
+
     try:
         headers = {}
         if body.get("api_key"):
             headers["Authorization"] = f"Basic {body['api_key']}"
-        
+
         payload = [item] if item else []
         resp = httpx.put(url, headers=headers, json=payload, timeout=20)
-        
+
         if resp.status_code in (200, 210):
             written = {}
             if "hrvRmssd" in item: written["hrvRmssd"] = round(rmssd_ms, 1)
@@ -499,7 +510,7 @@ def api_huawei_manual_hrv(body: dict = Body(default={})) -> dict:
             if "weight" in item: written["weight"] = weight_kg
             if "sportInfo" in item: written["sportInfo"] = sport_info
             if "notes" in item: written["notes"] = notes
-            
+
             return {
                 "ok": True,
                 "written_fields": written_fields,
@@ -507,7 +518,7 @@ def api_huawei_manual_hrv(body: dict = Body(default={})) -> dict:
             }
         else:
             return {
-                "ok": False, 
+                "ok": False,
                 "error": f"ICU {resp.status_code}: {resp.text[:200]}",
                 "written_fields": written_fields
             }
@@ -518,7 +529,7 @@ def api_huawei_manual_hrv(body: dict = Body(default={})) -> dict:
 # ─────────────────────────────────────────────────────────────────────────────
 # GET /api/huawei/hrv/summary  (task #10/#11) — baselines + deviazione + trend
 # ─────────────────────────────────────────────────────────────────────────────
-def api_huawei_summary(end: str = "2100-01-01") -> Dict[str, Any]:
+def api_huawei_summary(end: str = "2100-01-01") -> dict[str, Any]:
     """Riepilogo HRV per la UI: ultimo valore + baseline 7/14/30 + deviazione + trend."""
     from hrv_engine import compute_baseline, hrv_deviation, rolling_average
     migrate_hrv_schema()
@@ -575,7 +586,7 @@ def api_huawei_summary(end: str = "2100-01-01") -> Dict[str, Any]:
 # GET /api/huawei/hrv/summary  (task #10/#11) — baselines + deviazione + trend
 # ─────────────────────────────────────────────────────────────────────────────
 
-def api_huawei_summary(end: str = "2100-01-01") -> Dict[str, Any]:
+def api_huawei_summary(end: str = "2100-01-01") -> dict[str, Any]:
     """Riepilogo HRV per la UI: ultimo DailyHRV + baseline 7/14/30 + deviazione + trend."""
     from hrv_engine import compute_baseline, hrv_deviation, rolling_average
     migrate_hrv_schema()

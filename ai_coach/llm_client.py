@@ -4,7 +4,6 @@ Supporta 14 provider LLM usando solo httpx (già in requirements-common.txt).
 Nessuna nuova dipendenza richiesta.
 """
 import os
-from typing import Optional
 
 import httpx
 
@@ -109,11 +108,11 @@ class LLMClient:
     def __init__(
         self,
         provider: str = "openai",
-        api_key: Optional[str] = None,
-        model: Optional[str] = None,
+        api_key: str | None = None,
+        model: str | None = None,
         temperature: float = 0.7,
         max_tokens: int = 2000,
-        fallback: Optional[dict] = None,
+        fallback: dict | None = None,
     ):
         provider = provider or "openai"
         if provider not in PROVIDERS:
@@ -170,7 +169,7 @@ class LLMClient:
     def chat(
         self,
         messages: list[dict],
-        system: Optional[str] = None,
+        system: str | None = None,
     ) -> str:
         """Invia una chat al provider LLM e restituisce la risposta testuale.
 

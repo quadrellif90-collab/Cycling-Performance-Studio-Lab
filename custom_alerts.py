@@ -35,8 +35,6 @@ import json
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Callable
-
 
 # Supported metrics with descriptions
 SUPPORTED_METRICS = {
@@ -70,7 +68,7 @@ class AlertRule:
     metric: str              # e.g. "power_w", "hr_bpm"
     operator: str            # e.g. ">", "<", "between"
     value: float             # Threshold value
-    value2: Optional[float] = None  # For "between" operator
+    value2: float | None = None  # For "between" operator
     streak_seconds: int = 0  # 0 = immediate, >0 = require N consecutive seconds
     enabled: bool = True
     created_at: str = ""
@@ -138,7 +136,7 @@ class AlertEngine:
         self._triggered_ids: set[str] = set()  # Already triggered this ride
 
     def _check_condition(self, metric_val: float, operator: str,
-                         value: float, value2: Optional[float] = None) -> bool:
+                         value: float, value2: float | None = None) -> bool:
         """Check if a metric value meets the alert condition."""
         if operator == ">":
             return metric_val > value
@@ -274,7 +272,7 @@ def load_rules(profile_dir: Path) -> list[AlertRule]:
 
 
 def create_rule(name: str, metric: str, operator: str, value: float,
-                value2: Optional[float] = None,
+                value2: float | None = None,
                 streak_seconds: int = 0) -> AlertRule:
     """Create a new alert rule with auto-generated ID."""
     rule_id = f"alert_{int(time.time() * 1000)}"

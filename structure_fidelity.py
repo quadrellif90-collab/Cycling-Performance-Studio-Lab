@@ -215,7 +215,7 @@ LAP_ORPHAN_W = 0.6
 LAP_LONE_ANCHOR_S = 60.0
 
 
-def _attr_f(el, name) -> "float | None":
+def _attr_f(el, name) -> float | None:
     v = el.get(name)
     if v is None:
         return None
@@ -225,7 +225,7 @@ def _attr_f(el, name) -> "float | None":
         return None
 
 
-def parse_zwo_text(text: str) -> "list[dict]":
+def parse_zwo_text(text: str) -> list[dict]:
     """Parse ZWO XML text into an absolute segment timeline.
 
     Returns [{"kind", "start_s", "dur_s", "lo", "hi"}, ...] — see module
@@ -239,8 +239,8 @@ def parse_zwo_text(text: str) -> "list[dict]":
     segments: list[dict] = []
     t = 0
 
-    def add(kind: str, dur: "float | None", lo: "float | None",
-            hi: "float | None") -> None:
+    def add(kind: str, dur: float | None, lo: float | None,
+            hi: float | None) -> None:
         nonlocal t
         d = int(round(dur or 0))
         if d <= 0:
@@ -272,7 +272,7 @@ def parse_zwo_text(text: str) -> "list[dict]":
     return segments
 
 
-def parse_zwo_file(path) -> "list[dict] | None":
+def parse_zwo_file(path) -> list[dict] | None:
     """I/O convenience wrapper: parse a .zwo file; None if unreadable."""
     try:
         with open(path, encoding="utf-8") as fh:
@@ -281,7 +281,7 @@ def parse_zwo_file(path) -> "list[dict] | None":
         return None
 
 
-def _seg_frac_at(seg: dict, i: int) -> "float | None":
+def _seg_frac_at(seg: dict, i: int) -> float | None:
     """Target FTP-fraction at second ``i`` inside ``seg`` (ramp-aware)."""
     lo, hi = seg.get("lo"), seg.get("hi")
     if lo is None or hi is None:
@@ -292,7 +292,7 @@ def _seg_frac_at(seg: dict, i: int) -> "float | None":
     return float(lo) + (float(hi) - float(lo)) * (i / (d - 1))
 
 
-def _target_pairs(segments: "list[dict]", ftp: float) -> "list[tuple[int, float]]":
+def _target_pairs(segments: list[dict], ftp: float) -> list[tuple[int, float]]:
     """[(second, target_watts)] for every defined (non-FreeRide) second."""
     pairs: list[tuple[int, float]] = []
     for seg in segments:
@@ -303,7 +303,7 @@ def _target_pairs(segments: "list[dict]", ftp: float) -> "list[tuple[int, float]
     return pairs
 
 
-def _best_offset(pairs: "list[tuple[int, float]]", watts: "list[float]") -> int:
+def _best_offset(pairs: list[tuple[int, float]], watts: list[float]) -> int:
     """Minimum-MAE global alignment offset (see module docstring, step 2)."""
     n = len(watts)
     if not pairs or n == 0:
@@ -326,7 +326,7 @@ def _best_offset(pairs: "list[tuple[int, float]]", watts: "list[float]") -> int:
     return best_off if best_mae is not None else 0
 
 
-def _clean_watts(watts) -> "list[float] | None":
+def _clean_watts(watts) -> list[float] | None:
     if not isinstance(watts, (list, tuple)) or not watts:
         return None
     out: list[float] = []
@@ -338,7 +338,7 @@ def _clean_watts(watts) -> "list[float] | None":
     return out
 
 
-def score_structure(planned_segments, watts, ftp) -> "dict | None":
+def score_structure(planned_segments, watts, ftp) -> dict | None:
     """Grade the delivered 1 Hz trace against the prescribed timeline.
 
     Args:
@@ -433,7 +433,7 @@ def score_structure(planned_segments, watts, ftp) -> "dict | None":
 
 # ── Lap-based block grading ─────────────────────────────────────────────────
 
-def _prescribed_reps(planned_segments, ftp) -> "list[dict]":
+def _prescribed_reps(planned_segments, ftp) -> list[dict]:
     """Work reps from the prescription, in order, grouped into sets.
 
     A "set" boundary is a recovery gap materially longer than the in-set
@@ -500,7 +500,7 @@ def _prescribed_reps(planned_segments, ftp) -> "list[dict]":
     return reps
 
 
-def _normalised_laps(laps, ftp) -> "list[dict] | None":
+def _normalised_laps(laps, ftp) -> list[dict] | None:
     """Every lap, in ride-clock order, as {t0, dur, frac, pct}.
 
     Returns None — grade nothing — rather than guess, when the lap list cannot
@@ -568,7 +568,7 @@ def _normalised_laps(laps, ftp) -> "list[dict] | None":
 
 # ── Runs: the delivered timeline in graded units ────────────────────────────
 
-def _runs(all_laps) -> "list[dict]":
+def _runs(all_laps) -> list[dict]:
     """Adjacent laps at the same intensity, merged into one effort.
 
     A double-tapped lap button splits one block into two laps of identical
@@ -596,7 +596,7 @@ def _runs(all_laps) -> "list[dict]":
     return runs
 
 
-def _pairing(rep, run) -> "float | None":
+def _pairing(rep, run) -> float | None:
     """Value of reading ``run`` as the block ``rep`` — or None, not this block.
 
     A run materially UNDER the block's target cannot be that block: an
@@ -633,7 +633,7 @@ def _pairing(rep, run) -> "float | None":
 
 # ── Anchoring: which run IS which block, where that is certain ──────────────
 
-def _anchor(reps, runs, pace, bands, segn, holes=(), weight=1.0) -> "list[int | None]":
+def _anchor(reps, runs, pace, bands, segn, holes=(), weight=1.0) -> list[int | None]:
     """Order-preserving assignment of runs to blocks, for the time MAPPING.
 
     This no longer decides any block's fate — statuses come from the timeline
@@ -679,7 +679,7 @@ def _anchor(reps, runs, pace, bands, segn, holes=(), weight=1.0) -> "list[int | 
     expl_cost = [0.4 * runs[j]["dur"] if _expl(runs[j]) else 0.0
                  for j in range(m)]
 
-    adm: "list[list[tuple[int, float]]]" = []
+    adm: list[list[tuple[int, float]]] = []
     for i, rep in enumerate(reps):
         row = [(j, v - expl_cost[j]) for j in range(m)
                if (v := _pairing(rep, runs[j])) is not None
@@ -807,7 +807,7 @@ def _anchor(reps, runs, pace, bands, segn, holes=(), weight=1.0) -> "list[int | 
         val = val - LAP_ORPHAN_W * (admdur[m] - admdur[st[1] + 1])
         if val > best_val:
             best_state, best_val = st, val
-    out: "list[int | None]" = [None] * n
+    out: list[int | None] = [None] * n
     st = best_state
     while st is not None:
         out[st[0]] = st[1]
@@ -815,7 +815,7 @@ def _anchor(reps, runs, pace, bands, segn, holes=(), weight=1.0) -> "list[int | 
     return out, best_val
 
 
-def _fit_pace(reps, runs, anchors, segn) -> "tuple[float, float]":
+def _fit_pace(reps, runs, anchors, segn) -> tuple[float, float]:
     """(rho, extra): delivered rest ≈ rho × prescribed rest + extra per easy
     SEGMENT of the plan, fitted by median over the anchored steps. Per
     segment, not per block: a rider stretches each recovery they take, and a
@@ -886,7 +886,7 @@ def _fit_pace(reps, runs, anchors, segn) -> "tuple[float, float]":
 
 # ── Grading: what the timeline shows in each block's window ─────────────────
 
-def _windows(reps, runs, anchors) -> "list[tuple[float, float]]":
+def _windows(reps, runs, anchors) -> list[tuple[float, float]]:
     """Each block's expected place on the ride clock.
 
     An anchored block's window is its own run's start — exact. An unanchored
@@ -897,7 +897,7 @@ def _windows(reps, runs, anchors) -> "list[tuple[float, float]]":
     instead of sliding every later block by one.
     """
     n = len(reps)
-    drift: "list[float | None]" = [None] * n
+    drift: list[float | None] = [None] * n
     for i, j in enumerate(anchors):
         if j is not None:
             drift[i] = runs[j]["t0"] - float(reps[i]["start_s"])
@@ -928,7 +928,7 @@ def _overlap(lo1, hi1, lo2, hi2) -> float:
     return max(0.0, min(hi1, hi2) - max(lo1, lo2))
 
 
-def score_blocks(planned_segments, laps, ftp=None) -> "dict | None":
+def score_blocks(planned_segments, laps, ftp=None) -> dict | None:
     """Grade which prescribed BLOCKS the rider actually completed, from laps.
 
     Answers the question a load number cannot: "I stopped early — which blocks
@@ -1482,7 +1482,7 @@ def _plan_rest_frac(planned_segments, reps, lo: float, hi: float) -> float:
     return acc / dur if dur > 0 else 0.5
 
 
-def _plan_bands(planned_segments, reps) -> "list[tuple[float, float, float, float]]":
+def _plan_bands(planned_segments, reps) -> list[tuple[float, float, float, float]]:
     """(start_s, end_s, lo_frac, hi_frac) of every prescribed NON-block segment.
 
     The prescription itself puts work-intensity riding outside the blocks — a

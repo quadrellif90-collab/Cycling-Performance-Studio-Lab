@@ -54,6 +54,7 @@ log = logging.getLogger(__name__)
 # avoids a circular import (app -> tp -> app).
 import error_codes  # leaf module — no circular risk
 import workout_facts  # v3.2.0 watertight classifier — L1 facts layer (leaf module)
+
 _LOG_ERROR_HOOK = None
 
 
@@ -93,14 +94,14 @@ def _tp_log_error(code: str, exc: Exception | None = None, **context) -> None:
 
 
 from contextlib import contextmanager
-from dataclasses import dataclass, field, asdict, replace
+from dataclasses import dataclass, field, replace
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from training import get_today_metrics, fetch_wellness, fetch_activities
 import config
+from training import get_today_metrics
 from user_home import domestique_home
 
 # Workout library — flat directory of .zwo files (metadata extracted by parsing XML)
@@ -1981,7 +1982,7 @@ def realized_band_distribution(plan: dict) -> dict:
     """Compute the ACTUAL training-type distribution of a generated plan as %
     of total non-rest session minutes across the 5 bands (v2.3.0). Honest
     (computed, not hard-coded) — used to show the user what they actually got."""
-    mins = {b: 0.0 for b in BAND_ORDER}
+    mins = dict.fromkeys(BAND_ORDER, 0.0)
     for w in (plan.get("weeks") or []):
         for s in (w.get("sessions") or []):
             st = (s.get("session_type") or "").strip()
@@ -5289,9 +5290,7 @@ def _build_pool_indexes(library: list[dict]) -> dict:
             + float(w.get("Z6%", 0) or 0)
         )
         dur = float(w.get("Duration(min)", 0) or 0)
-        if cc in _HIT_CONTENT_CLASSES:
-            hit.append(w)
-        elif cc == "mixed" and z345 >= 30:
+        if cc in _HIT_CONTENT_CLASSES or cc == "mixed" and z345 >= 30:
             hit.append(w)
         # Endurance pool — multiple gates
         if cc in _ENDURANCE_CONTENT_CLASSES:
@@ -5788,7 +5787,7 @@ def sample_week_workouts(
     # used_names normalization: accept set OR dict
     if isinstance(used_names, set):
         # Treat any name in the set as "used in last 6 weeks" (week=week_num - 1)
-        used_lookup = {n: week_num - 1 for n in used_names}
+        used_lookup = dict.fromkeys(used_names, week_num - 1)
     else:
         used_lookup = dict(used_names)
 
@@ -7280,9 +7279,7 @@ def _inject_mid_cycle_ftp_tests(weeks: list, phases: list) -> None:
     cycle_total_weeks = sum(getattr(p, "weeks", 0) for p in phases)
     test_phase_starts = []
     for ph in phases:
-        if getattr(ph, "name", "") == "build2":
-            test_phase_starts.append(ph.start)
-        elif getattr(ph, "name", "") == "peak" and cycle_total_weeks >= 16:
+        if getattr(ph, "name", "") == "build2" or getattr(ph, "name", "") == "peak" and cycle_total_weeks >= 16:
             test_phase_starts.append(ph.start)
     if not test_phase_starts and cycle_total_weeks >= 8:
         # Phase-split editor (v3.2.0): a custom split with build2=0 must not
@@ -7560,7 +7557,7 @@ def _enforce_build2_peak_hard_floor(
             w for w in _count_src
             if w.phase == phase_name and not w.is_stepback
         ]
-        counts: dict[str, int] = {cc: 0 for cc in mins}
+        counts: dict[str, int] = dict.fromkeys(mins, 0)
         for w in _count_weeks:
             for s in w.sessions:
                 if s.session_type == "rest":
@@ -8042,7 +8039,7 @@ def _enforce_weekly_volume_ceiling(weeks: list, recent_weekly_tss=None, goal=Non
     _taper_rows = [w for w in weeks if getattr(w, "phase", "") == "taper"]
     # identity-keyed (PlannedWeek is a dataclass — .index() would deep-compare)
     _taper_pos = {id(w): i for i, w in enumerate(_taper_rows)}
-    _peak_ref: "float | None" = None
+    _peak_ref: float | None = None
     for wk in weeks:
         _is_taper = getattr(wk, "phase", "") == "taper"
         if taper_only and not _is_taper:
@@ -9605,7 +9602,7 @@ def reforecast(
     # v1.7.2 — lazy-loaded library cache; the re-match-on-cap branch below
     # populates this on first miss and reuses it across the loop so we
     # don't re-read the full library N times in the worst case.
-    _rematch_library: "list[dict] | None" = None
+    _rematch_library: list[dict] | None = None
     if availability_overrides:
         for pw in plan_weeks:
             # v1.3.5 fix: gate on pw.end (mirrors the G3 downshift block at
@@ -10192,7 +10189,7 @@ def _apply_reforecast_to_dict(
 
     Returns: number of sessions changed.
     """
-    by_day: dict[str, "PlannedSession"] = {
+    by_day: dict[str, PlannedSession] = {
         s.day.isoformat(): s for pw in pw_list for s in pw.sessions
     }
     sessions_changed = 0
@@ -13081,8 +13078,7 @@ def generate_weekly_plan(
     the same ZWO back week after week). The set is passed through to
     match_zwo where recently-used workouts take a -15 score penalty.
     """
-    from config import (ATHLETE_WEIGHT_KG, ATHLETE_FTP_W,
-                        MAX_HIT_PER_WEEK, LONG_RIDE_DAY)
+    from config import LONG_RIDE_DAY, MAX_HIT_PER_WEEK
 
     # Week-start convention: we use the host's LOCAL date (date.today()) as the
     # reference for "today" throughout the planner. Rationale: training sessions
@@ -13848,7 +13844,7 @@ def main():
 
     # Display phase summary
     print(f"{'═'*70}")
-    print(f"  PHASES")
+    print("  PHASES")
     print(f"{'─'*70}")
     for p in phases:
         print(f"  {p.name:<8}  {p.weeks}w  {p.start} → {p.end}  "

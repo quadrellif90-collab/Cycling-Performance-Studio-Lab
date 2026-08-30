@@ -11,11 +11,11 @@ Works both in dev mode (python launcher.py) and frozen mode (PyInstaller).
 import base64
 import multiprocessing
 import os
+import signal
 import sys
 import threading
 import time
 import webbrowser
-import signal
 
 # Prevent PyInstaller frozen multiprocessing fork bomb
 multiprocessing.freeze_support()
@@ -549,6 +549,7 @@ def start_server():
         global _server_error, _server_traceback, _uvicorn_server
         try:
             import uvicorn
+
             # Import the app module — this triggers all the FastAPI setup
             from app import app
             # CON5: use Config/Server so the signal handler can request a
@@ -653,8 +654,8 @@ def _open_url(url, platform=None):
 def run_with_tray():
     """Run system tray icon (requires pystray + Pillow)."""
     try:
-        from pystray import Icon, MenuItem, Menu
         from PIL import Image, ImageDraw
+        from pystray import Icon, Menu, MenuItem
 
         # Create icon: blue circle with white "H"
         img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
@@ -700,8 +701,8 @@ def is_already_running():
     _ensure_port_free_or_die() and its FATAL message — the loud failure
     master decisions §3 asks for, rather than silently adopting its UI.
     """
-    import urllib.request
     import urllib.error
+    import urllib.request
     try:
         urllib.request.urlopen(URL, timeout=1)
         return is_cpsl_at(URL)
@@ -1034,7 +1035,7 @@ def main():
         if _montis_requested():
             open_montis_it()
         if _activate_existing_window():
-            print(f"Cycling Performance Studio Lab already running — activated existing window.")
+            print("Cycling Performance Studio Lab already running — activated existing window.")
             return
         # Last resort: if we can't find the window (user killed the pywebview
         # process but something else is holding the port), open the browser so
@@ -1179,7 +1180,9 @@ def main():
 
     # Try native window (pywebview), fall back to browser + tray.
     def _start_native_window():
-        import webview, importlib
+        import importlib
+
+        import webview
         # v2.0.2 WIN-START-FIX: proactively import the platform backend BEFORE
         # webview.start(). On Windows the EdgeChromium/WinForms backend bootstraps
         # the .NET CLR via pythonnet; importing it here turns a backend problem

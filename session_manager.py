@@ -9,16 +9,13 @@ For web mode: session-based isolation with optional auth.
 
 from __future__ import annotations
 
-import hashlib
-import json
 import logging
 import secrets
 import threading
 import time
 from collections import OrderedDict
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -37,7 +34,7 @@ class Session:
         self.profile_id = profile_id
         self.created_at = created_at
         self.last_activity = created_at
-        self.metadata: Dict[str, Any] = {}
+        self.metadata: dict[str, Any] = {}
 
     @property
     def is_expired(self) -> bool:
@@ -46,12 +43,12 @@ class Session:
     def touch(self) -> None:
         self.last_activity = time.monotonic()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "session_id": self.session_id,
             "profile_id": self.profile_id,
-            "created_at": datetime.fromtimestamp(self.created_at, tz=timezone.utc).isoformat(),
-            "last_activity": datetime.fromtimestamp(self.last_activity, tz=timezone.utc).isoformat(),
+            "created_at": datetime.fromtimestamp(self.created_at, tz=UTC).isoformat(),
+            "last_activity": datetime.fromtimestamp(self.last_activity, tz=UTC).isoformat(),
             "is_expired": self.is_expired,
             "metadata": self.metadata,
         }
@@ -63,9 +60,9 @@ class SessionManager:
     def __init__(self) -> None:
         self._sessions: OrderedDict[str, Session] = OrderedDict()
         self._lock = threading.Lock()
-        self._profile_locks: Dict[str, str] = {}  # profile_id -> session_id
+        self._profile_locks: dict[str, str] = {}  # profile_id -> session_id
 
-    def create_session(self, profile_id: str, metadata: Optional[Dict] = None) -> Session:
+    def create_session(self, profile_id: str, metadata: dict | None = None) -> Session:
         session_id = secrets.token_urlsafe(32)
         now = time.monotonic()
         session = Session(session_id, profile_id, now)
@@ -84,7 +81,7 @@ class SessionManager:
         logger.info(f"Created session {session_id[:8]}... for profile {profile_id}")
         return session
 
-    def get_session(self, session_id: str) -> Optional[Session]:
+    def get_session(self, session_id: str) -> Session | None:
         with self._lock:
             session = self._sessions.get(session_id)
             if session and not session.is_expired:
@@ -108,7 +105,7 @@ class SessionManager:
                 return True
         return False
 
-    def get_active_session_for_profile(self, profile_id: str) -> Optional[Session]:
+    def get_active_session_for_profile(self, profile_id: str) -> Session | None:
         with self._lock:
             session_id = self._profile_locks.get(profile_id)
             if session_id:
@@ -117,7 +114,7 @@ class SessionManager:
                     return session
         return None
 
-    def list_sessions(self) -> List[Session]:
+    def list_sessions(self) -> list[Session]:
         with self._lock:
             self._cleanup_expired()
             return list(self._sessions.values())
@@ -138,7 +135,7 @@ class SessionManager:
             return before - len(self._sessions)
 
     @property
-    def stats(self) -> Dict[str, Any]:
+    def stats(self) -> dict[str, Any]:
         with self._lock:
             self._cleanup_expired()
             return {
@@ -153,7 +150,7 @@ class AuditLog:
     """Simple audit log for profile access and changes."""
 
     def __init__(self, max_entries: int = 1000) -> None:
-        self._entries: List[Dict[str, Any]] = []
+        self._entries: list[dict[str, Any]] = []
         self._max_entries = max_entries
         self._lock = threading.Lock()
 
@@ -161,11 +158,11 @@ class AuditLog:
         self,
         action: str,
         profile_id: str,
-        session_id: Optional[str] = None,
-        details: Optional[Dict] = None,
+        session_id: str | None = None,
+        details: dict | None = None,
     ) -> None:
         entry = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "action": action,
             "profile_id": profile_id,
             "session_id": session_id,
@@ -178,9 +175,9 @@ class AuditLog:
 
     def get_entries(
         self,
-        profile_id: Optional[str] = None,
+        profile_id: str | None = None,
         limit: int = 50,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         with self._lock:
             entries = self._entries
             if profile_id:
@@ -188,8 +185,8 @@ class AuditLog:
             return list(reversed(entries[-limit:]))
 
 
-_session_manager: Optional[SessionManager] = None
-_audit_log: Optional[AuditLog] = None
+_session_manager: SessionManager | None = None
+_audit_log: AuditLog | None = None
 
 
 def get_session_manager() -> SessionManager:
@@ -207,8 +204,6 @@ def get_audit_log() -> AuditLog:
 
 
 def register_routes(app: Any) -> None:
-    from fastapi import Request
-    from fastapi.responses import JSONResponse
 
     sm = get_session_manager()
     audit = get_audit_log()

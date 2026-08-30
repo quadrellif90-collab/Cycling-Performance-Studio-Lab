@@ -1,10 +1,11 @@
 """Live demo of CPSL v0.9.0 API routes."""
-import json
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from fastapi.testclient import TestClient
+
 from app import app
 
 client = TestClient(app)

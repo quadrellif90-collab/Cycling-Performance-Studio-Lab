@@ -14,10 +14,9 @@ Se la chiave non c'e', vision_configured() ritorna False e il chiamante
 cade back su Tesseract (ocr_pdf).
 """
 
-import os
-import io
-import json
 import base64
+import json
+import os
 import re
 
 try:

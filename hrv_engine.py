@@ -27,9 +27,10 @@ import json
 import logging
 import math
 import statistics
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timezone, timedelta
-from typing import Optional, Sequence, List, Dict, Any
+from collections.abc import Sequence
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from typing import Any
 
 log = logging.getLogger("cpsl.hrv_engine")
 
@@ -62,8 +63,8 @@ class RRPoint:
     timestamp: float          # epoch seconds (UTC) del battito
     interval_ms: float        # durata RR in ms
     source: str = "unknown"
-    quality: Optional[float] = None
-    session_id: Optional[str] = None
+    quality: float | None = None
+    session_id: str | None = None
 
 
 @dataclass
@@ -74,7 +75,7 @@ class CleanNN:
     raw_interval_ms: float     # valore originale prima del cleaning
     corrected: bool = False    # True se era ectopic e è stato interpolato
     source: str = "unknown"
-    session_id: Optional[str] = None
+    session_id: str | None = None
 
 
 @dataclass
@@ -92,28 +93,28 @@ class QualityResult:
 @dataclass
 class HRVMetrics:
     """Risultato del calcolo su una finestra di NN."""
-    rmssd_ms: Optional[float] = None
-    sdnn_ms: Optional[float] = None
-    mean_nn_ms: Optional[float] = None
-    median_nn_ms: Optional[float] = None
-    mean_hr: Optional[float] = None
-    min_hr: Optional[float] = None
-    max_hr: Optional[float] = None
-    pnn50_pct: Optional[float] = None
-    cvnn_pct: Optional[float] = None
-    sdann_ms: Optional[float] = None       # richiede segmentazione per minuto
-    hrv_triangular_index: Optional[float] = None
-    lf_ms2: Optional[float] = None          # frequency-domain (se durata ok)
-    hf_ms2: Optional[float] = None
-    lf_hf_ratio: Optional[float] = None
-    respiratory_rate: Optional[float] = None  # se fornito esplicitamente
+    rmssd_ms: float | None = None
+    sdnn_ms: float | None = None
+    mean_nn_ms: float | None = None
+    median_nn_ms: float | None = None
+    mean_hr: float | None = None
+    min_hr: float | None = None
+    max_hr: float | None = None
+    pnn50_pct: float | None = None
+    cvnn_pct: float | None = None
+    sdann_ms: float | None = None       # richiede segmentazione per minuto
+    hrv_triangular_index: float | None = None
+    lf_ms2: float | None = None          # frequency-domain (se durata ok)
+    hf_ms2: float | None = None
+    lf_hf_ratio: float | None = None
+    respiratory_rate: float | None = None  # se fornito esplicitamente
     sample_count: int = 0
     duration_seconds: float = 0.0
     quality_score: float = 0.0
     quality_category: str = "invalid"
     calculation_method: str = "rmssd_nn_cleaned_v1"
     algorithm: str = "standard_hrv_v1"
-    timestamp: Optional[float] = None
+    timestamp: float | None = None
     source: str = "unknown"
     valid: bool = False         # False se sotto soglie minime
 
@@ -123,9 +124,9 @@ class HRVMetrics:
 # ─────────────────────────────────────────────────────────────────────────────
 
 def extract_rr_intervals(
-    raw: Sequence[Dict[str, Any]],
+    raw: Sequence[dict[str, Any]],
     source: str = "huawei_health",
-) -> List[RRPoint]:
+) -> list[RRPoint]:
     """
     Normalizza una lista di dict grezzi in RRPoint.
 
@@ -137,7 +138,7 @@ def extract_rr_intervals(
     I valori HR NON sono RR: se trova solo 'hr'/'heart_rate' (bpm) e non
     intervalli, restituisce lista vuota (non inventa RR da HR — task #15).
     """
-    points: List[RRPoint] = []
+    points: list[RRPoint] = []
     for row in raw:
         if not isinstance(row, dict):
             continue
@@ -177,7 +178,7 @@ def extract_rr_intervals(
     return points
 
 
-def _pick_first(d: Dict[str, Any], keys: Sequence[str]) -> Any:
+def _pick_first(d: dict[str, Any], keys: Sequence[str]) -> Any:
     lowered = {k.lower(): v for k, v in d.items()}
     for k in keys:
         if k in lowered and lowered[k] not in (None, ""):
@@ -185,7 +186,7 @@ def _pick_first(d: Dict[str, Any], keys: Sequence[str]) -> Any:
     return None
 
 
-def _to_epoch(v: Any) -> Optional[float]:
+def _to_epoch(v: Any) -> float | None:
     if isinstance(v, (int, float)):
         # se è un numero grande tipo 20260817 → non è epoch; lascia perdere
         if v > 1e12:  # ms epoch
@@ -218,7 +219,7 @@ def clean_rr(
     rr_min: float = RR_MIN_MS,
     rr_max: float = RR_MAX_MS,
     artifact_ratio: float = ARTIFACT_RATIO,
-) -> List[CleanNN]:
+) -> list[CleanNN]:
     """
     Pipeline di cleaning professionale:
         1. rimozione valori impossibili (fuori [rr_min, rr_max])
@@ -232,7 +233,7 @@ def clean_rr(
 
     NON modifica points; restituisce CleanNN separati.
     """
-    clean: List[CleanNN] = []
+    clean: list[CleanNN] = []
     seen_ts = set()
     if not points:
         return clean
@@ -369,10 +370,10 @@ def _hr_from_nn(ms: float) -> float:
 
 def compute_hrv_metrics(
     clean: Sequence[CleanNN],
-    raw: Optional[Sequence[RRPoint]] = None,
+    raw: Sequence[RRPoint] | None = None,
     source: str = "huawei_health",
     calculation_method: str = "rmssd_nn_cleaned_v1",
-    timestamp: Optional[float] = None,
+    timestamp: float | None = None,
 ) -> HRVMetrics:
     """
     Calcola tutte le metriche HRV da una finestra di NN puliti.
@@ -443,11 +444,11 @@ def compute_hrv_metrics(
 
 def detect_morning_window(
     clean: Sequence[CleanNN],
-    wake_time: Optional[float] = None,
-    sleep_end: Optional[float] = None,
+    wake_time: float | None = None,
+    sleep_end: float | None = None,
     window_s: float = DEFAULT_MORNING_WINDOW_S,
     lookback_s: float = DEFAULT_MORNING_LOOKBACK_S,
-) -> Optional[List[CleanNN]]:
+) -> list[CleanNN] | None:
     """
     Identifica la migliore finestra mattutina valida per il morning HRV.
 
@@ -473,7 +474,7 @@ def detect_morning_window(
         candidates = list(clean)
 
     # scorri finestre contigue di durata >= window_s
-    best: Optional[List[CleanNN]] = None
+    best: list[CleanNN] | None = None
     best_q = -1.0
     i = 0
     while i < len(candidates):
@@ -504,7 +505,7 @@ def detect_morning_window(
     return best
 
 
-def _longest_run(seq: Sequence[CleanNN]) -> List[CleanNN]:
+def _longest_run(seq: Sequence[CleanNN]) -> list[CleanNN]:
     if not seq:
         return []
     runs = []
@@ -525,7 +526,7 @@ def build_daily_hrv(
     date: str,
     source: str = "huawei_health",
     calculation_method: str = "rmssd_nn_cleaned_v1",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Costruisce il dict DailyHRV (task #10)."""
     m = compute_hrv_metrics(window, raw=raw, source=source,
                             calculation_method=calculation_method,
@@ -561,7 +562,7 @@ def build_daily_hrv(
 # 5) BASELINE & TREND (task #11/#12)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def compute_baseline(daily: Sequence[Dict[str, Any]], window_days: int = 7) -> Dict[str, Any]:
+def compute_baseline(daily: Sequence[dict[str, Any]], window_days: int = 7) -> dict[str, Any]:
     """
     Calcola baseline su `window_days` giorni di DailyHRV (i più recenti).
 
@@ -597,7 +598,7 @@ def compute_baseline(daily: Sequence[Dict[str, Any]], window_days: int = 7) -> D
     return out
 
 
-def hrv_deviation(today_rmssd: float, baseline_mean: float) -> Dict[str, Any]:
+def hrv_deviation(today_rmssd: float, baseline_mean: float) -> dict[str, Any]:
     """Deviazione % odierna vs baseline (task #11)."""
     if baseline_mean <= 0:
         return {"deviation_pct": None, "z_score": None}
@@ -606,7 +607,7 @@ def hrv_deviation(today_rmssd: float, baseline_mean: float) -> Dict[str, Any]:
 
 
 def hrv_deviation_ln(today_ln_rmssd: float, baseline_ln_mean: float,
-                     baseline_ln_std: float | None = None) -> Dict[str, Any]:
+                     baseline_ln_std: float | None = None) -> dict[str, Any]:
     """Deviazione su scala ln(RMSSD) — preferita per confronti di trend HRV.
 
     Restituisce la deviazione (in unità ln) e lo z-score se fornita la std
@@ -622,7 +623,7 @@ def hrv_deviation_ln(today_ln_rmssd: float, baseline_ln_mean: float,
     }
 
 
-def rolling_average(daily: Sequence[Dict[str, Any]], days: int = 7) -> List[Dict[str, Any]]:
+def rolling_average(daily: Sequence[dict[str, Any]], days: int = 7) -> list[dict[str, Any]]:
     """Media mobile RMSSD su `days` giorni (task #12)."""
     out = []
     vals = [(d.get("date"), d.get("rmssd_ms")) for d in daily]
@@ -651,9 +652,9 @@ RESAMPLE_HZ = 4.0             # resampling per Welch (4 Hz standard per HRV)
 
 def compute_advanced_metrics(
     clean: Sequence[CleanNN],
-    raw: Optional[Sequence[RRPoint]] = None,
+    raw: Sequence[RRPoint] | None = None,
     source: str = "huawei_health",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Calcola metriche avanzate NON riportate da Huawei/Intervals:
 
@@ -669,7 +670,7 @@ def compute_advanced_metrics(
 
     Restituisce dict con valori None dove non applicabile.
     """
-    out: Dict[str, Any] = {
+    out: dict[str, Any] = {
         "sdann_ms": None,
         "hrv_triangular_index": None,
         "lf_ms2": None,
@@ -698,7 +699,7 @@ def compute_advanced_metrics(
     if dur_s >= 60.0 and n > 1:
         try:
             from collections import defaultdict
-            per_min: Dict[int, List[float]] = defaultdict(list)
+            per_min: dict[int, list[float]] = defaultdict(list)
             t0 = clean[0].timestamp
             for c in clean:
                 minute = int((c.timestamp - t0) // 60)
@@ -736,7 +737,7 @@ def compute_advanced_metrics(
     return out
 
 
-def _welch_psd(x: "np.ndarray", fs: float = 4.0):  # noqa: F821
+def _welch_psd(x: np.ndarray, fs: float = 4.0):  # noqa: F821
     """Welch PSD usando solo numpy (no scipy). Restituisce (f, psd)."""
     import numpy as np
     n = len(x)

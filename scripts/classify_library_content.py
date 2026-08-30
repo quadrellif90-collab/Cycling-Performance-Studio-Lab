@@ -39,7 +39,6 @@ import sys
 import xml.etree.ElementTree as ET
 from collections import Counter
 from pathlib import Path
-from typing import Optional
 
 # ── Constants from research synthesis ────────────────────────────────────────
 
@@ -546,10 +545,7 @@ def detect_over_under_pattern(power: list[float]) -> tuple[bool, int]:
                 state = "over"
                 leg_start = i
         elif p < OU_UNDER_FRAC and p >= 0.85:
-            if state == "over" and (i - leg_start) >= 30:
-                state = "under"
-                leg_start = i
-            elif state is None:
+            if state == "over" and (i - leg_start) >= 30 or state is None:
                 state = "under"
                 leg_start = i
     is_ou = transitions >= DOSE_OVERUNDER_TRANSITIONS
@@ -581,10 +577,7 @@ def detect_microinterval_pattern(power: list[float]) -> tuple[bool, int]:
                 leg_starts.append(i)
                 leg_start = i
         elif p <= DOSE_MICRO_OFF_FRAC:
-            if state == "on":
-                state = "off"
-                leg_start = i
-            elif state is None:
+            if state == "on" or state is None:
                 state = "off"
                 leg_start = i
         # mid-band power doesn't change state; we want crisp on/off cycles
@@ -1172,9 +1165,7 @@ def detect_ladder(segments: list[dict]) -> dict:
                 seg = segments[j]
                 if (seg["kind"] in ("steady", "intervals")
                         and seg["duration_s"] >= 45
-                        and seg["power"] < 0.60):
-                    j += 1
-                elif seg["kind"] in ("ramp", "cooldown") and seg["duration_s"] >= 45:
+                        and seg["power"] < 0.60) or seg["kind"] in ("ramp", "cooldown") and seg["duration_s"] >= 45:
                     j += 1
             i = j
         else:
@@ -2314,12 +2305,12 @@ def evaluate_golden(golden_path: Path, classifications: dict) -> tuple[float, di
 def print_confusion_matrix(confusion: dict, total: int) -> None:
     types = sorted(set([k[0] for k in confusion] + [k[1] for k in confusion]))
     print("\nConfusion matrix (rows=expected, cols=got):")
-    header = "{:>14}".format("") + "".join("{:>14}".format(t) for t in types)
+    header = "{:>14}".format("") + "".join(f"{t:>14}" for t in types)
     print(header)
     for r in types:
-        row = "{:>14}".format(r)
+        row = f"{r:>14}"
         for c in types:
-            row += "{:>14}".format(confusion.get((r, c), 0))
+            row += f"{confusion.get((r, c), 0):>14}"
         print(row)
     print(f"\nTotal: {total}")
 

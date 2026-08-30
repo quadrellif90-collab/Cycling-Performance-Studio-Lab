@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 """E2E v2 — usa i selettori REALI del wizard /setup."""
-import json, os, subprocess, sys, time, traceback, shutil
+import json
+import os
+import shutil
+import subprocess
+import sys
+import time
+import traceback
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
@@ -27,6 +33,7 @@ proc = subprocess.Popen([sys.executable, 'launcher.py', '--server-only'],
                         stderr=subprocess.STDOUT)
 
 import urllib.request
+
 up = False
 for _ in range(50):
     try:

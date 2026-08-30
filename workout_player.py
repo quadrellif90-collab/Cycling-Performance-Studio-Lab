@@ -15,10 +15,7 @@ Architecture:
 - WorkoutRegistry: Central session store for the running app
 """
 
-import json
 import logging
-import math
-import os
 import threading
 import time
 import xml.etree.ElementTree as ET
@@ -64,14 +61,10 @@ class WorkoutTimeline:
     ftp: float
     intervals: list[Interval] = field(default_factory=list)
 
-    def get_target_at_time(self, elapsed: float) -> tuple[float, Optional[Interval]]:
+    def get_target_at_time(self, elapsed: float) -> tuple[float, Interval | None]:
         for interval in self.intervals:
             if interval.start_time <= elapsed < interval.start_time + interval.duration:
-                if interval.interval_type == IntervalType.WARMUP or interval.interval_type == IntervalType.COOLDOWN:
-                    frac = (elapsed - interval.start_time) / interval.duration if interval.duration > 0 else 0
-                    target = interval.power_low + (interval.power_high - interval.power_low) * frac
-                    return target, interval
-                elif interval.interval_type == IntervalType.RAMP:
+                if interval.interval_type == IntervalType.WARMUP or interval.interval_type == IntervalType.COOLDOWN or interval.interval_type == IntervalType.RAMP:
                     frac = (elapsed - interval.start_time) / interval.duration if interval.duration > 0 else 0
                     target = interval.power_low + (interval.power_high - interval.power_low) * frac
                     return target, interval
@@ -237,8 +230,8 @@ class PlaybackStatus:
     target_power: float = 0.0
     interval_index: int = 0
     intensity_pct: float = 1.0
-    started_at: Optional[float] = None
-    paused_at: Optional[float] = None
+    started_at: float | None = None
+    paused_at: float | None = None
     total_duration: float = 0.0
     target_interval_name: str = "None"
     power_history: list[dict] = field(default_factory=list)
@@ -249,14 +242,14 @@ class PlaybackStatus:
 class WorkoutPlayerSession:
     """Manages playback state and real-time targets for a single workout."""
 
-    def __init__(self, timeline: WorkoutTimeline, rider_power: Optional[float] = None):
+    def __init__(self, timeline: WorkoutTimeline, rider_power: float | None = None):
         self.timeline = timeline
         self.rider_power = rider_power
         self.status = PlaybackStatus(total_duration=timeline.duration_total)
         self._lock = threading.RLock()
-        self._timer: Optional[threading.Thread] = None
+        self._timer: threading.Thread | None = None
         self._stop_flag = threading.Event()
-        self._trainer: Optional["TrainerController"] = None
+        self._trainer: TrainerController | None = None
         self._update_interval = 1.0
 
     def set_trainer(self, trainer: "TrainerController"):
@@ -514,14 +507,14 @@ class WorkoutRegistry:
     def get(cls) -> "WorkoutRegistry":
         return cls()
 
-    def create_session(self, timeline: WorkoutTimeline, session_id: Optional[str] = None) -> WorkoutPlayerSession:
+    def create_session(self, timeline: WorkoutTimeline, session_id: str | None = None) -> WorkoutPlayerSession:
         if session_id is None:
             session_id = f"session_{int(time.time() * 1000)}"
         session = WorkoutPlayerSession(timeline)
         self._active_sessions[session_id] = session
         return session
 
-    def get_session(self, session_id: str) -> Optional[WorkoutPlayerSession]:
+    def get_session(self, session_id: str) -> WorkoutPlayerSession | None:
         return self._active_sessions.get(session_id)
 
     def end_session(self, session_id: str):
@@ -537,14 +530,14 @@ class WorkoutRegistry:
         self._connected_trainers[trainer_id] = trainer
         return trainer_id
 
-    def get_trainer(self, trainer_id: str) -> Optional[TrainerController]:
+    def get_trainer(self, trainer_id: str) -> TrainerController | None:
         return self._connected_trainers.get(trainer_id)
 
     def list_trainers(self) -> list[dict[str, Any]]:
         return [t.get_status() for t in self._connected_trainers.values()]
 
 
-def get_workout_files(works_dir: Optional[str | Path] = None) -> list[Path]:
+def get_workout_files(works_dir: str | Path | None = None) -> list[Path]:
     """Find all .zwo workout files in the workouts directory."""
     from user_home import cpsl_home
     if works_dir is None:
@@ -555,7 +548,7 @@ def get_workout_files(works_dir: Optional[str | Path] = None) -> list[Path]:
     return sorted(works_path.rglob("*.zwo"))
 
 
-def load_workout_by_name(name: str, works_dir: Optional[str | Path] = None, ftp: float = 250.0) -> Optional[WorkoutTimeline]:
+def load_workout_by_name(name: str, works_dir: str | Path | None = None, ftp: float = 250.0) -> WorkoutTimeline | None:
     """Load a workout timeline by name from the workouts directory."""
     for f in get_workout_files(works_dir):
         if f.stem == name:
@@ -564,7 +557,7 @@ def load_workout_by_name(name: str, works_dir: Optional[str | Path] = None, ftp:
     return None
 
 
-def resolve_workout_path(filename: str, works_dir: Optional[str | Path] = None) -> Optional[Path]:
+def resolve_workout_path(filename: str, works_dir: str | Path | None = None) -> Path | None:
     """Resolve a workout filename to its full path. Supports nested directories."""
     if works_dir is None:
         works_dir = Path("workouts")

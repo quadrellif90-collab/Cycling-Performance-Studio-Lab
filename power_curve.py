@@ -37,8 +37,8 @@ import time
 import uuid
 from datetime import date, timedelta
 from pathlib import Path
+
 from user_home import domestique_home
-from typing import Optional
 
 log = logging.getLogger("domestique.power_curve")
 
@@ -163,7 +163,7 @@ def _filter_rides_by_window(rides: list[dict], window_days: int) -> list[dict]:
     return [r for r in rides if _ride_started_iso_date(r) >= cutoff]
 
 
-def _profile_ftp_weight(profile_id: "str | None" = None) -> tuple[int, float]:
+def _profile_ftp_weight(profile_id: str | None = None) -> tuple[int, float]:
     """Best-effort current FTP + weight for the ACTIVE profile.
 
     AC2a (grill): the old ``profile_id="default"`` default was a lie — the
@@ -255,7 +255,7 @@ def is_sensor_glitch(effort: dict, ride: dict, profile: dict) -> bool:
 # AGGREGATION
 # ══════════════════════════════════════════════════════════════════════════════
 
-def aggregate_power_curve(profile_id: "str | None" = None,
+def aggregate_power_curve(profile_id: str | None = None,
                            window_days: int = 90) -> dict:
     """Aggregate the rider's mean-max curve across every cached ride in window.
 
@@ -302,7 +302,7 @@ def aggregate_power_curve(profile_id: "str | None" = None,
     rides = _filter_rides_by_window(all_rides, window_days)
 
     # Best per duration: {duration_s: (watts, ride_id, date, weight_kg, ftp_at_ride)}
-    best: dict[int, tuple[int, str, str, Optional[float], Optional[int]]] = {}
+    best: dict[int, tuple[int, str, str, float | None, int | None]] = {}
     for r in rides:
         efforts = r.get("efforts") or []
         if not isinstance(efforts, list):
@@ -381,11 +381,11 @@ def aggregate_power_curve(profile_id: "str | None" = None,
         })
 
     # CP / W' / Pmax — Monod 2-param fit reusing fitness_estimation.
-    cp_w: Optional[int] = None
-    wprime_j: Optional[int] = None
-    pmax_w: Optional[int] = None
+    cp_w: int | None = None
+    wprime_j: int | None = None
+    pmax_w: int | None = None
     try:
-        from fitness_estimation import compute_cp_wprime, MONOD_DURATIONS_S
+        from fitness_estimation import MONOD_DURATIONS_S, compute_cp_wprime
         be_dict = {pt["duration_s"]: pt["watts"] for pt in rider_curve
                    if pt["duration_s"] in MONOD_DURATIONS_S}
         if len(be_dict) >= 2:
@@ -417,7 +417,7 @@ def aggregate_power_curve(profile_id: "str | None" = None,
     }
 
 
-def _pg_w_per_kg(duration_s: int) -> Optional[float]:
+def _pg_w_per_kg(duration_s: int) -> float | None:
     """Return the P&G 2011 baseline W/kg at ``duration_s``.
 
     Uses table values directly when the duration is a measured anchor;
@@ -726,7 +726,7 @@ def release_backfill_lock() -> None:
         pass
 
 
-def backfill_icu_history(profile_id: "str | None" = None,
+def backfill_icu_history(profile_id: str | None = None,
                           max_per_second: int = 1,
                           _skip_lock: bool = False,
                           progress_cb=None,
@@ -919,7 +919,7 @@ def backfill_icu_history(profile_id: "str | None" = None,
     }
 
 
-def latest_ride_id_in_window(profile_id: "str | None" = None,
+def latest_ride_id_in_window(profile_id: str | None = None,
                               window_days: int = 90) -> str:
     """Return the ride_id of the most recent ride within the window.
 
@@ -1120,7 +1120,7 @@ def _fr_per_ride_peaks(power_w: list[int],
     return out
 
 
-def compute_fatigue_resistance(profile_id: "str | None" = None,
+def compute_fatigue_resistance(profile_id: str | None = None,
                                 window_days: int = 365,
                                 kj_threshold: int = 1500) -> dict:
     """Pinot 2014 robustness index — peak power on tired vs fresh legs.

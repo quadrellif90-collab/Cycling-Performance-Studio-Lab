@@ -32,8 +32,6 @@ computed by fitness_estimation; it does not invent a new training model.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
-
 
 # Mechanical efficiency P/V̇O2 for trained cyclists (di Prampero 1986): ~21%.
 # Convert W -> ml/min O2: V̇O2 = P / efficiency_gross where efficiency_gross
@@ -47,13 +45,13 @@ _VO2MAX_CEILING_ML_KG_MIN = 85.0
 
 @dataclass
 class MetabolicProfile:
-    vo2max_ml_kg_min: Optional[float] = None
-    vlamax_mmol_l_s: Optional[float] = None
-    fatmax_w: Optional[float] = None
-    cp_w: Optional[int] = None
-    w_prime_j: Optional[int] = None
-    ftp_w: Optional[int] = None
-    fatmax_pct_ftp: Optional[float] = None
+    vo2max_ml_kg_min: float | None = None
+    vlamax_mmol_l_s: float | None = None
+    fatmax_w: float | None = None
+    cp_w: int | None = None
+    w_prime_j: int | None = None
+    ftp_w: int | None = None
+    fatmax_pct_ftp: float | None = None
     method: str = "field power-duration (non lab)"
     assumptions: list[str] = field(default_factory=list)
     sources: list[str] = field(default_factory=list)
@@ -75,9 +73,9 @@ def _vo2max_from_power(power_w: float, body_kg: float) -> float:
 def decode_metabolic_profile(
     best_efforts: dict[int, int],
     body_kg: float,
-    cp_w: Optional[int] = None,
-    w_prime_j: Optional[int] = None,
-    ftp_w: Optional[int] = None,
+    cp_w: int | None = None,
+    w_prime_j: int | None = None,
+    ftp_w: int | None = None,
 ) -> MetabolicProfile:
     """Estimate a metabolic profile from field best efforts.
 
@@ -112,7 +110,7 @@ def decode_metabolic_profile(
 
     # CP / FTP fallback from best efforts if not supplied.
     if cp_w is None or ftp_w is None:
-        from fitness_estimation import estimate_ftp, compute_cp_wprime
+        from fitness_estimation import compute_cp_wprime, estimate_ftp
         if ftp_w is None:
             ftp_w = estimate_ftp(best_efforts)
             prof.ftp_w = ftp_w

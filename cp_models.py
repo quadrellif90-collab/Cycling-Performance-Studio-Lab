@@ -28,8 +28,6 @@ curve and derives TrainerRoad-style progression levels from it.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
-
 
 # Representative zone -> anchor duration (seconds) used for the level.
 ZONE_ANCHORS: list[tuple[str, str, int]] = [
@@ -56,12 +54,12 @@ ELITE_WKG: dict[str, float] = {
 
 @dataclass
 class CpModels:
-    monod_cp_w: Optional[float] = None
-    monod_wprime_j: Optional[float] = None
-    morton_cp_w: Optional[float] = None
-    morton_wprime_j: Optional[float] = None
-    morton_tau_s: Optional[float] = None
-    morton_r2: Optional[float] = None
+    monod_cp_w: float | None = None
+    monod_wprime_j: float | None = None
+    morton_cp_w: float | None = None
+    morton_wprime_j: float | None = None
+    morton_tau_s: float | None = None
+    morton_r2: float | None = None
     progression_levels: list[dict] = field(default_factory=list)
 
 
@@ -87,7 +85,7 @@ def _ols_t_on_inv(resid_pairs: list[tuple[float, float]]) -> tuple[float, float,
     return (slope, -intercept, r2)
 
 
-def fit_morton_3p(best_efforts: dict[int, int]) -> Optional[tuple[float, float, float, float]]:
+def fit_morton_3p(best_efforts: dict[int, int]) -> tuple[float, float, float, float] | None:
     """Grid-search Morton 3P (CP, W', tau, R^2) from best efforts.
 
     Uses the standard durations {120, 180, 300, 480, 600, 1200} s. Returns
@@ -99,7 +97,7 @@ def fit_morton_3p(best_efforts: dict[int, int]) -> Optional[tuple[float, float, 
         return None
     powers = sorted(p for _, p in pts)
     p_min, p_max = powers[0], powers[-1]
-    best: Optional[tuple[float, float, float, float]] = None
+    best: tuple[float, float, float, float] | None = None
     # Grid over candidate CP (must be below the shortest effort, above a floor)
     # and tau (>= 0, bounded). Keep physiological bounds.
     cp_lo = max(80.0, 0.55 * p_min)

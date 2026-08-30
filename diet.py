@@ -16,8 +16,8 @@ Fonti (2024-2026):
   - Phillips 2016 (leucine threshold per sintonizzazione proteica)
 """
 from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Optional
 
 # ── Banca alimenti per categoria (fonte: USDA + linee guida sportive) ─────────
 FOODS = {
@@ -68,7 +68,7 @@ def _meal(name, foods, timing, carb, protein_g=0, fat=0, note="", grams=None):
 
 def build_daily_diet(day_type: str = "moderate", bodyweight_kg: float = 72.0,
                      goal_type: str = "maintain",
-                     custom_calories: Optional[float] = None,
+                     custom_calories: float | None = None,
                      training_time: str = "morning",
                      height_cm: float = 178.0, age: int = 30, sex: str = "m",
                      activity: float = 1.7,
@@ -252,7 +252,7 @@ def build_daily_diet(day_type: str = "moderate", bodyweight_kg: float = 72.0,
 
 
 def build_weekly_diet(goal_type: str = "maintain", bodyweight_kg: float = 72.0,
-                      custom_calories: Optional[float] = None,
+                      custom_calories: float | None = None,
                       height_cm: float = 178.0, age: int = 30, sex: str = "m",
                       activity: float = 1.7) -> dict:
     """Piano alimentare SETTIMANALE (7 giorni) con variazione pasti.
@@ -261,7 +261,6 @@ def build_weekly_diet(goal_type: str = "maintain", bodyweight_kg: float = 72.0,
     variazione giornaliera riflette il tipo di giorno (recupero vs carico),
     coerente con 'fuel for the work required'.
     """
-    from nutrition import day_macros
     day_map = {
         "Lunedì": "easy", "Martedì": "moderate", "Mercoledì": "hard",
         "Giovedì": "easy", "Venerdì": "moderate", "Sabato": "hard",

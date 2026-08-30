@@ -20,16 +20,16 @@ segnaliamo e non estraiamo RR da campi non provati.
 from __future__ import annotations
 
 import csv
-import io
 import json
 import logging
 import os
 import re
-import zipfile
 import xml.etree.ElementTree as ET
+import zipfile
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Dict, Any, List, Optional, Iterable
+from datetime import UTC, datetime
+from typing import Any
 
 log = logging.getLogger("pcc.huawei_discovery")
 
@@ -53,32 +53,32 @@ class HuaweiRawRecord:
     """Record grezzo estratto da un export Huawei (task #3)."""
     source_file: str
     record_type: str          # hr / hrv_rr / sleep / spo2 / stress / rhr / activity
-    timestamp_utc: Optional[float] = None
-    raw_value: Optional[float] = None       # valore grezzo (es. RR in ms, HR in bpm)
-    raw_dict: Dict[str, Any] = field(default_factory=dict)
-    tz_hint: Optional[str] = None
-    fingerprint: Optional[str] = None
+    timestamp_utc: float | None = None
+    raw_value: float | None = None       # valore grezzo (es. RR in ms, HR in bpm)
+    raw_dict: dict[str, Any] = field(default_factory=dict)
+    tz_hint: str | None = None
+    fingerprint: str | None = None
 
 
 @dataclass
 class HuaweiNormalizedData:
     """Dati normalizzati: RR/NN estratti + metriche aggregate già presenti."""
-    rr_points: List[Dict[str, Any]] = field(default_factory=list)
-    hrv_aggregates: List[Dict[str, Any]] = field(default_factory=list)  # es. rmssd già calcolato da Huawei
-    sleep: List[Dict[str, Any]] = field(default_factory=list)
-    spo2: List[Dict[str, Any]] = field(default_factory=list)
-    stress: List[Dict[str, Any]] = field(default_factory=list)
-    rhr: List[Dict[str, Any]] = field(default_factory=list)
+    rr_points: list[dict[str, Any]] = field(default_factory=list)
+    hrv_aggregates: list[dict[str, Any]] = field(default_factory=list)  # es. rmssd già calcolato da Huawei
+    sleep: list[dict[str, Any]] = field(default_factory=list)
+    spo2: list[dict[str, Any]] = field(default_factory=list)
+    stress: list[dict[str, Any]] = field(default_factory=list)
+    rhr: list[dict[str, Any]] = field(default_factory=list)
     # Campi HRV da Intervals.icu (raw_json)
-    icu_hrv: List[Dict[str, Any]] = field(default_factory=list)  # hrv, hrvSDNN, ecc.
-    warnings: List[str] = field(default_factory=list)
+    icu_hrv: list[dict[str, Any]] = field(default_factory=list)  # hrv, hrvSDNN, ecc.
+    warnings: list[str] = field(default_factory=list)
 
 
 @dataclass
 class HuaweiHRVData:
     """Solo i dati HRV rilevanti (RR grezzi + eventuali aggregate)."""
-    rr_raw: List[Dict[str, Any]]
-    hrv_aggregates: List[Dict[str, Any]]
+    rr_raw: list[dict[str, Any]]
+    hrv_aggregates: list[dict[str, Any]]
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -89,7 +89,7 @@ def _norm(s: str) -> str:
     return re.sub(r"[\s\-_]+", "_", s.strip().lower())
 
 
-def detect_field_type(headers: Iterable[str]) -> Dict[str, str]:
+def detect_field_type(headers: Iterable[str]) -> dict[str, str]:
     """Mappa header → tipo di dato rilevato."""
     norm = {_norm(h): h for h in headers}
     mapping = {}
@@ -112,7 +112,7 @@ def detect_field_type(headers: Iterable[str]) -> Dict[str, str]:
     return mapping
 
 
-def _extract_epoch(row: Dict[str, Any], tz_hint: Optional[str] = None) -> Optional[float]:
+def _extract_epoch(row: dict[str, Any], tz_hint: str | None = None) -> float | None:
     from hrv_engine import _to_epoch
     for k in ("timestamp", "time", "date", "datetime", "epoch", "start_time", "t"):
         if k in row and row[k] not in (None, ""):
@@ -147,7 +147,7 @@ class HuaweiCsvParser(HuaweiParser):
     def parse(self, path: str) -> HuaweiNormalizedData:
         out = HuaweiNormalizedData()
         try:
-            with open(path, "r", encoding="utf-8-sig", errors="replace") as f:
+            with open(path, encoding="utf-8-sig", errors="replace") as f:
                 reader = csv.DictReader(f)
                 headers = reader.fieldnames or []
                 fmap = detect_field_type(headers)
@@ -189,7 +189,7 @@ class HuaweiJsonParser(HuaweiParser):
     def parse(self, path: str) -> HuaweiNormalizedData:
         out = HuaweiNormalizedData()
         try:
-            with open(path, "r", encoding="utf-8", errors="replace") as f:
+            with open(path, encoding="utf-8", errors="replace") as f:
                 data = json.load(f)
             self._walk(data, out, path)
         except Exception as e:
@@ -308,10 +308,10 @@ def _merge(dst: HuaweiNormalizedData, src: HuaweiNormalizedData):
     dst.warnings.extend(src.warnings)
 
 
-def _date_from_ts(ts: float) -> Optional[str]:
+def _date_from_ts(ts: float) -> str | None:
     if ts is None:
         return None
-    return datetime.fromtimestamp(ts, tz=timezone.utc).date().isoformat()
+    return datetime.fromtimestamp(ts, tz=UTC).date().isoformat()
 
 
 # ─────────────────────────────────────────────────────────────────────────────

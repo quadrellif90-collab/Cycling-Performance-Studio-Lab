@@ -27,9 +27,8 @@ from __future__ import annotations
 
 import math
 import statistics
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable, Optional
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Constants
@@ -119,7 +118,7 @@ class ArchetypeOutput:
     terrain: str
     finish_type: str
     climb_count: int
-    primary_climb: Optional[dict]
+    primary_climb: dict | None
     template_id: str = ""  # which composition template was picked
 
 
@@ -819,7 +818,7 @@ def _detect_climbs(segs: list[float], grades: list[float],
     return climbs
 
 
-def _primary_climb_from(segs: list[float], grades: list[float]) -> Optional[dict]:
+def _primary_climb_from(segs: list[float], grades: list[float]) -> dict | None:
     climbs = _detect_climbs(segs, grades)
     if not climbs:
         return None
@@ -3357,7 +3356,7 @@ def mixed_gravel_finish(total_km: float, seed: int) -> ArchetypeOutput:
 
 def _pick_lap_params(total_km: float, seed: int,
                      base_range: tuple[float, float] = (2.0, 8.0),
-                     lap_candidates: Optional[list[int]] = None
+                     lap_candidates: list[int] | None = None
                      ) -> tuple[float, int]:
     if lap_candidates is None:
         lap_candidates = [2, 3, 5, 8, 10]

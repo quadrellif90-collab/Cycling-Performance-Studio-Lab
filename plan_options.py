@@ -23,7 +23,7 @@ returns the enriched plan; turned off it is a no-op.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass
@@ -93,7 +93,7 @@ class PlanOptions:
         }
 
     @classmethod
-    def from_dict(cls, d: dict | None) -> "PlanOptions":
+    def from_dict(cls, d: dict | None) -> PlanOptions:
         if not d:
             return cls()
         known = {f.name for f in cls.__dataclass_fields__.values()}

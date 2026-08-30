@@ -12,9 +12,8 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, date, timedelta
+from datetime import date, timedelta
 from pathlib import Path
-from typing import Optional
 
 log = logging.getLogger("cpsl.importers")
 
@@ -49,7 +48,7 @@ def upsert_wellness_record(day_iso: str, updates: dict) -> dict:
 # ─────────────────────────────────────────────────────────────────────────────
 
 def garmin_import(days: int = 28, email: str = "", password: str = "",
-                  tokenstore: Optional[str] = None) -> dict:
+                  tokenstore: str | None = None) -> dict:
     """Pull recent HRV/sleep/weight from Garmin Connect into wellness records.
 
     Uses ``garminconnect``. On first run it needs email+password (device login);

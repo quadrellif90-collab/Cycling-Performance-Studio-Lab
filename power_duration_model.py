@@ -28,10 +28,7 @@ v0.9.0 introduced: covers WKO5 PDM, phenotype classification, radar chart.
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field
-from typing import Optional
-
 
 # ══════════════════════════════════════════════════════════════════════════════
 # CONSTANTS
@@ -73,8 +70,8 @@ class PowerDurationFit:
     n_points_used: int              # Number of data points used
     fit_method: str                 # e.g. "least_squares_3p"
     # Population benchmarks (%)
-    cp_pct_population: Optional[float] = None   # vs age-group median
-    pmax_pct_population: Optional[float] = None
+    cp_pct_population: float | None = None   # vs age-group median
+    pmax_pct_population: float | None = None
     # Raw curve points used
     curve_points: list[dict] = field(default_factory=list)
 
@@ -138,7 +135,7 @@ def _r_squared(durations: list[float], powers: list[float],
 # ══════════════════════════════════════════════════════════════════════════════
 
 def fit_power_duration(best_efforts: dict[int, int],
-                       weight_kg: Optional[float] = None) -> Optional[PowerDurationFit]:
+                       weight_kg: float | None = None) -> PowerDurationFit | None:
     """Fit the 3-parameter Power-Duration Model to the rider's curve.
 
     Args:

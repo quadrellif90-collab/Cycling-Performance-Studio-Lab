@@ -8,7 +8,10 @@ NOTE: credentials are read from environment variables so this file is safe to
 commit (no secrets in source). Set CPSL_ICU_KEY / CPSL_ICU_ID / CPSL_LLM_KEY
 before running, or the live-auth-dependent calls will be skipped.
 """
-import urllib.request, urllib.error, json, os
+import json
+import os
+import urllib.error
+import urllib.request
 
 BASE = "http://127.0.0.1:22400"
 

@@ -10,8 +10,8 @@ atleta-singolo, quindi lavora sul profilo attivo (self) dell'app.
 Logica pura + wrapper ICU (best-effort, non blocca se non ci sono credenziali).
 """
 from __future__ import annotations
+
 import datetime as _dt
-from typing import Optional
 
 
 def iso_week_monday(d: _dt.date) -> str:
@@ -100,7 +100,7 @@ def load_plan_weeks() -> list[dict]:
     """Legge plans/current_plan.json (dove PCC salva il piano generato) e
     ritorna le settimane con sessions + start + tss_target + phase. Se non
     c'è un piano, lista vuota."""
-    import json, os
+    import json
     from pathlib import Path
     candidates = [
         Path(__file__).parent / "plans" / "current_plan.json",

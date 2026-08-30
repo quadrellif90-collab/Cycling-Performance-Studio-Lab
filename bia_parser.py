@@ -22,11 +22,8 @@ Campi estratti:
 """
 
 import re
-import json
 import unicodedata
-from dataclasses import dataclass, asdict
-from typing import Optional
-
+from dataclasses import asdict, dataclass
 
 # ── Pattern di estrazione (etichetta -> campo) ────────────────────────────────
 # Ogni campo puo' avere piu' varianti IT/EN. I pattern catturano il primo
@@ -227,28 +224,28 @@ _VISION_FIELD_MAP = {
 @dataclass
 class BIAReading:
     date: str = ""
-    weight_kg: Optional[float] = None
-    height_cm: Optional[float] = None
-    bmi: Optional[float] = None
-    fat_mass_kg: Optional[float] = None
-    fat_mass_pct: Optional[float] = None
-    fat_free_mass_kg: Optional[float] = None
-    fat_free_mass_pct: Optional[float] = None
-    tbw_l: Optional[float] = None
-    ecw_l: Optional[float] = None
-    icw_l: Optional[float] = None
-    hydration_pct: Optional[float] = None
-    bcm_kg: Optional[float] = None
-    smm_kg: Optional[float] = None
-    asmm_kg: Optional[float] = None
-    muscle_mass_kg: Optional[float] = None
-    bone_kg: Optional[float] = None
-    protein_kg: Optional[float] = None
-    protein_pct: Optional[float] = None
-    visceral_fat: Optional[float] = None
-    metabolic_age: Optional[float] = None
-    phase_angle: Optional[float] = None
-    chi: Optional[float] = None
+    weight_kg: float | None = None
+    height_cm: float | None = None
+    bmi: float | None = None
+    fat_mass_kg: float | None = None
+    fat_mass_pct: float | None = None
+    fat_free_mass_kg: float | None = None
+    fat_free_mass_pct: float | None = None
+    tbw_l: float | None = None
+    ecw_l: float | None = None
+    icw_l: float | None = None
+    hydration_pct: float | None = None
+    bcm_kg: float | None = None
+    smm_kg: float | None = None
+    asmm_kg: float | None = None
+    muscle_mass_kg: float | None = None
+    bone_kg: float | None = None
+    protein_kg: float | None = None
+    protein_pct: float | None = None
+    visceral_fat: float | None = None
+    metabolic_age: float | None = None
+    phase_angle: float | None = None
+    chi: float | None = None
     source: str = "manual"
     raw_text: str = ""
 
@@ -300,9 +297,10 @@ def _build_reading(fields: dict, source: str, date: str = "", raw: str = "") -> 
 def parse_bia_pdf(pdf_bytes: bytes) -> dict:
     """Estrae BIA da PDF: ibrido nativo -> cloud vision -> Tesseract -> scan."""
     try:
-        import fitz
-        import io
         import base64
+        import io
+
+        import fitz
     except ImportError:
         return {"scanned": True, "error": "PyMuPDF non installato",
                 "reading": BIAReading(source="pdf_scanned").to_dict(),
@@ -359,8 +357,8 @@ def parse_bia_pdf(pdf_bytes: bytes) -> dict:
             "pages": page_images}
 
 
-def _finalize(r: BIAReading, scanned: bool, note: Optional[str],
-              pages: list, source: Optional[str]) -> dict:
+def _finalize(r: BIAReading, scanned: bool, note: str | None,
+              pages: list, source: str | None) -> dict:
     validated = r.validated_fields()
     reliable = len(validated) >= 2 and "weight_kg" in validated
     clean = BIAReading(source=source or r.source, date=r.date, raw_text=r.raw_text)

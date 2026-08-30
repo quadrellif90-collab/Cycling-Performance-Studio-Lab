@@ -6,7 +6,14 @@ Fase C: sweep 14 tab (attivazione sezione + errori console + risposte 4xx/5xx)
 Fase D: suite personalizzazione layout (8 check)
 Fase E: scansione salute API (GET sicuri)
 """
-import json, os, subprocess, sys, time, urllib.request, urllib.error
+import json
+import os
+import subprocess
+import sys
+import time
+import urllib.error
+import urllib.request
+
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SHOTS = os.path.join(ROOT, 'qa_shots')
@@ -58,6 +65,7 @@ except Exception:
 
 # ── PLAYWRIGHT SETUP ─────────────────────────────────────────────────────
 from playwright.sync_api import sync_playwright
+
 chrome = os.path.expandvars(r'%LOCALAPPDATA%\ms-playwright\chromium-1228\chrome-win64\chrome.exe')
 
 with sync_playwright() as p:

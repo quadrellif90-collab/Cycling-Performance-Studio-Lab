@@ -19,10 +19,9 @@ from __future__ import annotations
 import json
 from datetime import date, datetime
 from pathlib import Path
-from typing import Optional
 
 
-def _history_path() -> Optional[Path]:
+def _history_path() -> Path | None:
     try:
         from profile_manager import ProfileManager
         pm = ProfileManager.get()
@@ -78,7 +77,7 @@ def delete_block(block_id: str) -> bool:
     return _save_all(kept)
 
 
-def _parse(d: Optional[str]) -> Optional[date]:
+def _parse(d: str | None) -> date | None:
     if not d:
         return None
     try:

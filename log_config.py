@@ -55,10 +55,10 @@ import os
 import threading
 import uuid
 import warnings
-from datetime import datetime, timezone
 from pathlib import Path
 
 from user_home import domestique_home
+
 LOG_DIR = domestique_home() / "logs"
 
 # v4.0.0-alpha (FIX-SERVER): primary log file is boot-stamped
