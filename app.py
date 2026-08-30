@@ -24736,9 +24736,11 @@ def dashboard(request: Request):
         context={"active_profile_id": active_profile_id})
 
 # Workout Player page
+@app.get("/player", response_class=HTMLResponse)
 @app.get("/player/{workout_filename}", response_class=HTMLResponse)
 def workout_player_page(request: Request, workout_filename: str = ""):
-    """Serve the workout player UI for a given .zwo file."""
+    """Serve the workout player UI for a given .zwo file.
+    Without a filename it still renders (template handles workout=None)."""
     from profile_manager import ProfileManager
     from workout_player import ZWOParser, resolve_workout_path
     pm = ProfileManager.get()
@@ -24766,6 +24768,12 @@ def workout_player_page(request: Request, workout_filename: str = ""):
             "workout_filename": workout_filename,
             "active_profile_id": pm.active_id or "",
         })
+
+
+@app.get("/profile_setup", response_class=HTMLResponse)
+def profile_setup_page(request: Request):
+    """Serve the new-profile setup wizard (template was orphaned)."""
+    return templates.TemplateResponse(request=request, name="profile_setup.html")
 
 
 @app.get("/hrv_monitor", response_class=HTMLResponse)
