@@ -24,6 +24,7 @@ _startup_log(f"app.py loading, frozen={getattr(_sys, 'frozen', False)}")
 import collections
 import functools
 import hashlib
+import math
 import os
 import re
 import subprocess
@@ -24765,6 +24766,85 @@ def workout_player_page(request: Request, workout_filename: str = ""):
             "workout_filename": workout_filename,
             "active_profile_id": pm.active_id or "",
         })
+
+
+@app.get("/hrv_monitor", response_class=HTMLResponse)
+def hrv_monitor_page(request: Request):
+    """Serve the HRV Monitor page (previously an orphan template, now wired up)."""
+    return templates.TemplateResponse(request=request, name="hrv_monitor.html")
+
+
+@app.post("/api/hrv/baseline")
+def api_hrv_baseline(payload: dict = None):
+    """Compute HRV baseline from stored wellness data.
+
+    Reads the last `window_days` daily HRV values (wellness.hrv = RMSSD ms)
+    and returns the baseline used by the HRV Monitor page. Falls back to an
+    'insufficient_data' response when no HRV has been recorded yet.
+    """
+    from hrv_engine import compute_baseline
+    window_days = (payload or {}).get("window_days", 7)
+    try:
+        db = get_db()
+        rows = db.execute(
+            "SELECT date, hrv, rhr, sleep_score FROM wellness "
+            "WHERE hrv IS NOT NULL ORDER BY date DESC LIMIT ?",
+            (max(1, int(window_days)),),
+        ).fetchall()
+    except Exception:  # noqa: BLE001
+        rows = []
+    daily = []
+    for r in rows:
+        rmssd = r["hrv"]
+        if rmssd is None:
+            continue
+        rec = {"date": r["date"], "rmssd_ms": float(rmssd)}
+        if rmssd and rmssd > 0:
+            rec["ln_rmssd_ms"] = round(math.log(rmssd), 4)
+        daily.append(rec)
+    if not daily:
+        return {"ok": False, "reason": "insufficient_data",
+                "baseline": {"valid": False, "rmssd_ms": None,
+                             "baseline_mean": None, "deviation_pct": None}}
+    base = compute_baseline(daily, window_days=window_days)
+    latest = daily[0]
+    ts = None
+    try:
+        from datetime import datetime
+        ts = datetime.strptime(latest["date"], "%Y-%m-%d").timestamp()
+    except Exception:  # noqa: BLE001
+        ts = None
+    return {
+        "ok": True,
+        "baseline": {
+            "valid": True,
+            "timestamp": ts,
+            "rmssd_ms": latest["rmssd_ms"],
+            "baseline_mean": base.get("mean_rmssd"),
+            "deviation_pct": None,
+            "quality_score": 1.0,
+            "quality_category": "good",
+        },
+    }
+
+
+@app.post("/api/hrv/rolling")
+def api_hrv_rolling(payload: dict = None):
+    """7-day rolling average of RMSSD for the HRV Monitor trend view."""
+    from hrv_engine import rolling_average
+    days = (payload or {}).get("days", 7)
+    try:
+        db = get_db()
+        rows = db.execute(
+            "SELECT date, hrv FROM wellness WHERE hrv IS NOT NULL "
+            "ORDER BY date ASC LIMIT 90",
+        ).fetchall()
+    except Exception:  # noqa: BLE001
+        rows = []
+    daily = [{"date": r["date"], "rmssd_ms": float(r["hrv"])} for r in rows
+             if r["hrv"] is not None]
+    rolling = rolling_average(daily, days=days) if daily else []
+    return {"ok": True, "rolling": rolling}
 
 
 # ── MontisFork SPA (v3.6): the React fork is the main UI. Registered LAST so
