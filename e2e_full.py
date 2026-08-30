@@ -61,7 +61,10 @@ def record(step, status, detail=''):
     print(f"  [{icon}] {step}" + (f" → {detail}" if detail else ''))
 
 try:
-    chrome = os.path.expandvars(r'%LOCALAPPDATA%\ms-playwright\chromium-1228\chrome-win64\chrome.exe')
+    pw_dir = os.path.expandvars(r'%LOCALAPPDATA%\ms-playwright')
+    import glob as _glob
+    _cands = _glob.glob(os.path.join(pw_dir, 'chromium-*/chrome-win64/chrome.exe'))
+    chrome = _cands[0] if _cands else os.path.expandvars(r'%LOCALAPPDATA%\ms-playwright\chromium-1228\chrome-win64\chrome.exe')
     cproc = subprocess.Popen([chrome, '--remote-debugging-port=9334',
                               f'--user-data-dir={os.environ["TEMP"]}\\cpsl-e2e-br2',
                               '--no-first-run', '--headless=new', '--window-size=1400,900',
