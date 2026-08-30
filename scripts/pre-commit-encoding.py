@@ -2,7 +2,7 @@
 """Pre-commit hook: block commits that introduce mojibake or BOM.
 
 Install (one-time): copy/symlink to .git/hooks/pre-commit
-  copy scripts\pre-commit-encoding.py .git\hooks\pre-commit
+  copy scripts/pre-commit-encoding.py .git/hooks/pre-commit
   (or: git config core.hooksPath scripts/hooks)
 Exits non-zero (aborts commit) if any staged text file is corrupted.
 """
