@@ -4553,6 +4553,16 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="chart-tip" id="chart-tip"></div>
 
 <script>
+// Defensive guard: a null target must not throw on addEventListener.
+// Prevents intermittent "Cannot read properties of null (reading 'addEventListener')"
+// when a handler binds to an element that is momentarily absent from the DOM.
+(function(){
+  const _ae = EventTarget.prototype.addEventListener;
+  EventTarget.prototype.addEventListener = function(type, listener, options){
+    if (this == null) return;
+    return _ae.call(this, type, listener, options);
+  };
+})();
 // Global error handler — shows JS errors visually (critical for pywebview debugging)
 window.onerror = function(msg, url, line, col, error) {
   const div = document.createElement('div');
@@ -6951,7 +6961,7 @@ async function loadRiderStats() {
       + _rsRow('DFA-a1 AeT', h.dfa_aet, {unit: 'bpm',
           extra: h.dfa_aet && h.dfa_aet.watts ? ` <span style="color:var(--text3);font-weight:400;">/ ${Math.round(h.dfa_aet.watts)}W</span>` : ''});
     const efTrend = ef.ef && ef.ef.trend
-      ? ` <span style="font-weight:400;" title="42d trend ${ef.ef.trend_pct != null ? ef.ef.trend_pct + '%' : ''}">${ef.ef.trend === 'up' ? '↗' : ef.ef.trend === 'down' ? '💎: '→'}</span>` : '';
+      ? ` <span style="font-weight:400;" title="42d trend ${ef.ef.trend_pct != null ? ef.ef.trend_pct + '%' : ''}">${ef.ef.trend === 'up' ? '↗' : ef.ef.trend === 'down' ? '↘' : '◆'}</span>` : '';
     let loadRows = _rsRow('EF (NP/HR)', ef.ef, {extra: efTrend})
       + _rsRow('Decoupling', ef.decoupling, {unit: '%'})
       + _rsRow('CTL', ld.ctl) + _rsRow('ATL', ld.atl) + _rsRow('TSB', ld.tsb);
@@ -9724,9 +9734,9 @@ function _calMatchBadge(compare) {
   const MATCH_VISUAL = {
     matched:           { glyph: '✓', color: 'var(--green)',  label: 'matched' },
     matched_extended:  { glyph: '🎯', color: 'var(--accent)', label: 'extended' },
-    matched_truncated: { glyph: '🎯 color: 'var(--yellow)', label: 'truncated' },
+    matched_truncated: { glyph: '🎯', color: 'var(--yellow)', label: 'truncated' },
     different_workout: { glyph: '↗', color: 'var(--orange)', label: 'different' },
-    no_plan:           { glyph: '📅 color: 'var(--text3)',  label: 'no plan' },
+    no_plan:           { glyph: '📅', color: 'var(--text3)',  label: 'no plan' },
   };
   const v = MATCH_VISUAL[compare.match_status];
   if (!v) return '';
@@ -10924,7 +10934,7 @@ function toggleLibAdvanced() {
   panel.style.display = open ? '' : 'none';
   if (btn) {
     btn.setAttribute('aria-expanded', String(open));
-    btn.textContent = open ? 'Advanced 📍 : 'Advanced 📍';
+    btn.textContent = open ? 'Advanced 📍' : 'Advanced 📍';
   }
 }
 
@@ -16883,13 +16893,13 @@ async function runPlanOpenSequence() {
     if (!stepsEl) return;
     stepsEl.innerHTML = STEPS.map(s => {
       const st = state[s.key];
-      let icon = '📅 color = 'var(--text3)';
+      let icon = '📅'; let color = 'var(--text3)';
       if (st && st.status === 'done') { icon = '✓'; color = 'var(--green)'; }
       else if (st && st.status === 'warn') { icon = '⚠'; color = 'var(--yellow)'; }
-      else if (st && st.status === 'error') { icon = '📅 color = 'var(--red)'; }
+      else if (st && st.status === 'error') { icon = '📅'; color = 'var(--red)'; }
       // Active step no longer shows a spinner glyph — the top loading BAR is the
       // single progress indicator now. A filled dot just marks "in progress".
-      else if (s.key === activeKey) { icon = '📅 color = 'var(--accent)'; }
+      else if (s.key === activeKey) { icon = '📅'; color = 'var(--accent)'; }
       const detail = (st && st.detail) ? st.detail : '';
       return `<div style="display:flex;align-items:center;gap:9px;padding:5px 0;font-size:13px;color:${color};">
                 <span style="width:16px;text-align:center;">${icon}</span>
@@ -18715,7 +18725,7 @@ async function loadWeeklyCalendar() {
       done:          { emoji: '✓',  color: '#22c55e',     bg: '#22c55e22', label: 'DONE' },
       done_partial:  { emoji: '✓💎', color: '#86efac',     bg: '#86efac22', label: 'PARTIAL' },
       missed:        { emoji: '⚠',  color: '#ef4444',     bg: '#ef444422', label: 'MISSED' },
-      dismissed:     { emoji: '📅  color: '#6b7280',     bg: '#6b728022', label: 'DISMISSED' },
+      dismissed:     { emoji: '📅', color: '#6b7280',     bg: '#6b728022', label: 'DISMISSED' },
       ambiguous:     { emoji: '?',  color: '#eab308',     bg: '#eab30822', label: 'REVIEW' },
     };
     // moved_from:<date> is dynamic — computed below
@@ -21805,7 +21815,7 @@ function renderOnTrackBar(data) {
   const cmpPct = Number(summary.compliance_pct_this_week || 0);
   const cmpBand = summary.compliance_band || 'red';
   const cmpColor = cmpBand === 'green' ? 'var(--green)' : cmpBand === 'amber' ? 'var(--yellow)' : 'var(--red)';
-  const cmpEmoji = cmpBand === 'green' ? '📊: cmpBand === 'amber' ? '⚠' : '🌲;
+  const cmpEmoji = cmpBand === 'green' ? '📊' : cmpBand === 'amber' ? '⚠' : '🌲';
   const cmpChipBg = cmpBand === 'green' ? 'rgba(34,197,94,0.15)' : cmpBand === 'amber' ? 'rgba(234,179,8,0.15)' : 'rgba(239,68,68,0.15)';
 
   // CTL delta vs target
@@ -23050,7 +23060,7 @@ function renderNutriPdf(host, j) {
       html += `<div style="margin:3px 0;font-size:10px;"><b>${esc(m.name)}</b></div>`;
       for (const it of (m.items||[])) {
         const sel = it.is_alt ? 'color:var(--text3);cursor:pointer;' : 'font-weight:600;';
-        const tag = it.is_alt ? ' 📅: '';
+        const tag = it.is_alt ? ' 📅' : '';
         html += `<div style="${sel}" onclick="toggleAlt(this)">${esc(it.name)} ${it.grams}g${tag} <span style="color:var(--text3);">${it.kcal} kcal</span></div>`;
       }
     }
@@ -23626,7 +23636,7 @@ window.chooseAssessmentTest = async function(kind) {
     if (res.ok && d.plan_json) {
       await renderPlanJSON(d.plan_json);
       dismissAssessmentBanner();
-      showToast('Piano rigenerato con test ' + kind + ' 📊 5000, 'success');
+      showToast('Piano rigenerato con test ' + kind + ' 📊', 'success');
     } else {
       showToast('Errore: ' + (d.detail || d.error || 'generazione fallita'), 5000);
     }
@@ -23654,7 +23664,7 @@ window.skipAssessment = async function() {
     if (res.ok && d.plan_json) {
       await renderPlanJSON(d.plan_json);
       dismissAssessmentBanner();
-      showToast('Piano generato senza valutazione 📊 5000, 'success');
+      showToast('Piano generato senza valutazione 📊', 'success');
     } else {
       showToast('Errore: ' + (d.detail || d.error || 'generazione fallita'), 5000);
     }
