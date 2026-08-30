@@ -9,7 +9,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from hrv_engine import compute_baseline, rolling_average, hrv_deviation
-from zones import power_zones, hr_zones, power_zone_at, hr_zone_at, estimated_hr_max
+from zones import power_zones, hr_zones, power_zone_at, estimated_hr_max
 from durability_score import compute_durability_score
 
 
