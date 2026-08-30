@@ -2,6 +2,8 @@ name: CPSL CI/CD
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*.*.*'
   workflow_dispatch:
@@ -57,6 +59,14 @@ jobs:
       - name: Run tests
         continue-on-error: true
         run: pytest tests/ -q --tb=short -p no:cacheprovider || true
+
+      - name: End-to-end browser test (Windows only, Chromium)
+        if: matrix.os == 'windows-latest'
+        run: |
+          pip install playwright
+          python -m playwright install chromium
+          python e2e_full.py
+        continue-on-error: true
 
   smoke-test:
     name: Live smoke test

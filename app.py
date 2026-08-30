@@ -24847,6 +24847,53 @@ def api_hrv_rolling(payload: dict = None):
     return {"ok": True, "rolling": rolling}
 
 
+@app.get("/api/hrv/summary")
+def api_hrv_summary():
+    """Aggregated HRV summary for the HRV Monitor page (and e2e_full.py).
+
+    Reads stored daily HRV (wellness.hrv = RMSSD ms) and computes the
+    baseline, deviation, and 7-day rolling trend via hrv_engine.
+    """
+    from hrv_engine import compute_baseline, rolling_average, hrv_deviation
+    try:
+        db = get_db()
+        rows = db.execute(
+            "SELECT date, hrv, rhr, sleep_score FROM wellness "
+            "WHERE hrv IS NOT NULL ORDER BY date ASC",
+        ).fetchall()
+    except Exception:  # noqa: BLE001
+        rows = []
+    daily = []
+    for r in rows:
+        if r["hrv"] is None:
+            continue
+        rec = {"date": r["date"], "rmssd_ms": float(r["hrv"])}
+        if r["hrv"] > 0:
+            rec["ln_rmssd_ms"] = round(math.log(r["hrv"]), 4)
+        daily.append(rec)
+    if not daily:
+        return {"ok": False, "reason": "insufficient_data", "summary": {}}
+    latest = daily[-1]
+    base = compute_baseline(daily, window_days=7)
+    dev = hrv_deviation(latest["rmssd_ms"], base.get("mean_rmssd") or latest["rmssd_ms"])
+    rolling = rolling_average(daily, days=7)
+    return {
+        "ok": True,
+        "summary": {
+            "latest": {
+                "date": latest["date"],
+                "rmssd_ms": latest["rmssd_ms"],
+                "rhr": rows[-1]["rhr"],
+                "sleep_score": rows[-1]["sleep_score"],
+            },
+            "baseline_mean_rmssd": base.get("mean_rmssd"),
+            "deviation_pct": dev.get("deviation_pct"),
+            "rolling_7d": rolling[-1].get("rolling_7d") if rolling else None,
+            "count": len(daily),
+        },
+    }
+
+
 # ── MontisFork SPA (v3.6): the React fork is the main UI. Registered LAST so
 # every real route above (API, old dashboard "/", setup, player…) keeps
 # priority; anything unmatched that is not an API path falls back to the SPA
