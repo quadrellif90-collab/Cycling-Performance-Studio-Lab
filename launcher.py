@@ -234,6 +234,17 @@ def _remember_port(port: int) -> None:
         pass  # a URL we cannot remember is not worth failing a launch over
 
 
+# --port N command-line override (mirrors CPSL_PORT env, which _resolve_port
+# already treats as the highest-priority source of truth). Parsed here, before
+# PORT is resolved, so the explicit port wins over the remembered/auto port.
+for _i, _a in enumerate(sys.argv):
+    if _a == "--port" and _i + 1 < len(sys.argv):
+        os.environ["CPSL_PORT"] = sys.argv[_i + 1].strip()
+        break
+    if _a.startswith("--port="):
+        os.environ["CPSL_PORT"] = _a.split("=", 1)[1].strip()
+        break
+
 PORT = _resolve_port()
 # 127.0.0.1, not localhost. RFC 8252 §8.3 calls the localhost form NOT
 # RECOMMENDED for OAuth loopback redirects: it can resolve to a non-loopback
