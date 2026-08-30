@@ -82,3 +82,8 @@ montis_linked/
 web/
 e2e-report/
 .venv/
+
+# Build artifacts (regenerable)
+CPSL-Setup-*.exe
+app.ico
+build/

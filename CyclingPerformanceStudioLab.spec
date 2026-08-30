@@ -194,7 +194,7 @@ exe = EXE(
     strip=False,
     upx=True,
     console=False,  # windowed app (no terminal)
-    icon="assets/icon.ico" if os.path.exists("assets/icon.ico") else None,
+    icon="app.ico" if os.path.exists("app.ico") else None,
 )
 
 coll = COLLECT(
