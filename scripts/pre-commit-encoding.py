@@ -17,6 +17,7 @@ MOJIBAKE = [
     chr(0x00C3),                # accented-char double-encode
     chr(0x00C2),
     chr(0x00E2) + chr(0x20AC),  # ellipsis/quote double-encode
+    chr(0x252C) + chr(0x00C0),  # arrow (U+2192) double-encode artifact
     chr(0xFFFD),                # replacement char (already-lost data)
 ]
 TEXT_EXT = (".py", ".html", ".js", ".css", ".json", ".md", ".txt", ".csv",

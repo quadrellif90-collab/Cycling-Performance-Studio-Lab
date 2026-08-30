@@ -22,6 +22,9 @@ MOJIBAKE = [
     chr(0x00C3),                # accented-char double-encode
     chr(0x00C2),
     chr(0x00E2) + chr(0x20AC),  # ellipsis/quote double-encode
+    # arrow (rightwards-arrow U+2192) double-encode: its UTF-8 bytes mis-read
+    # as latin1 then re-encoded produce a two-glyph artifact
+    chr(0x252C) + chr(0x00C0),
     chr(0xFFFD),                # replacement char (already-lost data)
 ]
 
@@ -30,7 +33,7 @@ TEXT_EXT = (
     ".toml", ".cfg", ".ini", ".bat", ".sh", ".spec", ".crs", ".gpx",
 )
 SKIP_DIRS = {
-    ".git", ".build_venv", "build", "dist", "__pycache__",
+    ".git", ".venv", ".build_venv", "build", "dist", "__pycache__",
     ".pytest_cache", ".ruff_cache",
 }
 

@@ -502,7 +502,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; h
 .wc-day.pg-dropping-invalid  { outline: 2px dashed var(--red, #ef4444); opacity: 0.4; cursor: not-allowed; }
 
 /* v3.4.4 grid/calendar parity — compact card content. Same information as
-   the calendar cells (title, "NNm ┬À NN TSS", done/missed line), denser type.
+   the calendar cells (title, "NNm → NN TSS", done/missed line), denser type.
    Title = the matched workout's display/structure name, clamped to 2 lines
    (full text in the title attr). */
 .wc-day .wc-type.pg-card-title {
@@ -1706,7 +1706,7 @@ window.addEventListener('unhandledrejection', function(e) {
       <div style="font-size:12px;color:var(--text3);">Loading…</div>
     </div>
     <!-- Leg-check INPUT. loadMorningLog() renders a compact emoji + "Hooper
-         N/28 ┬À Change" once logged, or the 4-question form when nothing is
+         N/28 → Change" once logged, or the 4-question form when nothing is
          logged yet — so the big form only appears when it's needed. -->
     <div id="morning-log-content" style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px;"></div>
     <!-- Prescription: today's planned session. loadTodaySession() owns this;
@@ -1878,7 +1878,7 @@ window.addEventListener('unhandledrejection', function(e) {
   </div>
   <div style="margin-top:10px;font-size:12px;">
     <a href="#" onclick="skipAssessment();return false;" style="color:var(--text3);text-decoration:underline;">Salta valutazione e genera il piano comunque</a>
-    <span style="color:var(--text3);margin:0 6px;">┬À</span>
+    <span style="color:var(--text3);margin:0 6px;">→</span>
     <a href="#" onclick="dismissAssessmentBanner();return false;" style="color:var(--text3);">Chiudi</a>
   </div>
 </div>
@@ -1902,7 +1902,7 @@ window.addEventListener('unhandledrejection', function(e) {
 <div class="card" data-card="tid-heatmap" style="margin-top:12px;" id="tid-heatmap-card">
   <h3 data-tip="Distribuzione intensitá settimanale (TID). Ogni riga = una settimana di allenamento: verde = facile (Z1-Z2, ~80%), giallo = soglia moderata (Z3, da evitare), rosso = duro (Z4+). Obiettivo polarizzato 80/0/20 (Stöggl & Sperlich 2014).">Distribuzione intensitá settimanale <button class="btn btn-sm" style="font-size:10px;padding:2px 6px;" onclick="loadTidHeatmap()">Aggiorna</button></h3>
   <div id="tid-heatmap" style="display:flex;flex-direction:column;gap:4px;"></div>
-  <div style="font-size:10px;color:var(--text3);margin-top:6px;">Verde = facile (Z1-Z2) ┬À Giallo = Z3 (soglia) ┬À Rosso = duro (Z4+)</div>
+  <div style="font-size:10px;color:var(--text3);margin-top:6px;">Verde = facile (Z1-Z2) → Giallo = Z3 (soglia) → Rosso = duro (Z4+)</div>
 </div>
 
 <!-- ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ -->
@@ -2018,7 +2018,7 @@ window.addEventListener('unhandledrejection', function(e) {
       <div class="form-group" style="flex:1;">
         <label>How do you feel? <span id="subj-val">7</span>/10</label>
         <input type="range" id="subj" min="1" max="10" value="7" oninput="$('subj-val').textContent=this.value">
-        <div class="slider-anchors"><span>1 ┬À drained</span><span>5 ┬À solid</span><span>10 ┬À great</span></div>
+        <div class="slider-anchors"><span>1 → drained</span><span>5 → solid</span><span>10 → great</span></div>
       </div>
       <div class="form-group" style="flex:1;">
         <label>Duration: <span id="dur-val">75</span> min</label>
@@ -2067,7 +2067,7 @@ window.addEventListener('unhandledrejection', function(e) {
     </div>
 
     <div class="form-group">
-      <label>Surfaces <span class="all-hint" id="rp-surface-hint">┬À all selected</span></label>
+      <label>Surfaces <span class="all-hint" id="rp-surface-hint">→ all selected</span></label>
       <div class="chip-row" id="rp-surface">
         <button type="button" class="chip active" data-val="asphalt">Asphalt</button>
         <button type="button" class="chip active" data-val="gravel">Gravel</button>
@@ -2076,7 +2076,7 @@ window.addEventListener('unhandledrejection', function(e) {
     </div>
 
     <div class="form-group">
-      <label>Finish type <span class="all-hint" id="rp-finish-hint">┬À any ending</span></label>
+      <label>Finish type <span class="all-hint" id="rp-finish-hint">→ any ending</span></label>
       <div class="picker-hint">What ending suits you? <em>Steep wall = short &amp; brutal (&gt;10%). Sprint = fast flat kick.</em></div>
       <div class="chip-row" id="rp-finish">
         <button type="button" class="chip active" data-val="flat">Flat finish</button>
@@ -2155,7 +2155,7 @@ window.addEventListener('unhandledrejection', function(e) {
          classifier (16 canonical classes, optgroup-grouped); the legacy
          session_type select is gone (content class is the canonical type
          match_zwo selects on). Surface / Tags live in an Advanced
-         disclosure so the default bar is just Type ┬À Duration ┬À Search ┬À Sort.
+         disclosure so the default bar is just Type → Duration → Search → Sort.
          R2 (2026-07-07): Duration goes to 240 (the library has 26 files
          >180min that were unreachable at the old 180 cap). Score column +
          Min-score control removed — score_workout is a curation heuristic
@@ -2749,7 +2749,7 @@ window.addEventListener('unhandledrejection', function(e) {
         <div class="card" style="margin:0;"><h4 style="margin:0 0 8px 0;font-size:13px;">Intensity distribution</h4><canvas id="ps-chart-intensity" height="160"></canvas><div style="font-size:10px;color:var(--text3);margin-top:4px;">Stöggl & Sperlich 2014 — POL 80/0/20 target</div></div>
         <div class="card" style="margin:0;"><h4 style="margin:0 0 8px 0;font-size:13px;">Polarization index</h4><canvas id="ps-chart-pol" height="160"></canvas><div style="font-size:10px;color:var(--text3);margin-top:4px;">Treff et al. 2019 — PI > 2.0 polarized</div></div>
         <div class="card" style="margin:0;"><h4 style="margin:0 0 8px 0;font-size:13px;">Compliance per phase</h4><canvas id="ps-chart-compliance" height="160"></canvas></div>
-        <div class="card" style="margin:0;"><h4 style="margin:0 0 8px 0;font-size:13px;">Mean-max curve ┬À start vs end (4w)</h4><canvas id="ps-chart-meanmax" height="160"></canvas></div>
+        <div class="card" style="margin:0;"><h4 style="margin:0 0 8px 0;font-size:13px;">Mean-max curve → start vs end (4w)</h4><canvas id="ps-chart-meanmax" height="160"></canvas></div>
         <div class="card" style="margin:0;"><h4 style="margin:0 0 8px 0;font-size:13px;">Hooper composite trend</h4><canvas id="ps-chart-hooper" height="160"></canvas><div style="font-size:10px;color:var(--text3);margin-top:4px;">Hooper & Mackinnon 1995</div></div>
         <div class="card" style="margin:0;"><h4 style="margin:0 0 8px 0;font-size:13px;">Decoupling trend</h4><canvas id="ps-chart-decoupling" height="160"></canvas></div>
       </div>
@@ -2841,7 +2841,7 @@ window.addEventListener('unhandledrejection', function(e) {
     return `<span style="color:${col}">${sign}${Math.round(delta)}${unit||''}${pct}</span>`;
   }
   function _psRender(d){
-    document.getElementById('ps-window').textContent = `${d.start_date || '—'}  →  ${d.end_date || '—'}  ┬À  ${d.weeks || 0} weeks`;
+    document.getElementById('ps-window').textContent = `${d.start_date || '—'}  →  ${d.end_date || '—'}  →  ${d.weeks || 0} weeks`;
     if (!d.weeks) {
       _psShowEmpty('This plan has no weeks to summarise yet — generate a plan on this tab, and the summary starts filling in from your first ride.');
       return;
@@ -2877,10 +2877,10 @@ window.addEventListener('unhandledrejection', function(e) {
     if (mNode) {
       const m = d.monotony_max, s = d.strain_max;
       if (m == null) { mNode.textContent = 'Monotony / strain (Foster 1998): no data'; }
-      else { const ok = m < 2.0; const color = ok ? 'var(--green)' : 'var(--red)'; mNode.innerHTML = `<strong>Monotony / strain (Foster 1998):</strong> max monotony <span style="color:${color}">${m.toFixed(2)}</span> ${ok ? '(target <2.0 ✓)' : '(>2.0 — illness/overtraining flag)'} ┬À max strain ${s != null ? Math.round(s) : '—'}`; }
+      else { const ok = m < 2.0; const color = ok ? 'var(--green)' : 'var(--red)'; mNode.innerHTML = `<strong>Monotony / strain (Foster 1998):</strong> max monotony <span style="color:${color}">${m.toFixed(2)}</span> ${ok ? '(target <2.0 ✓)' : '(>2.0 — illness/overtraining flag)'} → max strain ${s != null ? Math.round(s) : '—'}`; }
     }
     const cNode = document.getElementById('ps-citations');
-    if (cNode) cNode.textContent = (d.citations || []).join(' ┬À ');
+    if (cNode) cNode.textContent = (d.citations || []).join(' → ');
     if (typeof Chart === 'undefined') {
       ['ps-chart-intensity','ps-chart-pol','ps-chart-compliance','ps-chart-meanmax','ps-chart-hooper','ps-chart-decoupling'].forEach(id => {
         const el = document.getElementById(id);
@@ -3191,7 +3191,7 @@ window.addEventListener('unhandledrejection', function(e) {
   <div class="card" id="rider-stats-card" style="margin-bottom:12px;">
     <div style="display:flex;justify-content:space-between;align-items:center;">
       <h3 style="margin:0;">Rider Profile</h3>
-      <span style="font-size:10px;color:var(--text3);">peaks: 90d window ┬À greyed = stale</span>
+      <span style="font-size:10px;color:var(--text3);">peaks: 90d window → greyed = stale</span>
     </div>
     <div id="rider-stats-body" style="margin-top:10px;font-size:12px;color:var(--text2);">
       <div style="color:var(--text3);">Loading…</div>
@@ -3241,7 +3241,7 @@ window.addEventListener('unhandledrejection', function(e) {
   <!-- v1.5.0 Montis port — W'bal repeatability + durability trend -->
   <div class="card" id="wbal-card" style="margin-bottom:12px;">
     <h3>Repeatabilitá anaerobica &amp; trend durabilitá
-      <span style="font-size:10px;font-weight:400;color:var(--text3);">— W’bal 7g ┬À decoupling firmato 7g</span></h3>
+      <span style="font-size:10px;font-weight:400;color:var(--text3);">— W’bal 7g → decoupling firmato 7g</span></h3>
     <div id="wbal-body" style="font-size:12px;color:var(--text2);">Caricamento…</div>
   </div>
 
@@ -3742,7 +3742,7 @@ window.addEventListener('unhandledrejection', function(e) {
   <!-- Grafico RMSSD giornaliero + rolling 7d + baseline -->
   <div class="card" style="margin-bottom:12px;">
     <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">
-      RMSSD giornaliero ┬À media mobile 7g ┬À baseline
+      RMSSD giornaliero → media mobile 7g → baseline
     </div>
     <canvas id="hrvChart" height="100" style="max-height:120px;"></canvas>
   </div>
@@ -5192,7 +5192,7 @@ async function _importFitFile(file) {
     const data = await res.json().catch(() => ({}));
     const ps = data.parsed_stats || {};
     const dur = ps.duration_sec ? Math.round(ps.duration_sec / 60) + ' min' : '';
-    const tss = ps.tss ? ' ┬À TSS ' + ps.tss : '';
+    const tss = ps.tss ? ' → TSS ' + ps.tss : '';
     showToast('Imported ' + file.name + (dur ? ' (' + dur + tss + ')' : ''), 5000);
     // v1.9.1 — refresh the home views so the imported ride + the plan
     // auto-adapt it just triggered (server-side _maybe_auto_reforecast →
@@ -5496,7 +5496,7 @@ function workoutProfileSVG(segments, ftp, totalSec, hrCtx) {
     {pct: 55, label: _ax['55'] != null ? `${_ax['55']} bpm` : ''},
     {pct: 75, label: _ax['75'] != null ? `${_ax['75']} bpm` : ''},
     {pct: 90, label: _ax['90'] != null ? `${_ax['90']} bpm` : ''},
-    {pct: 105, label: _ax['105'] != null ? `${_ax['105']} bpm ┬À LTHR zone top` : ''},
+    {pct: 105, label: _ax['105'] != null ? `${_ax['105']} bpm → LTHR zone top` : ''},
     {pct: 120, label:'RPE 📈'}
   ] : [
     {pct: 55, label:'Z1/Z2'}, {pct: 75, label:'Z2/Z3'},
@@ -5610,7 +5610,7 @@ async function openWorkoutDetail(category, filename, meta, view) {
       ${meta && meta.tss ? `<span>TSS ${meta.tss}</span>` : ''}
       ${(meta && meta.if_ && !hrCtx) ? `<span>IF ${meta.if_}</span>` : ''}
       ${meta && meta.protocol ? `<span>${meta.protocol}</span>` : ''}
-      ${hrCtx ? `<span style="color:var(--accent);">HR targets ┬À from LTHR ${d.lthr}</span>` : ''}
+      ${hrCtx ? `<span style="color:var(--accent);">HR targets → from LTHR ${d.lthr}</span>` : ''}
       ${_tgl}
     </div>`;
 
@@ -6721,8 +6721,8 @@ async function loadWbalCard() {
     let html = '';
     if (rep.ok) {
       html += `<div style="display:flex;gap:16px;flex-wrap:wrap;">
-        <span>Depletazione W’bal media <b>${rep.mean_depletion_pct}%</b> ┬À max <b>${rep.max_depletion_pct}%</b></span>
-        <span>Sessioni alte (&gt;60%) <b>${rep.high_depletion_sessions}</b> ┬À moderate <b>${rep.moderate_depletion_sessions}</b></span>
+        <span>Depletazione W’bal media <b>${rep.mean_depletion_pct}%</b> → max <b>${rep.max_depletion_pct}%</b></span>
+        <span>Sessioni alte (&gt;60%) <b>${rep.high_depletion_sessions}</b> → moderate <b>${rep.moderate_depletion_sessions}</b></span>
         <span>Divergenza baseline <b>${rep.w_prime_divergence > 0 ? '+' : ''}${rep.w_prime_divergence}</b></span>
         <span style="font-size:10px;color:var(--text3);">fonte: ${rep.source}</span>
       </div>`;
@@ -6737,7 +6737,7 @@ async function loadWbalCard() {
       insufficient_data: ['Trend durabilitá: dati insufficienti', 'var(--text3)'],
     };
     const [tl, tc] = tLabel[trend.state] || [trend.state, 'var(--text3)'];
-    const ms = trend.mean_signed_decoupling != null ? ` ┬À decoupling medio firmato ${trend.mean_signed_decoupling > 0 ? '+' : ''}${trend.mean_signed_decoupling}%` : '';
+    const ms = trend.mean_signed_decoupling != null ? ` → decoupling medio firmato ${trend.mean_signed_decoupling > 0 ? '+' : ''}${trend.mean_signed_decoupling}%` : '';
     html += `<div style="margin-top:8px;font-size:12px;"><b style="color:${tc};">${tl}</b>${ms} <span style="font-size:10px;color:var(--text3);">(${trend.long_sessions || 0} sessioni lunghe ↑90min)</span></div>`;
     host.innerHTML = html;
   } catch (e) { host.textContent = 'Errore caricamento W’bal/durabilitá.'; }
@@ -6892,7 +6892,7 @@ async function loadPhenotypeRadar() {
           }
         });
         if (pdInfo) pdInfo.innerHTML =
-          `CP: <b>${Math.round(modelFit.cp)}W</b> ┬À W': <b>${((wprime)/1000).toFixed(1)}kJ</b> ┬À R┬▓: <b>${(modelFit.r2||0).toFixed(3)}</b>`;
+          `CP: <b>${Math.round(modelFit.cp)}W</b> → W': <b>${((wprime)/1000).toFixed(1)}kJ</b> → R┬▓: <b>${(modelFit.r2||0).toFixed(3)}</b>`;
       } else {
         if (pdInfo) pdInfo.textContent = 'Dati potenza insufficienti per il modello.';
       }
@@ -6914,9 +6914,9 @@ function _rsRow(label, triple, opts) {
   const stale = has && _rsStale(t.source_date);
   const valTxt = has
     ? `${esc(String(t.value))}${opts.unit ? ' ' + opts.unit : ''}${opts.extra || ''}`
-    : `<span style="color:var(--text3);">—${opts.emptyHint ? ' ┬À ' + esc(opts.emptyHint) : ''}</span>`;
+    : `<span style="color:var(--text3);">—${opts.emptyHint ? ' → ' + esc(opts.emptyHint) : ''}</span>`;
   const src = has && t.source
-    ? `<span style="font-size:9px;padding:1px 4px;border:1px solid var(--border);border-radius:3px;color:var(--text3);margin-left:4px;" title="${esc(t.source)}${t.source_date ? ' ┬À ' + esc(String(t.source_date).slice(0,10)) : ''}">${esc(t.source)}</span>`
+    ? `<span style="font-size:9px;padding:1px 4px;border:1px solid var(--border);border-radius:3px;color:var(--text3);margin-left:4px;" title="${esc(t.source)}${t.source_date ? ' → ' + esc(String(t.source_date).slice(0,10)) : ''}">${esc(t.source)}</span>`
     : '';
   const dateTxt = has && t.source_date
     ? `<span style="font-size:9px;color:var(--text3);margin-left:4px;">${esc(String(t.source_date).slice(0, 10))}</span>` : '';
@@ -6975,7 +6975,7 @@ async function loadRiderStats() {
       + _rsRow('Lean mass', b.lbm_kg, {unit: 'kg', emptyHint: 'set in Settings'})
       + vo2Row;
     const seasonFmt = (blk) => blk
-      ? `${blk.hours || 0}h ┬À ${blk.tss || 0} TSS ┬À ${blk.rides || 0} rides ┬À ${blk.distance_km || 0}km`
+      ? `${blk.hours || 0}h → ${blk.tss || 0} TSS → ${blk.rides || 0} rides → ${blk.distance_km || 0}km`
       : '—';
     let seasonRows =
       `<div style="display:flex;justify-content:space-between;gap:8px;padding:2px 0;">
@@ -6984,7 +6984,7 @@ async function loadRiderStats() {
        <div style="display:flex;justify-content:space-between;gap:8px;padding:2px 0;">
          <span style="color:var(--text3);">Rolling 365d</span>
          <span style="color:var(--text);font-weight:600;">${seasonFmt(se.rolling_365)}</span></div>
-       <div style="font-size:9px;color:var(--text3);">distance ${esc(se.distance_label || '(ICU rides only)')}${(se.year && se.year.hr_loads) ? ` ┬À ${se.year.hr_loads} HR-derived loads included` : ''}</div>`;
+       <div style="font-size:9px;color:var(--text3);">distance ${esc(se.distance_label || '(ICU rides only)')}${(se.year && se.year.hr_loads) ? ` → ${se.year.hr_loads} HR-derived loads included` : ''}</div>`;
     host.innerHTML = `<div style="display:flex;gap:20px;flex-wrap:wrap;">
       ${_rsSection('POWER', powerRows)}
       ${_rsSection('PEAK EFFORTS (90D)', peakRows)}
@@ -7039,8 +7039,8 @@ function renderHomeFitnessSparkline(wellness) {
     const lastOf = s => { for (let i = s.length - 1; i >= 0; i--) if (s[i] != null && !isNaN(s[i])) return s[i]; return null; };
     const c = lastOf(ctl), t = lastOf(tsb);
     stats.innerHTML = 'CTL <b style="color:var(--accent);">' + (c != null ? Math.round(c) : '—') + '</b>'
-      + ' ┬À TSB <b style="color:var(--green);">' + (t != null ? (t > 0 ? '+' : '') + Math.round(t) : '—') + '</b>'
-      + ' <span style="color:var(--text3);">┬À last 42d</span>';
+      + ' → TSB <b style="color:var(--green);">' + (t != null ? (t > 0 ? '+' : '') + Math.round(t) : '—') + '</b>'
+      + ' <span style="color:var(--text3);">→ last 42d</span>';
   }
 }
 
@@ -7302,7 +7302,7 @@ function renderPowerCurve() {
     const wp = data.wprime_j != null ? (Number(data.wprime_j)/1000).toFixed(1) + ' kJ' : '—';
     const pmax = data.pmax_w != null ? Number(data.pmax_w).toFixed(0) + ' W' : '—';
     const winLbl = (_powerCurveWindow === 'all') ? 'all-time' : (_powerCurveWindow + ' d');
-    meta.textContent = `Window: ${winLbl} ┬À ${n} rides ┬À weight ${wkg} kg ┬À CP ${cp} ┬À W' ${wp} ┬À Pmax ${pmax}`;
+    meta.textContent = `Window: ${winLbl} → ${n} rides → weight ${wkg} kg → CP ${cp} → W' ${wp} → Pmax ${pmax}`;
   }
 }
 // Top-of-page first-sync strip: spinner + "Syncing activities XXX of YYY (NN%)".
@@ -7319,8 +7319,8 @@ function _setSyncTopbar(done, total, finished, added) {
   done = Number(done) || 0; total = Number(total) || 0;
   const newN = Number(added) || 0;
   const pct = total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
-  // v2.2.9 — show real counts: "Syncing X of Y activities ┬À N new (Z%)".
-  const newTxt = newN > 0 ? ` ┬À ${newN} new` : '';
+  // v2.2.9 — show real counts: "Syncing X of Y activities → N new (Z%)".
+  const newTxt = newN > 0 ? ` → ${newN} new` : '';
   if (txt) {
     txt.textContent = total > 0
       ? `Syncing ${done} of ${total} activities${newTxt} (${pct}%)`
@@ -7328,13 +7328,13 @@ function _setSyncTopbar(done, total, finished, added) {
   }
   if (bar) bar.style.display = 'flex';
   // Compact header chip next to the logo.
-  if (htxt) htxt.textContent = total > 0 ? `Updating ${done}/${total}${newN>0?(' ┬À '+newN+' new'):''}…` : 'Updating activities…';
+  if (htxt) htxt.textContent = total > 0 ? `Updating ${done}/${total}${newN>0?(' → '+newN+' new'):''}…` : 'Updating activities…';
   if (hbar) hbar.style.display = 'flex';
 }
 
 // v2.2.9 — drive the top-bar from the live ICU activity-sync progress
 // (/api/sync/progress) instead of the power-curve backfill, so the banner
-// shows real "X of Y ┬À N new" counts and reliably terminates (state flips to
+// shows real "X of Y → N new" counts and reliably terminates (state flips to
 // done/idle/stale). idleTicks lets it wait briefly for a lazy sync that starts
 // just after page load before giving up.
 let _syncProgressTimer = null;
@@ -7363,8 +7363,8 @@ async function _syncProgressTick(idleTicks) {
     const txt = document.getElementById('sync-topbar-text');
     const n = Number(p.added) || 0;
     if (txt) txt.textContent = n > 0
-      ? `Synced ${n} new activit${n === 1 ? 'y' : 'ies'} ┬À done`
-      : 'Sync complete ┬À up to date';
+      ? `Synced ${n} new activit${n === 1 ? 'y' : 'ies'} → done`
+      : 'Sync complete → up to date';
     setTimeout(() => _setSyncTopbar(0, 0, true), 2500);
     _syncProgressTimer = null; _syncProgressSawWork = false;
     return;
@@ -7427,7 +7427,7 @@ async function maybeKickBackfill(data) {
         bar.style.width = pct + '%';
         const finished = sj.status === 'complete' || sj.state === 'done' || sj.state === 'error';
         if (finished || pct >= 100) {
-          msg.textContent = `Synced ${done} of ${total} activities ┬À done.`;
+          msg.textContent = `Synced ${done} of ${total} activities → done.`;
           _setSyncTopbar(done, total, true);
           setTimeout(() => { toast.style.display = 'none'; loadPowerCurve(true); }, 2000);
           return;
@@ -7878,8 +7878,8 @@ async function loadTauFitPanel(forceRefresh = false) {
       <div>
         <div style="margin-bottom:6px;">
           Status: ${statusBadge}
-          <span style="color:var(--text3);">┬À</span>
-          <span style="color:var(--text3);">${d.n_markers || 0} eFTP rows ┬À ${(d.weighted_n || 0).toFixed(1)} weighted markers ┬À r┬▓ ${d.fit_residual_r2 != null ? Number(d.fit_residual_r2).toFixed(2) : '—'}</span>
+          <span style="color:var(--text3);">→</span>
+          <span style="color:var(--text3);">${d.n_markers || 0} eFTP rows → ${(d.weighted_n || 0).toFixed(1)} weighted markers → r┬▓ ${d.fit_residual_r2 != null ? Number(d.fit_residual_r2).toFixed(2) : '—'}</span>
         </div>
         <table style="width:100%;border-collapse:collapse;font-size:12px;opacity:${rowOpacity};">
           <thead>
@@ -7999,7 +7999,7 @@ function renderBanisterValidation(d) {
         Need ↑ 8 months training with ↑ 2 markers in 4-week holdout. Race-tag rides + log FTP tests to unlock; eFTP counts automatically.
         You have ${n} markers in the holdout window; unlocks at 12+ weighted markers
         (race-tagged: 1.0; eFTP step ↑ 3 W: 0.5; FTP test: 0.8).
-        Holdout: ${(d.holdout_weeks ?? 4)} weeks ┬À horizon: ${(d.horizon_weeks ?? 4)} weeks.
+        Holdout: ${(d.holdout_weeks ?? 4)} weeks → horizon: ${(d.horizon_weeks ?? 4)} weeks.
         <span style="display:none;" data-locked-fields="ftp_mae_w ftp_mae_pct ftp_mae_pct_ci_low ftp_mae_pct_ci_high ctl_mae_tss ctl_mae_tss_ci_low ctl_mae_tss_ci_high hellard_2006_baseline_pct cp_fitness_mae_pct wprime_fitness_mae_pct pmax_fitness_mae_pct"></span>
       </div>`;
     return;
@@ -8090,9 +8090,9 @@ function renderBanisterValidation(d) {
       </div>
       <div style="margin-top:4px;color:var(--text3);font-size:11px;" data-field="tau_fits_used">
         € used: €_CTL = ${ctl} d, €_ATL = ${atl} d
-        ┬À markers in holdout: ${(d.n_markers_in_holdout ?? '—')}
-        ┬À holdout: ${(d.holdout_weeks ?? '—')} w
-        ┬À horizon: ${(d.horizon_weeks ?? '—')} w
+        → markers in holdout: ${(d.n_markers_in_holdout ?? '—')}
+        → holdout: ${(d.holdout_weeks ?? '—')} w
+        → horizon: ${(d.horizon_weeks ?? '—')} w
       </div>
       ${advice}
       ${lowConfBanner}
@@ -8309,12 +8309,12 @@ function renderCapabilityWidget(p) {
           <div style="font-size:20px;font-weight:700;color:var(--text);line-height:1.2;">${eventName}</div>
           <div style="font-size:12px;color:var(--text2);margin-top:4px;">
             ${eventDateStr ? eventDateStr : 'date not set'}
-            ${countdownStr ? ` ┬À <span style="color:${climbReadCol};font-weight:600;">${countdownStr}</span>` : ''}
+            ${countdownStr ? ` → <span style="color:${climbReadCol};font-weight:600;">${countdownStr}</span>` : ''}
           </div>
           <div style="font-size:13px;color:var(--text);margin-top:8px;">
             <span style="font-weight:600;">${p.event_km}</span> km
-            ┬À <span style="font-weight:600;">${p.event_climb_m}</span> m climbing
-            ┬À <span style="font-weight:600;">${(p.event_climb_m / Math.max(p.event_km,1)).toFixed(0)}</span> m/km
+            → <span style="font-weight:600;">${p.event_climb_m}</span> m climbing
+            → <span style="font-weight:600;">${(p.event_climb_m / Math.max(p.event_km,1)).toFixed(0)}</span> m/km
           </div>
         </div>
         <div style="background:var(--surface2);border-radius:6px;padding:10px 14px;min-width:200px;">
@@ -8324,7 +8324,7 @@ function renderCapabilityWidget(p) {
             <div><div style="font-size:9px;color:var(--text3);">NP</div><div style="font-size:16px;font-weight:700;">${p.predicted_np}W</div></div>
             <div><div style="font-size:9px;color:var(--text3);">TSS</div><div style="font-size:16px;font-weight:700;">${(p.predicted_tss || 0).toFixed(0)}</div></div>
           </div>
-          <div style="font-size:10px;color:var(--text3);margin-top:6px;">FTP <b>${p.ftp || '—'}W</b> ┬À ${(p.weight_kg || 0).toFixed(1)}kg ┬À CTL ${(p.current_ctl || 0).toFixed(0)}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:6px;">FTP <b>${p.ftp || '—'}W</b> → ${(p.weight_kg || 0).toFixed(1)}kg → CTL ${(p.current_ctl || 0).toFixed(0)}</div>
         </div>
       </div>`;
   }
@@ -8343,12 +8343,12 @@ function renderCapabilityWidget(p) {
       <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center;">
         <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Endurance gap</div>
         <div style="font-size:18px;font-weight:700;color:${enduranceCol};margin-top:2px;">${enduranceGap.toFixed(1)}h</div>
-        <div style="font-size:9px;color:var(--text3);margin-top:2px;">need ${p.longest_required_h.toFixed(1)}h ┬À longest ${p.longest_completed_ride_h !== null ? p.longest_completed_ride_h.toFixed(1)+'h' : '—'}</div>
+        <div style="font-size:9px;color:var(--text3);margin-top:2px;">need ${p.longest_required_h.toFixed(1)}h → longest ${p.longest_completed_ride_h !== null ? p.longest_completed_ride_h.toFixed(1)+'h' : '—'}</div>
       </div>
       <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center;">
         <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Power gap (climb)</div>
         <div style="font-size:18px;font-weight:700;color:${powerCol};margin-top:2px;">${powerGap !== null ? powerGap.toFixed(2) + ' W/kg' : '—'}</div>
-        <div style="font-size:9px;color:var(--text3);margin-top:2px;">need ${p.climb_w_per_kg_required !== null ? p.climb_w_per_kg_required.toFixed(2) : '—'} ┬À you ${p.climb_w_per_kg_current !== null ? p.climb_w_per_kg_current.toFixed(2) : '—'}</div>
+        <div style="font-size:9px;color:var(--text3);margin-top:2px;">need ${p.climb_w_per_kg_required !== null ? p.climb_w_per_kg_required.toFixed(2) : '—'} → you ${p.climb_w_per_kg_current !== null ? p.climb_w_per_kg_current.toFixed(2) : '—'}</div>
       </div>
       <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center;">
         <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Climb readiness</div>
@@ -8430,7 +8430,7 @@ function renderCapabilityWidget(p) {
   // ★★ 4. META FOOTER (citations only — event details now in the block above)
   const meta = $('cap-meta');
   if (meta) {
-    meta.innerHTML = `Model: ${(p.model_citations || []).join(' ┬À ')}. Bars show your weekly longest ride; green when you've reached the event-distance target. Endurance gap closes naturally as your long-ride trend climbs.`;
+    meta.innerHTML = `Model: ${(p.model_citations || []).join(' → ')}. Bars show your weekly longest ride; green when you've reached the event-distance target. Endurance gap closes naturally as your long-ride trend climbs.`;
   }
 }
 
@@ -8913,7 +8913,7 @@ function _renderDfaProgress(host, status) {
   }
   const bar = `<div class="lbar" style="margin-top:6px;"><div class="lbar-fill" style="width:${indeterminate ? 100 : pct}%;${indeterminate ? 'opacity:0.4;' : ''}"></div></div>`;
   const sub = (aug > 0 || terminal)
-    ? `<div style="margin-top:4px;color:var(--text3);font-size:11px;">${computed} computed ┬À ${noRR} no-HRV ┬À ${failed} failed${curr ? ' ┬À ' + esc(curr) : ''}</div>`
+    ? `<div style="margin-top:4px;color:var(--text3);font-size:11px;">${computed} computed → ${noRR} no-HRV → ${failed} failed${curr ? ' → ' + esc(curr) : ''}</div>`
     : '';
   const cancel = (st === 'running')
     ? `<button onclick="_dfaCancelBackfill('${esc(status.task_id || '')}')"
@@ -9264,7 +9264,7 @@ function _dfaThresholdCells(t) {
     return `<span style="color:${col};font-weight:600;">${esc(String(Math.round(load)))}${unit}</span>` +
            (r2 != null ? `<span style="color:${col};font-size:10px;"> r┬▓${r2.toFixed(2)} ${lab}</span>` : '');
   };
-  return `HR ${cell(t.hr, '', t.r2_hr)} &nbsp;┬À&nbsp; Power ${cell(t.power, 'W', t.r2_power)}`;
+  return `HR ${cell(t.hr, '', t.r2_hr)} &nbsp;→&nbsp; Power ${cell(t.power, 'W', t.r2_power)}`;
 }
 
 function _dfaIcon() {
@@ -9298,13 +9298,13 @@ function _renderDfaAggregate(d) {
     return `<div style="padding:10px 0;border-bottom:1px solid var(--border);">
       <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
         <b style="color:var(--text);">${label}</b>
-        <span style="color:var(--text3);font-size:11px;">╬▒1=${alpha} ┬À ${sublabel}</span>
+        <span style="color:var(--text3);font-size:11px;">╬▒1=${alpha} → ${sublabel}</span>
         <span style="color:var(--text3);font-size:10px;margin-left:auto;">based on ${n} ride${n===1?'':'s'}${span(t)}</span>
       </div>
       <div style="margin-top:4px;font-size:13px;">
-        HR ${t.hr!=null?`<b style="color:#22c55e;">${Math.round(t.hr)} bpm</b> <span style="color:var(--text3);font-size:10px;">r┬▓${(t.r2_hr_median||0).toFixed(2)} ┬À n${t.n_hr}</span>`:'<span style="color:var(--text3);">—</span>'}
-        &nbsp;┬À&nbsp;
-        Power ${t.power!=null?`<b style="color:#22c55e;">${Math.round(t.power)} W</b> <span style="color:var(--text3);font-size:10px;">r┬▓${(t.r2_power_median||0).toFixed(2)} ┬À n${t.n_power}</span>`:'<span style="color:var(--text3);">—</span>'}
+        HR ${t.hr!=null?`<b style="color:#22c55e;">${Math.round(t.hr)} bpm</b> <span style="color:var(--text3);font-size:10px;">r┬▓${(t.r2_hr_median||0).toFixed(2)} → n${t.n_hr}</span>`:'<span style="color:var(--text3);">—</span>'}
+        &nbsp;→&nbsp;
+        Power ${t.power!=null?`<b style="color:#22c55e;">${Math.round(t.power)} W</b> <span style="color:var(--text3);font-size:10px;">r┬▓${(t.r2_power_median||0).toFixed(2)} → n${t.n_power}</span>`:'<span style="color:var(--text3);">—</span>'}
       </div>
     </div>`;
   };
@@ -9384,7 +9384,7 @@ function _renderDfaPerRide(d) {
       <thead><tr style="color:var(--text3);text-align:left;border-bottom:1px solid var(--border);">
         <th style="padding:6px 10px;">Date</th><th style="padding:6px 10px;">Ride</th>
         <th style="padding:6px 10px;text-align:right;">min</th><th style="padding:6px 10px;text-align:right;">avg HR</th>
-        <th style="padding:6px 10px;text-align:right;">╬▒1</th><th style="padding:6px 10px;">Z1┬ÀZ2┬ÀZ3</th>
+        <th style="padding:6px 10px;text-align:right;">╬▒1</th><th style="padding:6px 10px;">Z1→Z2→Z3</th>
         <th style="padding:6px 10px;">HRVT1 (aerobic)</th><th style="padding:6px 10px;">HRVT2 (anaerobic)</th>
       </tr></thead>
       <tbody>${rows}</tbody>
@@ -9728,7 +9728,7 @@ function _classifColor(cls) {
 // v1.8.2 MATCH-IMPL — small inline badge for an activity card keyed on
 // `compare.match_status` (analytics.compare_plan_to_actual). Five visible
 // states; 'missed' returns empty (the red "missed" bar handles that branch).
-// Hover tooltip = `reasons` joined with " ┬À ".
+// Hover tooltip = `reasons` joined with " → ".
 function _calMatchBadge(compare) {
   if (!compare || !compare.match_status) return '';
   const MATCH_VISUAL = {
@@ -9741,7 +9741,7 @@ function _calMatchBadge(compare) {
   const v = MATCH_VISUAL[compare.match_status];
   if (!v) return '';
   const reasons = Array.isArray(compare.reasons) ? compare.reasons : [];
-  const tip = reasons.length ? reasons.join(' ┬À ') : v.label;
+  const tip = reasons.length ? reasons.join(' → ') : v.label;
   return ` <span class="cal-match-badge" data-match="${esc(compare.match_status)}"
     title="${esc(tip)}"
     style="display:inline-block;font-size:10px;font-weight:700;line-height:1;
@@ -9970,7 +9970,7 @@ function showFtpTestModal(suggestion, opts) {
   let html = `<h2 style="margin-top:0;">FTP Test Detected</h2>`;
   html += `<div style="font-size:12px;color:var(--text2);letter-spacing:0.5px;font-weight:600;margin-bottom:8px;">METHOD: ${esc(methodLabel)}</div>`;
   html += `<div style="font-size:24px;font-weight:900;margin-bottom:6px;">Suggested new FTP: <span style="color:var(--accent);">${fs.ftp}</span> W</div>`;
-  html += `<div style="font-size:14px;color:var(--text2);margin-bottom:14px;">was ${prior} W ┬À <span style="color:${deltaColor};font-weight:700;">${deltaSign}${delta}%</span></div>`;
+  html += `<div style="font-size:14px;color:var(--text2);margin-bottom:14px;">was ${prior} W → <span style="color:${deltaColor};font-weight:700;">${deltaSign}${delta}%</span></div>`;
   if (fs.halted || opts.halted) {
     html += `<div style="background:rgba(239,68,68,0.10);border:1px solid #ef4444;color:#ef4444;padding:8px 12px;border-radius:6px;font-size:12px;margin-bottom:12px;">
       &#9888; Test was halted at step ${esc(String(fs.halt_step || opts.haltStep || 'N'))} &mdash; suggested value may be unreliable.
@@ -10040,7 +10040,7 @@ async function openRideDetail(rideId) {
     const fmtDur = sec => { const h = Math.floor(sec/3600); const min = Math.floor((sec%3600)/60); return h ? `${h}h${min}m` : `${min}min`; };
     const dcColor = c => c === 'green' ? '#22c55e' : c === 'yellow' ? '#eab308' : c === 'red' ? '#ef4444' : 'var(--text3)';
     const zc = pct => pct < 56 ? '#64748b' : pct < 76 ? '#3b82f6' : pct < 91 ? '#22c55e' : pct < 106 ? '#eab308' : pct < 121 ? '#f97316' : pct < 150 ? '#ef4444' : '#a855f7';
-    const fmtDate = iso => { try { const d = new Date(iso); return d.toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short', year:'numeric'}) + ' ┬À ' + d.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}); } catch(e) { return iso || ''; } };
+    const fmtDate = iso => { try { const d = new Date(iso); return d.toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short', year:'numeric'}) + ' → ' + d.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}); } catch(e) { return iso || ''; } };
 
     // Kind pill (matches row pill — TRAINING / ROUTE / FREE RIDE)
     const rt = (ride.ride_type || '').toLowerCase();
@@ -10056,7 +10056,7 @@ async function openRideDetail(rideId) {
     }
     const kindPillHtml = `<span style="background:${pillBg};color:${pillFg};padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;letter-spacing:0.5px;">${pillLabel}</span>`;
 
-    // Header band: pill ┬À date ┬À duration (above stats grid)
+    // Header band: pill → date → duration (above stats grid)
     let html = `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;font-size:13px;color:var(--text2);">
       ${kindPillHtml}
       <span>${esc(fmtDate(ride.started_at))}</span>
@@ -10106,7 +10106,7 @@ async function openRideDetail(rideId) {
       html += `<div id="ftp-test-banner" style="background:rgba(59,130,246,0.12);border:1px solid #3b82f6;border-radius:12px;padding:14px 16px;margin-bottom:16px;">
         <div style="font-size:12px;color:var(--text2);letter-spacing:0.5px;font-weight:600;margin-bottom:4px;">FTP TEST — ${esc(methodLabel)}</div>
         <div style="font-size:20px;font-weight:900;margin-bottom:4px;">Suggested FTP: <span id="ftp-suggest-val">${fs.ftp}</span> W</div>
-        <div style="font-size:13px;color:var(--text2);margin-bottom:8px;">was ${prior} W ┬À <span style="color:${deltaColor};font-weight:700;">${deltaSign}${delta}%</span></div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:8px;">was ${prior} W → <span style="color:${deltaColor};font-weight:700;">${deltaSign}${delta}%</span></div>
         ${haltedBanner}
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn" id="ftp-update-btn" onclick="applyFtpSuggestion(${fs.ftp}, '${escJs(fs.method)}', '${escJs(fs.source || '')}')" style="background:#22c55e;color:#fff;border-color:#22c55e;">Update Profile</button>
@@ -10180,7 +10180,7 @@ async function openRideDetail(rideId) {
     html += `<div class="belastingscore-card" style="background:var(--surface2);border-radius:10px;padding:12px;margin-bottom:16px;border:1px solid var(--border);">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
         <div style="font-size:11px;font-weight:700;letter-spacing:0.5px;color:var(--text2);">Belastingscore — energy-system breakdown</div>
-        <div style="font-size:10px;color:var(--text3);">secondary lens ┬À v1.0.6</div>
+        <div style="font-size:10px;color:var(--text3);">secondary lens → v1.0.6</div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
         <div style="text-align:center;padding:8px;background:var(--surface);border-radius:8px;" title="Total stress this ride imposed across all three energy systems. Sum of Aerobe + Glycolytisch + PCr.">
@@ -10645,7 +10645,7 @@ async function openRideDetail(rideId) {
           <line x1="0" y1="${yVT2}" x2="${W}" y2="${yVT2}" stroke="rgba(239,68,68,0.35)" stroke-width="1" stroke-dasharray="3,2"/>
           <polyline points="${pts}" fill="none" stroke="#a855f7" stroke-width="1.5"/>
         </svg>
-        <div style="font-size:10px;color:var(--text3);margin-top:4px;">Dashed: ╬▒1=1.0 (VT1) ┬À ╬▒1=0.75 (VT2). Samples: ${dfaHist.length}.</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:4px;">Dashed: ╬▒1=1.0 (VT1) → ╬▒1=0.75 (VT2). Samples: ${dfaHist.length}.</div>
       </div>`;
     }
 
@@ -11021,7 +11021,7 @@ function _libHoverTitle(w) {
   const zb = ['Z1','Z2','Z3','Z4','Z5','Z6']
     .map(k => `${k}:${w[k+'%']||0}%`)
     .filter(s => !s.endsWith(':0%'))
-    .join(' ┬À ');
+    .join(' → ');
   return [proto, dur, tss, zb].filter(Boolean).join(' | ');
 }
 
@@ -11071,9 +11071,9 @@ function renderLibrary(data) {
       : `Showing ${filtered.length} of ${total} workouts`;
     if (term) msg += ` for “${term}”`;
     // search pass 2: intent echo — only when the server parsed real intents
-    // ("understood: threshold ┬À 3×16 ┬À ~90min"). textContent keeps it safe.
+    // ("understood: threshold → 3×16 → ~90min"). textContent keeps it safe.
     if (term && _libSearchIntents.length) {
-      msg += ` — understood: ${_libSearchIntents.map(_libPrettyIntent).join(' ┬À ')}`;
+      msg += ` — understood: ${_libSearchIntents.map(_libPrettyIntent).join(' → ')}`;
     }
     if (_libSurfaceFilter === 'gravel') msg += ' (Gravel & Cobbles filter on)';
     if (_libLastTruncated) msg += ` — list capped at ${_LIB_FETCH_LIMIT}, narrow the filters to see the rest`;
@@ -11868,7 +11868,7 @@ function _canonSurface(raw) {
   return 'unknown';
 }
 
-// Build a stacked-bar visualization of surface mix (e.g. "80% asphalt ┬À 15% cobble ┬À 5% gravel")
+// Build a stacked-bar visualization of surface mix (e.g. "80% asphalt → 15% cobble → 5% gravel")
 // Kept for any legacy caller; primary UI path now uses _renderSpatialSurfaceBar below.
 function _renderSurfaceBar(mix) {
   if (!mix || typeof mix !== 'object') return '';
@@ -11876,7 +11876,7 @@ function _renderSurfaceBar(mix) {
   if (entries.length <= 1) return '';  // Single-surface routes just get a text label
   entries.sort((a, b) => b[1] - a[1]);
   const bars = entries.map(([k, v]) => `<span class="sb-${k}" style="width:${v}%" title="${v.toFixed(0)}% ${k}"></span>`).join('');
-  const legend = entries.map(([k, v]) => `${v.toFixed(0)}% ${k}`).join(' ┬À ');
+  const legend = entries.map(([k, v]) => `${v.toFixed(0)}% ${k}`).join(' → ');
   return `<div class="rrr-surface-bar">${bars}</div><div class="rrr-surface-legend">${esc(legend)}</div>`;
 }
 
@@ -11977,7 +11977,7 @@ function _renderSpatialSurfaceBar(r, opts) {
     agg.asphalt = (agg.asphalt || 0) + uncovered;
   }
 
-  // Build "X.X km gravel ┬À Y.Y km cobble" text in canonical order, biggest
+  // Build "X.X km gravel → Y.Y km cobble" text in canonical order, biggest
   // first, so the user can still compare routes quantitatively.
   const aggEntries = Object.entries(agg)
     .filter(([, v]) => v > 0.05)
@@ -12009,7 +12009,7 @@ function _renderSurfaceTimeline(segments, totalDistanceKm) {
     const width = ((e - s) / totalKm) * 100;
     if (width <= 0) return '';
     const cls = `st-${seg.surface || 'unknown'}`;
-    const title = `${(seg.surface || 'unknown')} ┬À ${s.toFixed(1)}–${e.toFixed(1)} km`;
+    const title = `${(seg.surface || 'unknown')} → ${s.toFixed(1)}–${e.toFixed(1)} km`;
     return `<span class="${esc(cls)}" style="left:${left.toFixed(3)}%;width:${width.toFixed(3)}%;" title="${esc(title)}"></span>`;
   }).join('');
   return `
@@ -12153,14 +12153,14 @@ function openRouteDetail(routeId) {
   if (r.primary_climb) {
     const pc = r.primary_climb;
     const pcText = (pc && typeof pc === 'object')
-      ? `${esc(pc.name || '—')}${pc.length_km ? ' ┬À ' + Number(pc.length_km).toFixed(1) + ' km' : ''}${pc.avg_grade ? ' ┬À ' + Number(pc.avg_grade).toFixed(1) + '%' : ''}`
+      ? `${esc(pc.name || '—')}${pc.length_km ? ' → ' + Number(pc.length_km).toFixed(1) + ' km' : ''}${pc.avg_grade ? ' → ' + Number(pc.avg_grade).toFixed(1) + '%' : ''}`
       : esc(String(pc));
     stats.push(stat('Primary climb', pcText));
   }
 
   // v3.6.0-fix22b: detail modal "Surface" section now shows the spatial
   // bar (same renderer as the picker card, just taller via opts.big). The
-  // aggregated "X.X km gravel ┬À Y.Y km cobble" line lives inside the
+  // aggregated "X.X km gravel → Y.Y km cobble" line lives inside the
   // spatial bar component so we don't double up on text.
   const bigSurfaceInner = _renderSpatialSurfaceBar(r, { big: true });
   const bigSurfaceBar = bigSurfaceInner
@@ -12289,7 +12289,7 @@ function renderMiniElev(pts, w, h, opts) {
 }
 
 // Surface legend chips derived from surface_mix_pct × total km. Omits chips
-// whose percentage is 0 (or missing). Shows e.g. "gravel 3.4km ┬À cobble 1.1km".
+// whose percentage is 0 (or missing). Shows e.g. "gravel 3.4km → cobble 1.1km".
 // Fallback path when a route has surface_mix_pct but no surface_segments —
 // still gives the user a sense of how much dirt / cobble is on the route.
 function _renderSurfaceLegendChips(mix, totalKm) {
@@ -12619,9 +12619,9 @@ function _wireDualRange(minId, maxId, fillId, labelId, unit) {
       const update = () => {
         const chips = row.querySelectorAll('.chip');
         const active = row.querySelectorAll('.chip.active');
-        if (active.length === chips.length) { hint.textContent = `┬À ${allLabel}`; hint.style.opacity = '0.7'; }
-        else if (active.length === 0)        { hint.textContent = '┬À none selected'; hint.style.opacity = '0.9'; hint.style.color = 'var(--red, #e55)'; return; }
-        else                                  { hint.textContent = `┬À ${active.length} of ${chips.length}`; hint.style.opacity = '0.9'; }
+        if (active.length === chips.length) { hint.textContent = `→ ${allLabel}`; hint.style.opacity = '0.7'; }
+        else if (active.length === 0)        { hint.textContent = '→ none selected'; hint.style.opacity = '0.9'; hint.style.color = 'var(--red, #e55)'; return; }
+        else                                  { hint.textContent = `→ ${active.length} of ${chips.length}`; hint.style.opacity = '0.9'; }
         hint.style.color = 'var(--text3)';
       };
       row.addEventListener('click', () => setTimeout(update, 0));
@@ -13229,7 +13229,7 @@ function onPlanModeChange() {
 // ★★★ PHASE-SPLIT EDITOR (v3.2.0) ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 // Stepper state lives OUTSIDE the DOM (A6): {state: 'rec'|'custom', values,
 // M}. M only ever comes from the preview RESPONSE echo (d.plan_weeks — the
-// max(4,┬À) floor is server-side, never client-derived). state 'rec' reseeds
+// max(4,→) floor is server-side, never client-derived). state 'rec' reseeds
 // from every response; the first stepper click pins to 'custom'; a sum
 // mismatch shows the red banner and blocks Generate (never silently
 // dropped/kept). A monotonic fetch-seq drops stale preview responses.
@@ -13489,10 +13489,10 @@ function _renderPlanPreviewPhases(phases, planWeeks, goal, eventDate, resp) {
         <button class="btn" style="padding:0 7px;font-size:12px;line-height:18px;" ${val <= lo ? 'disabled' : ''} onclick="phaseStepperClick('${row.name}',-1)" title="One week less">📈</button>
         <span style="font-size:12px;font-weight:700;min-width:14px;text-align:center;">${val}</span>
         <button class="btn" style="padding:0 7px;font-size:12px;line-height:18px;" ${val >= hi ? 'disabled' : ''} onclick="phaseStepperClick('${row.name}',1)" title="One week more">+</button>
-        <span style="font-size:11px;color:var(--text2);">wk${val === 1 ? '' : 's'}${row.name === 'base' ? ' ┬À absorbs extra weeks' : ''}</span>
+        <span style="font-size:11px;color:var(--text2);">wk${val === 1 ? '' : 's'}${row.name === 'base' ? ' → absorbs extra weeks' : ''}</span>
       </span>`;
     } else {
-      const lockLbl = (editorOn && row.name === 'consolidation') ? ' ┬À locked' : '';
+      const lockLbl = (editorOn && row.name === 'consolidation') ? ' → locked' : '';
       weeksCell = `<span style="font-size:11px;color:var(--text2);margin-left:6px;">${row.weeks} week${row.weeks === 1 ? '' : 's'}${lockLbl}</span>`;
     }
     html += `<div style="padding:8px 10px;border-left:4px solid ${col};background:var(--surface2);border-radius:0 6px 6px 0;margin-bottom:4px;">
@@ -13930,7 +13930,7 @@ const _BAND_LABELS = {easy:'Easy', tempo_ss:'Tempo/SS', threshold:'Thr', vo2:'VO
 function _fmtBands(b, prefix) {
   if (!b) return '';
   const order = ['easy','tempo_ss','threshold','vo2','sprint'];
-  return (prefix||'') + order.filter(k => b[k] != null).map(k => `${_BAND_LABELS[k]} ${Math.round(b[k])}%`).join(' ┬À ');
+  return (prefix||'') + order.filter(k => b[k] != null).map(k => `${_BAND_LABELS[k]} ${Math.round(b[k])}%`).join(' → ');
 }
 function getCustomBands() {
   const g = id => Math.max(0, parseFloat(($(id)||{}).value) || 0);
@@ -14252,7 +14252,7 @@ async function renderPlanJSON(plan) {
     const _xWp = Number(p.weekly_xss_w_prime || 0);
     const _xPm = Number(p.weekly_xss_pmax || 0);
     const _xTot = _xCp + _xWp + _xPm;
-    const _xssBarTip = `Belastingscore breakdown — Aerobe ${_xCp.toFixed(1)} ┬À Glycolytisch ${_xWp.toFixed(1)} ┬À PCr ${_xPm.toFixed(1)} (secondary lens, v1.0.6)`;
+    const _xssBarTip = `Belastingscore breakdown — Aerobe ${_xCp.toFixed(1)} → Glycolytisch ${_xWp.toFixed(1)} → PCr ${_xPm.toFixed(1)} (secondary lens, v1.0.6)`;
     let _xssBarHtml = '';
     if (_xTot > 0) {
       const _cpPct = (_xCp / _xTot) * 100;
@@ -14399,7 +14399,7 @@ async function renderPlanJSON(plan) {
         const todayCls = isToday ? ' pg-today-session' : '';
 
         // v3.4.4 grid/calendar parity — card content (resolved workout
-        // title, content-class color, "NNm ┬À NN TSS", ⚠ warn) comes from
+        // title, content-class color, "NNm → NN TSS", ⚠ warn) comes from
         // plannedCardParts, the SAME helper renderCalDay uses. The grid
         // stays the dense view: same information, smaller type. The v4.2.0
         // score number badge is GONE — that was score_workout's 1-10
@@ -14432,7 +14432,7 @@ async function renderPlanJSON(plan) {
         const miniSvg = `<div class="pg-card-sprite" title="${esc(spriteTip)}">${miniPowerBlockSVG(blocks)}</div>`;
 
         // Actual activity overlay for past days — calendar prominence:
-        // done shows duration ┬À TSS (green), missed mirrors the calendar's
+        // done shows duration → TSS (green), missed mirrors the calendar's
         // italic red "missed".
         let actualOverlay = '';
         let dayCompleted = false;
@@ -14440,7 +14440,7 @@ async function renderPlanJSON(plan) {
           const icons = dayActuals.map(a => SPORT_ICON[a.sport] || '🏃').join('');
           const actTss = dayActuals.reduce((s,a) => s + (a.tss||0), 0);
           const actDur = dayActuals.reduce((s,a) => s + (a.duration_min||0), 0);
-          actualOverlay = `<div class="pg-card-actual" style="color:var(--green);">${icons} ${actDur}m${actTss ? ' ┬À ' + Math.round(actTss) + ' TSS' : ''}</div>`;
+          actualOverlay = `<div class="pg-card-actual" style="color:var(--green);">${icons} ${actDur}m${actTss ? ' → ' + Math.round(actTss) + ' TSS' : ''}</div>`;
           dayCompleted = true;
         } else if (isPast && !dayActuals.length) {
           actualOverlay = '<div class="pg-card-actual" style="font-style:italic;color:var(--red);">missed</div>';
@@ -14480,7 +14480,7 @@ async function renderPlanJSON(plan) {
           const icons = dayActuals.map(a => SPORT_ICON[a.sport] || '🏃').join('');
           const actTss = dayActuals.reduce((s,a) => s + (a.tss||0), 0);
           const actDur = dayActuals.reduce((s,a) => s + (a.duration_min||0), 0);
-          spontaneous = `<div class="pg-card-actual" style="color:var(--yellow);">${icons} ${actDur}m${actTss ? ' ┬À ' + Math.round(actTss) + ' TSS' : ''}</div>`;
+          spontaneous = `<div class="pg-card-actual" style="color:var(--yellow);">${icons} ${actDur}m${actTss ? ' → ' + Math.round(actTss) + ' TSS' : ''}</div>`;
         }
         const todayCls = isToday ? ' pg-today-session' : '';
         cal += `<div class="wc-day wc-rest${todayCls}" data-pg-day="${dayStr || ''}" data-pg-week-idx="${wi}" data-pg-rest="1" style="min-height:55px;padding:3px;position:relative;">
@@ -14746,7 +14746,7 @@ function pgRenderProgressHeader(plan, currentWeekIdx) {
     host.style.display = 'none';
     return;
   }
-  // 3.4.0 W3: continuous variant — "Rolling week N ┬À next deload in X days",
+  // 3.4.0 W3: continuous variant — "Rolling week N → next deload in X days",
   // progress bar hidden (no end to fill toward). Finite plans fall through
   // to the legacy path below byte-identical (incl. re-showing the bar).
   const _goalType = String(((plan && plan.goal) || {}).type
@@ -14942,7 +14942,7 @@ function calCardTitle(planned) {
 }
 
 // v4.5.1 FIX-UI variety — extract a structure suffix from the workout name
-// so cell labels say "TEMPO 75m ┬À 4×8" rather than just "TEMPO 75m". The
+// so cell labels say "TEMPO 75m → 4×8" rather than just "TEMPO 75m". The
 // planner emits names like "Tempo 4x8min (82min)" / "Sweet Spot 5x1min (85min)"
 // / "Z2 Endurance (180min)" — we pull the NxM pattern, fallback to "steady"
 // if no interval pattern is present.
@@ -14968,7 +14968,7 @@ function calStructureSuffix(planned) {
 function calCardTitleWithStructure(planned) {
   const base = calCardTitle(planned);
   const suf = calStructureSuffix(planned);
-  return suf ? `${base} ┬À ${suf}` : base;
+  return suf ? `${base} → ${suf}` : base;
 }
 
 // v4.5.1 FIX-UI variety — short tooltip text per day cell so power-users can
@@ -14990,20 +14990,20 @@ function calCellTooltip(planned, actual) {
   if (actual && actual.name) {
     parts.push('actual: ' + String(actual.name));
   }
-  return parts.join(' ┬À ');
+  return parts.join(' → ');
 }
 
 // ★★ v3.4.4 grid/calendar parity — single planned-card content source ★★★★★
 // Both plan views (calendar renderCalDay + grid renderPlanJSON) build their
 // planned-session card from these parts, so the two views can never drift on
 // WHAT a card says: resolved title (display-name/structure cascade), content-
-// class color bucket, "NNm ┬À NN TSS" meta line and the ⚠ missing-workout
+// class color bucket, "NNm → NN TSS" meta line and the ⚠ missing-workout
 // warn. Each view keeps its own layout/density (the grid stays compact).
 function plannedCardParts(planned, cardState) {
   const title = calCardTitleWithStructure(planned);
   const cssCls = calContentCss(planned.content_class, planned.session_type);
   const dur = planned.duration_min ? `${Math.round(planned.duration_min)}m` : '';
-  const metaText = `${dur}${planned.tss ? ' ┬À ' + Math.round(planned.tss) + ' TSS' : ''}`;
+  const metaText = `${dur}${planned.tss ? ' → ' + Math.round(planned.tss) + ' TSS' : ''}`;
   const warn = cardState === 'missing_workout'
     ? '<span class="cal-planned-warn" title="Workout missing — click ↻ to assign one.">⚠</span>'
     : '';
@@ -15020,7 +15020,7 @@ function pgZoneTooltip(zd) {
     const v = Math.round((zd && zd[k]) || 0);
     if (v > 0) parts.push(`${NAMES[k]} ${v}%`);
   }
-  return parts.length ? `Matched workout zone mix — ${parts.join(' ┬À ')}` : '';
+  return parts.length ? `Matched workout zone mix — ${parts.join(' → ')}` : '';
 }
 
 // content_class consistency check used by the click handler — defense in
@@ -15126,7 +15126,7 @@ async function syncNowAction(btnId) {
   const origLabel = btn.textContent;
   btn.disabled = true;
   btn.textContent = 'Syncing…';
-  // v2.2.9 — show live "X of Y ┬À N new" progress while the (blocking) force
+  // v2.2.9 — show live "X of Y → N new" progress while the (blocking) force
   // sync runs server-side; the watcher polls /api/sync/progress concurrently.
   startSyncProgressWatch(3);
   try {
@@ -15248,7 +15248,7 @@ function renderCalendar(data) {
     let row = `<div class="${rowCls}" data-cal-week-idx="${wi}" data-iso-week="${w.iso_year}-${w.iso_week}">`;
     row += `<div class="cal-side">
       <div><span class="cal-phase-chip" style="background:${phaseCol};">${esc(w.phase || 'HIST')}</span></div>
-      <div class="cal-week-of">W${weekOfPhase}${w.is_stepback ? ' ┬À RECOVERY' : ''}</div>
+      <div class="cal-week-of">W${weekOfPhase}${w.is_stepback ? ' → RECOVERY' : ''}</div>
       <div class="cal-date-range">${startFmt} – ${endFmt}</div>
       ${tssPill}
       ${z12}
@@ -15341,7 +15341,7 @@ function renderCalDay(d, wi, di, phaseKey, today) {
       const fadedDur = planned.duration_min ? `${Math.round(planned.duration_min)}m` : '';
       fadedPlannedHtml = `<div class="cal-planned" style="opacity:0.3;">
         <span class="cal-planned-type ${fadedCss}">${esc(fadedTitle)}</span>
-        <div class="cal-planned-meta">${fadedDur}${planned.tss ? ' ┬À ' + Math.round(planned.tss) + ' TSS' : ''}</div>
+        <div class="cal-planned-meta">${fadedDur}${planned.tss ? ' → ' + Math.round(planned.tss) + ' TSS' : ''}</div>
       </div>`;
     }
     return `<div class="cal-day cal-rest cal-phase-${phaseKey}${isToday ? ' cal-today' : ''}" data-cs="future_unavailable" data-date="${d.date}" style="position:relative;">
@@ -15422,7 +15422,7 @@ function renderCalDay(d, wi, di, phaseKey, today) {
     const matchBadge = _calMatchBadge(actual.compare);
     actualHtml = `<div class="cal-actual ${aCls}${polCls}"${polStyle}>
       <div class="cal-actual-name">${esc(name) || 'Activity'}${matchBadge}</div>
-      <div class="cal-actual-meta">${dur}${tss ? ' ┬À ' + tss : ''}</div>
+      <div class="cal-actual-meta">${dur}${tss ? ' → ' + tss : ''}</div>
     </div>`;
   } else if (planned && d.date < today) {
     // Past day, planned but no actual → red bar.
@@ -15826,9 +15826,9 @@ function _blockEvalHtml(b) {
     // whose blocks all ran a little short read "0/1" on the same line that
     // called them ridden — seen on a real lapped ride here.
     sets = '<div style="color:var(--text3);margin-top:2px;">sets: '
-         + b.sets.map(s => `${s.ridden != null ? s.ridden : s.done}/${s.prescribed}`).join(' ┬À ') + '</div>';
+         + b.sets.map(s => `${s.ridden != null ? s.ridden : s.done}/${s.prescribed}`).join(' → ') + '</div>';
   }
-  return `<div style="margin-top:4px;">${bits.join(' ┬À ')}${sets}</div>`;
+  return `<div style="margin-top:4px;">${bits.join(' → ')}${sets}</div>`;
 }
 
 // v3.5.6 — optional session-RPE capture. Foster modified CR-10 with the
@@ -15910,9 +15910,9 @@ function _calOpenDayChooser(day, sec, showPlanned) {
   const p = day.planned;
   if (showPlanned && p && p.session_type && p.session_type !== 'rest') {
     const ptitle = esc(p.display_name || p.name || p.session_type);
-    const pmeta = (p.duration_min ? Math.round(p.duration_min) + 'min' : '') + (p.tss ? ' ┬À TSS ' + Math.round(p.tss) : '');
+    const pmeta = (p.duration_min ? Math.round(p.duration_min) + 'min' : '') + (p.tss ? ' → TSS ' + Math.round(p.tss) : '');
     plannedRow = `<div class="card" onclick="closeModal();_calOpenPlannedByDate('${escJs(day.date)}')" style="cursor:pointer;display:flex;justify-content:space-between;gap:12px;padding:10px 12px;margin:6px 0;border-left:3px solid var(--accent);">
-      <span style="font-weight:600;color:var(--text);">&#x1F4CB; Scheduled: ${ptitle}<div style="font-size:11px;color:var(--text3);font-weight:400;">open ┬À rematch ┬À download</div></span>
+      <span style="font-weight:600;color:var(--text);">&#x1F4CB; Scheduled: ${ptitle}<div style="font-size:11px;color:var(--text3);font-weight:400;">open → rematch → download</div></span>
       <span style="color:var(--text2);white-space:nowrap;">${pmeta}</span>
     </div>`;
   }
@@ -15920,7 +15920,7 @@ function _calOpenDayChooser(day, sec, showPlanned) {
     const nm = esc(r.name || 'Activity');
     const dur = r.duration_min ? Math.round(r.duration_min) + 'min' : '';
     const tss = r.tss ? 'TSS ' + Math.round(r.tss) : '';
-    const meta = dur + (dur && tss ? ' ┬À ' : '') + tss;
+    const meta = dur + (dur && tss ? ' → ' : '') + tss;
     const rid = r.ride_id || '';
     const click = rid ? ` onclick="closeModal();(window.openActivityModal||window.openRideDetail||function(){})('${escJs(rid)}')" style="cursor:pointer;"` : '';
     return `<div class="card"${click} style="display:flex;justify-content:space-between;gap:12px;padding:10px 12px;margin:6px 0;">
@@ -15941,13 +15941,13 @@ function _calOpenDayChooser(day, sec, showPlanned) {
     if (c.intensity) parts.push(`intensity ${pct(c.intensity)}${ex.basis === 'hr' ? ' (HR)' : ''}`);
     else if (ex.basis === 'load_only') parts.push('intensity n/a');
     execRow = `<div style="font-size:12px;color:var(--text2);margin:0 0 10px;padding:6px 10px;background:var(--surface2);border-radius:6px;">
-      Execution <b style="color:var(--text);">${Math.round(ex.score)}</b>/100 — ${parts.join(' ┬À ')} <span style="color:var(--text3);">(${esc(String(ex.verdict || '').replace('_', ' '))})</span>
+      Execution <b style="color:var(--text);">${Math.round(ex.score)}</b>/100 — ${parts.join(' → ')} <span style="color:var(--text3);">(${esc(String(ex.verdict || '').replace('_', ' '))})</span>
       ${_blockEvalHtml(ex.blocks)}
     </div>`;
   }
   openModal(`<div class="modal-body">
     <h2>${esc(dlabel)}</h2>
-    <div style="font-size:13px;color:var(--text2);margin:6px 0 10px;">${n} ${n===1?'activity':'activities'} &middot; <b style="color:var(--text);">${Math.round(totalDur)} min ┬À TSS ${Math.round(totalTss)}</b>${plannedTss ? ` &middot; planned TSS ${Math.round(plannedTss)}` : ''}</div>
+    <div style="font-size:13px;color:var(--text2);margin:6px 0 10px;">${n} ${n===1?'activity':'activities'} &middot; <b style="color:var(--text);">${Math.round(totalDur)} min → TSS ${Math.round(totalTss)}</b>${plannedTss ? ` &middot; planned TSS ${Math.round(plannedTss)}` : ''}</div>
     ${execRow}
     ${plannedRow}
     ${rows}
@@ -16322,8 +16322,8 @@ function renderThisWeekFromCalendar(data) {
     const _race = d.race || (planned && planned.is_race ? planned.race : null) || null;
     if (_race) {
       const _km = _race.km ? Math.round(_race.km) + 'km' : '';
-      const _cl = _race.climb_m ? ' ┬À ' + Math.round(_race.climb_m) + 'm' : '';
-      const _eh = _race.est_duration_min ? (' ┬À ~' + (Math.round(_race.est_duration_min / 60 * 10) / 10) + 'h') : '';
+      const _cl = _race.climb_m ? ' → ' + Math.round(_race.climb_m) + 'm' : '';
+      const _eh = _race.est_duration_min ? (' → ~' + (Math.round(_race.est_duration_min / 60 * 10) / 10) + 'h') : '';
       const _pr = String(_race.priority || 'A').toUpperCase();
       plannedHtml = `<div class="twk-planned twk-race twk-race-${_pr.toLowerCase()}">
         <div class="wc-type twk-race-tag">🏁 ${esc(_pr)} RACE</div>
@@ -16343,7 +16343,7 @@ function renderThisWeekFromCalendar(data) {
         : '';
       plannedHtml = `<div class="twk-planned" style="border-left-color:${phaseCol};">
         <div class="wc-type ${cssCls}" style="font-size:10px;padding:1px 3px;">${esc(title)}</div>
-        <div class="wc-meta">${planned.duration_min ? Math.round(planned.duration_min) + 'm' : ''}${planned.tss ? ' ┬À ' + Math.round(planned.tss) + 'T' : ''} ${warn}</div>
+        <div class="wc-meta">${planned.duration_min ? Math.round(planned.duration_min) + 'm' : ''}${planned.tss ? ' → ' + Math.round(planned.tss) + 'T' : ''} ${warn}</div>
       </div>`;
     } else if (cs === 'rest' && !actual) {
       // v4.5.1 FIX-UI B2 — only show REST when there's no actual ride. If user
@@ -16368,10 +16368,10 @@ function renderThisWeekFromCalendar(data) {
       const z34 = actual.z3z4_min != null ? Math.round(actual.z3z4_min) : null;
       const z5p = actual.z5plus_min != null ? Math.round(actual.z5plus_min) : null;
       if (z12 != null || z34 != null || z5p != null) {
-        tipParts.push(`Z1+Z2 ${z12||0}m ┬À Z3+Z4 ${z34||0}m ┬À Z5+ ${z5p||0}m`);
+        tipParts.push(`Z1+Z2 ${z12||0}m → Z3+Z4 ${z34||0}m → Z5+ ${z5p||0}m`);
       }
       if (actual.decoupling_pct != null) tipParts.push('Decoupling ' + Number(actual.decoupling_pct).toFixed(1) + '%');
-      actualTitle = tipParts.join(' ┬À ');
+      actualTitle = tipParts.join(' → ');
       // v2.4.0 — roll up ALL same-day rides: combined duration + total TSS + a
       // "+N" tag so the cell reflects every activity, not just the primary.
       const secDurSum = secList.reduce((s, r) => s + (Number(r && r.duration_min) || 0), 0);
@@ -16379,7 +16379,7 @@ function renderThisWeekFromCalendar(data) {
       const moreTag = secList.length
         ? ` <span style="color:var(--text3);font-weight:600;">+${secList.length}</span>` : '';
       const durLabel = dayDurTotal > 0 ? Math.round(dayDurTotal) + 'min' : '';
-      const tssLabel = aTssNum > 0 ? ' ┬À TSS ' + Math.round(aTssNum) : '';
+      const tssLabel = aTssNum > 0 ? ' → TSS ' + Math.round(aTssNum) : '';
       actualHtml = `<div class="twk-actual ${aCls}"${actualTitle ? ` title="${esc(actualTitle)}"` : ''}>
         <div style="font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(name) || 'Activity'}${moreTag}</div>
         <div style="color:var(--text2);">${durLabel}${tssLabel}</div>
@@ -16653,7 +16653,7 @@ function populatePlanFormFromGoal(goal) {
     if (goal.plan_mode === 'template' && goal.template_id) parts.push(String(goal.template_id).replace(/_/g, ' '));
     const races = (goal.events || []).filter(e => e && e.priority && e.priority !== 'A').length;
     if (races) parts.push(races + ' race' + (races > 1 ? 's' : ''));
-    cfgEl.textContent = '⚙️ ' + parts.join(' ┬À ');
+    cfgEl.textContent = '⚙️ ' + parts.join(' → ');
   }
   // 3.3.3 (L4-UX 5): arm change-safety for the repopulated backdate — any
   // later goal/length/event-date change clears it instead of silently
@@ -16857,7 +16857,7 @@ function _summarizeReadiness(rd) {
   const _n = Number(rd.readiness ?? rd.score ?? rd.composite ?? rd.readiness_score);
   const score = Number.isFinite(_n) ? Math.round(_n) : null;
   const st = rd.state || rd.status || rd.band || rd.recommendation || rd.label;
-  if (st && score != null) return `${st} ┬À ${score}`;
+  if (st && score != null) return `${st} → ${score}`;
   if (st) return String(st);
   if (score != null) return `readiness ${score}`;
   return 'checked';
@@ -16964,8 +16964,8 @@ async function runPlanOpenSequence() {
     } catch (e) { if (e && e.name === 'TimeoutError') seqError = {key: 'actual', label: STEPS[1].label, e}; }
     if (seqError) { state.actual = {status: 'error', detail: 'reconcile timed out'}; setBar(0.5, true); paint(null); return; }
     state.actual = {status: 'done', detail: reconciled > 0
-      ? `${reconciled} new session(s) matched to rides ┬À syncing in background`
-      : `plan already up to date (${reconTotal} matched this week) ┬À syncing in background`};
+      ? `${reconciled} new session(s) matched to rides → syncing in background`
+      : `plan already up to date (${reconTotal} matched this week) → syncing in background`};
     setBar(0.5);
     paint('recovery');
 
@@ -17108,7 +17108,7 @@ async function regeneratePlan() {
       `Target CTL: ${info.adjusted_target_ctl || '—'}` +
       (info.original_target_ctl && info.adjusted_target_ctl < info.original_target_ctl
         ? ` <span style="color:var(--yellow);">(was ${info.original_target_ctl})</span>` : '') +
-      (info.taper_compressed ? ' ┬À Taper compressed to 8 days' : '');
+      (info.taper_compressed ? ' → Taper compressed to 8 days' : '');
     $('plan-status').style.color = 'var(--green)';
     $('plan-gap-alert').style.display = 'none';
     await renderPlanJSON(d.plan_json);
@@ -17195,7 +17195,7 @@ async function copyLogs() {
 async function viewVersion() {
   try {
     const v = await (await fetch('/api/version')).json();
-    showToast(`Cycling Performance Studio Lab v${v.version} ┬À Python ${v.python} ┬À ${v.platform}${v.frozen ? ' ┬À packaged' : ''}`, 6000);
+    showToast(`Cycling Performance Studio Lab v${v.version} → Python ${v.python} → ${v.platform}${v.frozen ? ' → packaged' : ''}`, 6000);
   } catch(e) { showToast('Version check failed: ' + e.message, 4000); }
 }
 
@@ -17225,7 +17225,7 @@ async function loadSettings() {
     if (d.lthr_is_set && d.lthr_source) {
       const srcTxt = d.lthr_source === 'manual' ? 'set manually' : 'intervals.icu estimate';
       lp.style.display = '';
-      lp.textContent = `${srcTxt}${d.lthr_source_date ? ' ┬À ' + d.lthr_source_date : ''} — retest now and then to keep HR targets honest`;
+      lp.textContent = `${srcTxt}${d.lthr_source_date ? ' → ' + d.lthr_source_date : ''} — retest now and then to keep HR targets honest`;
     } else if (d.lthr_is_set) {
       lp.style.display = '';
       lp.textContent = 'source unknown (set before v2.5.0) — retest to keep HR targets honest';
@@ -17376,13 +17376,13 @@ function renderFtpSourceBadge(source, sourceDate) {
   if (/^tested_coggan/i.test(source)) { label = 'Tested Coggan 20min'; bg = 'rgba(34,197,94,0.15)'; fg = '#22c55e'; border = '#22c55e'; }
   else if (/^tested_ramp/i.test(source)) { label = 'Tested Ramp'; bg = 'rgba(34,197,94,0.15)'; fg = '#22c55e'; border = '#22c55e'; }
   else if (/^tested/i.test(source)) { label = 'Tested'; bg = 'rgba(34,197,94,0.15)'; fg = '#22c55e'; border = '#22c55e'; }
-  else if (/^eftp/i.test(source) || /^icu/i.test(source)) { label = 'Estimated ┬À ICU'; bg = 'rgba(59,130,246,0.15)'; fg = '#3b82f6'; border = '#3b82f6'; }
+  else if (/^eftp/i.test(source) || /^icu/i.test(source)) { label = 'Estimated → ICU'; bg = 'rgba(59,130,246,0.15)'; fg = '#3b82f6'; border = '#3b82f6'; }
   else if (/^manual/i.test(source)) { label = 'Manual'; bg = 'rgba(148,163,184,0.15)'; fg = '#94a3b8'; border = '#94a3b8'; }
   let dateTxt = '';
   if (sourceDate) {
     try {
       const d = new Date(sourceDate);
-      if (!isNaN(d)) dateTxt = ' ┬À ' + d.toLocaleDateString('en-CA');
+      if (!isNaN(d)) dateTxt = ' → ' + d.toLocaleDateString('en-CA');
     } catch(_) {}
   }
   el.textContent = label + dateTxt;
@@ -17459,9 +17459,9 @@ async function loadFtpHistoryChart() {
     const x = xAt(i), y = yAt(e.ftp);
     const col = ptColor(e);
     if (e.applied === false) {
-      svg += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="none" stroke="${col}" stroke-width="1.5" style="cursor:pointer;" onclick="_showFtpHistoryPoint(${i})"><title>${esc((e.date||'') + ' ┬À ' + e.ftp + 'W ┬À not applied')}</title></circle>`;
+      svg += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="none" stroke="${col}" stroke-width="1.5" style="cursor:pointer;" onclick="_showFtpHistoryPoint(${i})"><title>${esc((e.date||'') + ' → ' + e.ftp + 'W → not applied')}</title></circle>`;
     } else {
-      svg += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="${col}" stroke="var(--surface)" stroke-width="1" style="cursor:pointer;" onclick="_showFtpHistoryPoint(${i})"><title>${esc((e.date||'') + ' ┬À ' + e.ftp + 'W ┬À ' + (e.source||e.method||''))}</title></circle>`;
+      svg += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="${col}" stroke="var(--surface)" stroke-width="1" style="cursor:pointer;" onclick="_showFtpHistoryPoint(${i})"><title>${esc((e.date||'') + ' → ' + e.ftp + 'W → ' + (e.source||e.method||''))}</title></circle>`;
     }
   });
   svg += `</svg>`;
@@ -17478,7 +17478,7 @@ function _showFtpHistoryPoint(idx) {
   if (!tip) return;
   const dateTxt = e.date ? new Date(e.date).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : '—';
   const methodTxt = e.method || e.source || '—';
-  const appliedTxt = e.applied === false ? ' ┬À <span style="color:var(--red);">not applied</span>' : '';
+  const appliedTxt = e.applied === false ? ' → <span style="color:var(--red);">not applied</span>' : '';
   tip.innerHTML = `<b>${esc(String(e.ftp))}W</b> &middot; ${esc(dateTxt)} &middot; ${esc(methodTxt)}${appliedTxt}`;
   tip.style.display = 'block';
 }
@@ -17922,20 +17922,20 @@ async function openPlanVersions() {
     for (const v of d.versions) {
       const when = v.mtime ? new Date(v.mtime).toLocaleString() : '—';
       const goal = v.goal_type ? esc(v.goal_type) : '—';
-      const ev = v.event_name ? ` ┬À ${esc(v.event_name)}` : '';
+      const ev = v.event_name ? ` → ${esc(v.event_name)}` : '';
       if (v.restorable) {
         rows.push(`
           <div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);">
             <div style="flex:1;">
-              <div style="font-size:13px;font-weight:600;">${esc(v.version)} ┬À ${when}</div>
-              <div style="font-size:11px;color:var(--text3);">${v.weeks} settimane ┬À goal: ${goal}${ev}</div>
+              <div style="font-size:13px;font-weight:600;">${esc(v.version)} → ${when}</div>
+              <div style="font-size:11px;color:var(--text3);">${v.weeks} settimane → goal: ${goal}${ev}</div>
             </div>
             <button class="btn btn-primary" style="font-size:11px;" onclick="restorePlanVersion('${escJs(v.version)}')">Ripristina</button>
           </div>`);
       } else {
         rows.push(`
           <div style="padding:10px;border:1px dashed var(--border);border-radius:8px;font-size:12px;color:var(--text3);">
-            ${esc(v.version)} ┬À ${when} — snapshot corrotto, non ripristinabile
+            ${esc(v.version)} → ${when} — snapshot corrotto, non ripristinabile
           </div>`);
       }
     }
@@ -18023,9 +18023,9 @@ function icuPushToastFromResult(r, verb) {
   if (r.pushed) parts.push(r.pushed + ' new');
   if (r.updated) parts.push(r.updated + ' updated');
   if (r.deleted) parts.push(r.deleted + ' removed');
-  let msg = parts.length ? (verb + ': ' + parts.join(' ┬À ')) : (verb + ': calendar already up to date');
+  let msg = parts.length ? (verb + ': ' + parts.join(' → ')) : (verb + ': calendar already up to date');
   const nSkip = (r.skipped || []).length;
-  if (nSkip) msg += ' ┬À ' + nSkip + ' skipped';
+  if (nSkip) msg += ' → ' + nSkip + ' skipped';
   showToast(msg, 5000, 'success');
 }
 
@@ -18779,7 +18779,7 @@ async function loadWeeklyCalendar() {
         const planGhost = cyclingPlanned
           ? (planMissed
               ? `<div style="font-size:8px;color:var(--red);font-weight:700;font-style:italic;">plan: ${plannedShort} missed</div>`
-              : `<div style="font-size:8px;color:var(--text3);font-style:italic;">plan: ${plannedShort}${s.tss_estimate ? ' ┬À ' + s.tss_estimate + 'T' : ''}</div>`)
+              : `<div style="font-size:8px;color:var(--text3);font-style:italic;">plan: ${plannedShort}${s.tss_estimate ? ' → ' + s.tss_estimate + 'T' : ''}</div>`)
           : '';
         // v1.8.0 — polarization classification border. Pick the first
         // cycling activity carrying a classification; fall back to none.
@@ -18791,7 +18791,7 @@ async function loadWeeklyCalendar() {
         body = `
           ${planGhost}
           <div class="wc-type${_polCls}" style="background:${expo.color}22;color:${expo.color};border:1px solid ${expo.color};${_polBorder}font-weight:700;">${sportIcons} ${expo.label}</div>
-          <div class="wc-meta">${volFmt(agg.total_min)} ┬À ${agg.total_tss} TSS</div>
+          <div class="wc-meta">${volFmt(agg.total_min)} → ${agg.total_tss} TSS</div>
           ${adhTxt}
         `;
       } else if (isPast && !hasActual && s.session_type !== 'rest' && !isDismissed) {
@@ -19274,7 +19274,7 @@ function openMissedSessionsModal() {
       const short = SESSION_SHORT[m.session_type] || '';
       const tss = m.tss_estimate ? `${m.tss_estimate} TSS` : '';
       const dur = m.duration_min ? `${m.duration_min} min` : '';
-      const meta = [dur, tss].filter(Boolean).join(' ┬À ');
+      const meta = [dur, tss].filter(Boolean).join(' → ');
       // Sport-aware nudge: if the user trained that day but on something
       // other than the bike, nudge them to make up the cycling session.
       const makeup = m.did_non_cycling
@@ -19284,7 +19284,7 @@ function openMissedSessionsModal() {
         <div class="wr-missed-row">
           <div>
             <div class="mr-title">${esc(m.day_name || m.day || '?')} — ${esc(label)}${short ? ` <span style="font-size:10px;color:var(--text3);font-weight:600;">(${short})</span>` : ''}</div>
-            <div class="mr-sub">${esc(m.name || '')}${m.name ? ' ┬À ' : ''}${meta}</div>
+            <div class="mr-sub">${esc(m.name || '')}${m.name ? ' → ' : ''}${meta}</div>
             ${makeup}
           </div>
           <button class="btn" style="font-size:11px;padding:4px 10px;" onclick="closeModal()" aria-label="Dismiss ${esc(m.day_name || m.day || '')}">Dismiss</button>
@@ -19386,8 +19386,8 @@ async function loadTodaySession() {
     if (d.is_race && d.race) {
       const r = d.race;
       const km = r.km ? Math.round(r.km) + 'km' : '';
-      const cl = r.climb_m ? ' ┬À ' + Math.round(r.climb_m) + 'm climb' : '';
-      const eh = r.est_duration_min ? ' ┬À ~' + (Math.round(r.est_duration_min / 60 * 10) / 10) + 'h' : '';
+      const cl = r.climb_m ? ' → ' + Math.round(r.climb_m) + 'm climb' : '';
+      const eh = r.est_duration_min ? ' → ~' + (Math.round(r.est_duration_min / 60 * 10) / 10) + 'h' : '';
       el.innerHTML =
         `<div style="font-size:20px;font-weight:800;margin-bottom:4px;color:var(--amber,#f59e0b);">🏁 ${esc(String(r.priority || 'A'))} RACE</div>
          <div style="font-size:15px;font-weight:700;margin-bottom:4px;">${esc(r.name || 'Race')}</div>
@@ -19424,14 +19424,14 @@ async function loadTodaySession() {
     // v2.2.5 issue #3 R2 — the readiness number now lives ONLY in the Today
     // verdict above; the prescription line shows just the plan (no /100) so the
     // two never read as competing scores.
-    html += `<div style="font-size:12px;color:var(--text2);margin-bottom:8px;">${d.planned.duration_min}min ┬À ${d.planned.tss_estimate} TSS</div>`;
+    html += `<div style="font-size:12px;color:var(--text2);margin-bottom:8px;">${d.planned.duration_min}min → ${d.planned.tss_estimate} TSS</div>`;
 
     // Adjustment chip — only when actually adjusted.
     // 3.4.1 M2: the engine reason is ONE plain sentence now (no "↑8"-style
     // notation) — render it once behind an em-dash ("due to" read badly
     // against a full sentence).
     // 3.4.2 M5 ┬º1: the chip names BOTH workouts ("Planned: TEMPO — file,
-    // 80min → Now: Z2, 60min ┬À 42 TSS") via the same builder the day-modal
+    // 80min → Now: Z2, 60min → 42 TSS") via the same builder the day-modal
     // banner uses — never a bare "Adjusted to Z2" with the original unnamed.
     if (mod) {
       html += `<div style="font-size:11px;padding:6px 8px;background:rgba(234,179,8,0.1);border-radius:6px;color:var(--yellow);margin-bottom:8px;">
@@ -19612,7 +19612,7 @@ function _adjPlannedNowHtml(planned, adjusted, zwoName) {
   const plannedTxt = `${esc(_sessTypeLabel(p.session_type))}${name ? ` — ${esc(name)}` : ''}${pDur ? `, ${pDur}min` : ''}`;
   const nowTxt = a.session_type === 'rest'
     ? 'Rest day'
-    : `${esc(_sessTypeLabel(a.session_type))}${aDur ? `, ${aDur}min` : ''}${aTss ? ` ┬À ${aTss} TSS` : ''}`;
+    : `${esc(_sessTypeLabel(a.session_type))}${aDur ? `, ${aDur}min` : ''}${aTss ? ` → ${aTss} TSS` : ''}`;
   return `Planned: <b>${plannedTxt}</b> → Now: <b>${nowTxt}</b>`;
 }
 
@@ -19801,7 +19801,7 @@ function openTodaySessionDetail() {
     const adjReason2 = d.adjustment_reason || d.reason || '';
     html += `<div style="padding:8px 12px;background:rgba(234,179,8,0.1);border-radius:8px;color:var(--yellow);margin:12px 0;">
       ⚠´©Å <b>Adjusted:</b> ${esc(adjReason2)}<br>
-      <span style="color:var(--text3);">Original plan: ${(d.planned.session_type || '').toUpperCase()} ┬À ${d.planned.duration_min}min ┬À ${d.planned.tss_estimate} TSS</span>
+      <span style="color:var(--text3);">Original plan: ${(d.planned.session_type || '').toUpperCase()} → ${d.planned.duration_min}min → ${d.planned.tss_estimate} TSS</span>
     </div>`;
   }
 
@@ -20028,7 +20028,7 @@ function _adjOriginalBlockHtml(orig) {
              || String(orig.session_type || 'Session').toUpperCase();
   const name = (orig.zwo_name || '').trim();
   const dur = Number(orig.zwo_duration_min) || Number(orig.duration_min) || 0;
-  const spec = `${esc(label)}${dur ? ` ┬À ${dur}min` : ''}${orig.tss_estimate ? ` ┬À ${orig.tss_estimate} TSS` : ''}`;
+  const spec = `${esc(label)}${dur ? ` → ${dur}min` : ''}${orig.tss_estimate ? ` → ${orig.tss_estimate} TSS` : ''}`;
   const fileLine = name
     ? `<div style="font-size:11px;color:var(--text3);font-style:italic;margin-top:4px;">Matched library file: ${esc(name)}</div>` : '';
   // ZWO is power-only — mirror the modal's hr-mode demotion (no button).
@@ -20393,7 +20393,7 @@ async function openDayWorkout(sessionIdx, day) {
     // v2.2.12 — the Duration stat + hero now show the FILE's real length, so the
     // note carries the planner's slot target instead (the load the plan budgeted
     // for the day). Only shown when it differs from the file by >10%.
-    const durNote = showGap ? ` ┬À plan target ${sessionDur}min` : '';
+    const durNote = showGap ? ` → plan target ${sessionDur}min` : '';
     html += `<div style="font-size:11px;color:var(--text3);margin:-4px 0 8px;font-style:italic;">Matched library file: ${esc(matchedFile)}${durNote}</div>`;
   }
   // hr mode: planner descriptions are power-prose ("3×15min @88-93% FTP") —
@@ -20412,7 +20412,7 @@ async function openDayWorkout(sessionIdx, day) {
   // v3.4.5 — file-first TSS stat (slot budget demoted to a labeled secondary).
   html += dayModalTssStat(session);
   if (haveBreakdown) {
-    html += `<div class="metric" title="Warmup + main set + cooldown — the planner budgets the warmup inside the slot"><div class="mv" style="font-size:14px;">${wuMin}┬À${mainMin}┬À${cdMin}</div><div class="ml">Warm┬ÀMain┬ÀCool</div></div>`;
+    html += `<div class="metric" title="Warmup + main set + cooldown — the planner budgets the warmup inside the slot"><div class="mv" style="font-size:14px;">${wuMin}→${mainMin}→${cdMin}</div><div class="ml">Warm→Main→Cool</div></div>`;
   }
   // hr target_mode (red-team F3): chips come from the server-computed Coggan
   // rows (window._hrRows) so they match chart + FIT exactly; vo2max → RPE;
@@ -20538,7 +20538,7 @@ function ftpTestChooserHtml(sessionIdx, day, currentType) {
   const card = (tt, svg, title, what, pro, con) => {
     const sel = currentType === tt;
     return `<div style="flex:1;min-width:190px;border:1px solid ${sel ? 'var(--accent)' : 'var(--border)'};border-radius:8px;padding:10px;background:${sel ? 'var(--surface2)' : 'transparent'};">
-      <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${title}${sel ? ' <span style="color:var(--accent);font-size:11px;">┬À selected</span>' : ''}</div>
+      <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${title}${sel ? ' <span style="color:var(--accent);font-size:11px;">→ selected</span>' : ''}</div>
       ${svg}
       <div style="font-size:11px;color:var(--text2);margin:6px 0;">${what}</div>
       <div style="font-size:11px;color:var(--text2);"><b style="color:var(--green,#3a3);">Pro</b> ${pro}</div>
@@ -20795,7 +20795,7 @@ async function _rematchAccept(day) {
       if (idx < curIdx) { icon = '✓'; color = 'var(--green)'; }
       else if (idx === curIdx) { icon = (s.key === 'done' ? '✓' : '↻'); color = (s.key === 'done' ? 'var(--green)' : 'var(--accent)'); }
       const detail = (s.key === 'reflow' && sessionsModified != null && idx <= curIdx)
-        ? `Today's training changed ┬À ${sessionsModified} future session${sessionsModified === 1 ? '' : 's'} reflowed.`
+        ? `Today's training changed → ${sessionsModified} future session${sessionsModified === 1 ? '' : 's'} reflowed.`
         : s.detail;
       return `<div style="display:flex;align-items:center;gap:8px;padding:3px 0;font-size:12px;color:${color};">
                 <span style="width:14px;text-align:center;">${icon}</span>
@@ -20845,7 +20845,7 @@ async function _rematchAccept(day) {
   paintProgress('done', n);
   // Clear per-day state so the next Rematch click starts fresh.
   delete window._rematchState[day];
-  try { showToast('Plan updated ┬À ' + n + ' session' + (n === 1 ? '' : 's') + ' reflowed', 3000); } catch(_) {}
+  try { showToast('Plan updated → ' + n + ' session' + (n === 1 ? '' : 's') + ' reflowed', 3000); } catch(_) {}
 
   // v1.8.12 BUG FIX — re-open the modal so the header/stats/SVG/top-button
   // block refreshes to reflect the NEWLY accepted session. Previously the
@@ -21899,7 +21899,7 @@ function renderOnTrackBar(data) {
         </div>
       </div>
       <div class="ontrack-rail-val">
-        ${aTxt}<span class="ontrack-rail-val-pct"> / ${tdTxt} to-date ┬À ${pTxt} wk</span>
+        ${aTxt}<span class="ontrack-rail-val-pct"> / ${tdTxt} to-date → ${pTxt} wk</span>
         <div class="ontrack-rail-val-pct">${pctTxt}${deltaTxt}</div>
       </div>
     </div>`;
@@ -21958,7 +21958,7 @@ function renderOnTrackBar(data) {
     else adhBand = 'red';
   }
   const adherenceChip = `<span class="adherence-chip adh-${adhBand}">${doneCount} done / ${plannedCount} planned</span>`;
-  const sessionLine = `${adherenceChip}${nextLbl ? ' ┬À ' + esc(nextLbl) + ' PLANNED' : ''}${missedCount > 0 ? ' ┬À ' + missedCount + ' missed' : ''}`;
+  const sessionLine = `${adherenceChip}${nextLbl ? ' → ' + esc(nextLbl) + ' PLANNED' : ''}${missedCount > 0 ? ' → ' + missedCount + ' missed' : ''}`;
 
   // v4.6.5 FIX-WEEK-COMPLIANCE-LABELS: render TWO parallel composition bars
   // (PLANNED + ACTUAL), each as a 3-segment stacked bar (low/mid/high). Same
@@ -21989,7 +21989,7 @@ function renderOnTrackBar(data) {
     const opacity = isMuted ? 'opacity:0.55;' : '';
     return `<div class="intensity-actual-row">
       <div class="intensity-actual-label">${label}</div>
-      <div class="intensity-actual-bar" title="Z1+Z2 ${Math.round(low)}m ┬À Z3+Z4 ${Math.round(mid)}m ┬À Z5+ ${Math.round(high)}m" style="${opacity}">
+      <div class="intensity-actual-bar" title="Z1+Z2 ${Math.round(low)}m → Z3+Z4 ${Math.round(mid)}m → Z5+ ${Math.round(high)}m" style="${opacity}">
         ${pctLow  > 0 ? `<div class="intensity-actual-seg-low"  style="width:${pctLow}%;"></div>`  : ''}
         ${pctMid  > 0 ? `<div class="intensity-actual-seg-mid"  style="width:${pctMid}%;"></div>`  : ''}
         ${pctHigh > 0 ? `<div class="intensity-actual-seg-high" style="width:${pctHigh}%;"></div>` : ''}
@@ -22009,7 +22009,7 @@ function renderOnTrackBar(data) {
     if (Math.abs(dLow)  >= 5) parts.push(`${dLow > 0 ? '+' : ''}${dLow} min Z1+Z2`);
     if (Math.abs(dMid)  >= 5) parts.push(`${dMid > 0 ? '+' : ''}${dMid} min Z3+Z4`);
     if (Math.abs(dHigh) >= 3) parts.push(`${dHigh > 0 ? '+' : ''}${dHigh} min Z5+`);
-    if (parts.length) deltaLineHtml = `<div class="intensity-delta" style="grid-column:1/-1;padding-left:68px;">${esc(parts.join(' ┬À '))} vs planned</div>`;
+    if (parts.length) deltaLineHtml = `<div class="intensity-delta" style="grid-column:1/-1;padding-left:68px;">${esc(parts.join(' → '))} vs planned</div>`;
   }
   const actualBarHtml = compRow('PLANNED', pLow, pMid, pHigh, pTotal, true)
     + compRow('ACTUAL', actLow, actMid, actHigh, actTotal, false)
@@ -22037,17 +22037,17 @@ function renderOnTrackBar(data) {
     if (plannedCnt > 0) {
       const types = ccSet.size;
       const files = fileSet.size;
-      varietyBadge = `<span style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:2px 8px;border-radius:8px;font-size:9px;letter-spacing:0.04em;font-weight:700;text-transform:none;" title="${types} unique workout type${types===1?'':'s'} across ${plannedCnt} planned session${plannedCnt===1?'':'s'} ┬À ${files} distinct file${files===1?'':'s'}">${types} type${types===1?'':'s'} ┬À ${files} unique file${files===1?'':'s'}</span>`;
+      varietyBadge = `<span style="background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:2px 8px;border-radius:8px;font-size:9px;letter-spacing:0.04em;font-weight:700;text-transform:none;" title="${types} unique workout type${types===1?'':'s'} across ${plannedCnt} planned session${plannedCnt===1?'':'s'} → ${files} distinct file${files===1?'':'s'}">${types} type${types===1?'':'s'} → ${files} unique file${files===1?'':'s'}</span>`;
     }
   } catch(_) {}
 
   // Final HTML
   host.innerHTML = `<div id="ontrack-bar" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;color:var(--text2);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:4px;">
-      <span>THIS WEEK (${esc(rangeStr)} ┬À ${esc(phaseHeader)})</span>
+      <span>THIS WEEK (${esc(rangeStr)} → ${esc(phaseHeader)})</span>
       ${varietyBadge}
     </div>
-    <div style="font-size:10px;color:var(--text3);font-weight:500;letter-spacing:0.04em;margin-bottom:10px;">${Number(w.days_elapsed || 0)} of ${Number(w.days_total || 7)} days elapsed ┬À pacing math vs to-date plan</div>
+    <div style="font-size:10px;color:var(--text3);font-weight:500;letter-spacing:0.04em;margin-bottom:10px;">${Number(w.days_elapsed || 0)} of ${Number(w.days_total || 7)} days elapsed → pacing math vs to-date plan</div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;">
       <div class="ot-stat">
         <div class="ot-stat-label">COMPLIANCE</div>
@@ -22178,7 +22178,7 @@ function renderActivityModal(p) {
     try {
       const d = new Date(iso);
       return d.toLocaleDateString('en-GB', {weekday:'short',day:'numeric',month:'short',year:'numeric'})
-        + ' ┬À ' + d.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+        + ' → ' + d.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
     } catch(e) { return iso; }
   };
   const num = (v, suf = '', d = 0) => (v == null || isNaN(Number(v))) ? '—' : (Number(v).toFixed(d) + suf);
@@ -22283,7 +22283,7 @@ function renderActivityModal(p) {
         <b style="color:var(--text);">DFA ╬▒1 (HRV breakpoint):</b>
         <span style="font-size:15px;font-weight:700;color:${band[1]};">${esc(dfaAvgFmt)}</span>
         <span style="color:${band[1]};">${band[0]}</span>
-        ${lt1Min != null ? `<span style="color:var(--text3);">┬À ${esc(lt1Min.toFixed(0))} min below 0.75 (LT1)</span>` : ''}
+        ${lt1Min != null ? `<span style="color:var(--text3);">→ ${esc(lt1Min.toFixed(0))} min below 0.75 (LT1)</span>` : ''}
       </div>`;
     if (series.length >= 2) {
       dfaHtml += `<div style="margin-top:8px;">${_dfaAlpha1ChartSvg(series)}</div>
@@ -22312,7 +22312,7 @@ function renderActivityModal(p) {
   const samples = p.samples || null;
   if (samples && samples.t_s && samples.t_s.length) {
     html += `<div style="background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:12px;">
-      <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Power (W) ┬À HR (bpm)</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Power (W) → HR (bpm)</div>
       ${_actModalSparklines(samples)}
     </div>`;
   }
@@ -22352,8 +22352,8 @@ function renderActivityModal(p) {
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
         <div style="font-size:18px;">🏆</div>
         <div style="font-size:16px;font-weight:900;letter-spacing:0.05em;color:${kc};text-transform:uppercase;">${esc(klass)}</div>
-        <div style="font-size:11px;color:var(--text2);">PI = ${piVal} ┬À Treff 2019</div>
-        ${conf != null ? `<div style="font-size:10px;color:var(--text3);">┬À confidence ${conf}%</div>` : ''}
+        <div style="font-size:11px;color:var(--text2);">PI = ${piVal} → Treff 2019</div>
+        ${conf != null ? `<div style="font-size:10px;color:var(--text3);">→ confidence ${conf}%</div>` : ''}
         <span title="${esc(tipText)}" style="margin-left:auto;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(148,163,184,0.18);color:var(--text2);font-size:11px;font-weight:700;cursor:help;" aria-label="Research citations">i</span>
       </div>
       <div style="margin-top:8px;">
@@ -22620,7 +22620,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // v2.2.9 — activity-sync progress strip, driven by the live /api/sync/progress
   // counts (replaces the power-curve-backfill driver that showed an
   // indeterminate, never-terminating "Syncing activities…"). Shows real
-  // "X of Y ┬À N new" and waits a few ticks for a lazy sync that starts just
+  // "X of Y → N new" and waits a few ticks for a lazy sync that starts just
   // after load.
   try { startSyncProgressWatch(6); } catch (_) {}
   // Small version label next to the logo.
@@ -22747,9 +22747,9 @@ async function loadHrvTab() {
     document.getElementById('hrv-today-rmssd').textContent =
       (L.rmssd_ms != null ? L.rmssd_ms.toFixed(1) : '—') + ' ms';
     document.getElementById('hrv-today-meta').textContent =
-      'SDNN ' + (L.sdnn_ms != null ? L.sdnn_ms.toFixed(1) : '—') + ' ms ┬À ' + (L.date || '');
+      'SDNN ' + (L.sdnn_ms != null ? L.sdnn_ms.toFixed(1) : '—') + ' ms → ' + (L.date || '');
     document.getElementById('hrv-source-badge').textContent =
-      (L.source || '') + ' ┬À ' + (L.calculation_method || '');
+      (L.source || '') + ' → ' + (L.calculation_method || '');
 
     const b7 = d.baselines['7d'], b30 = d.baselines['30d'];
     document.getElementById('hrv-baseline').textContent =
@@ -22766,8 +22766,8 @@ async function loadHrvTab() {
     document.getElementById('hrv-quality-tab').textContent =
       (L.quality_category || '—') + ' (' + (L.quality_score != null ? L.quality_score.toFixed(2) : '—') + ')';
     document.getElementById('hrv-detail').textContent =
-      'n=' + (L.sample_count != null ? L.sample_count : '—') + ' ┬À '
-      + (L.duration_seconds != null ? Math.round(L.duration_seconds) : '—') + 's ┬À '
+      'n=' + (L.sample_count != null ? L.sample_count : '—') + ' → '
+      + (L.duration_seconds != null ? Math.round(L.duration_seconds) : '—') + 's → '
       + 'HR ' + (L.mean_hr != null ? L.mean_hr.toFixed(0) : '—');
 
     renderHrvMetricsTable(L);
@@ -22900,7 +22900,7 @@ async function hrvImport() {
     const d = await res.json();
     if (d.ok) {
       status.textContent = 'Import OK — RR=' + d.rr_count
-        + (d.daily_hrv ? ' ┬À RMSSD=' + (d.daily_hrv.rmssd_ms||0).toFixed(1) + 'ms' : '');
+        + (d.daily_hrv ? ' → RMSSD=' + (d.daily_hrv.rmssd_ms||0).toFixed(1) + 'ms' : '');
       loadHrvTab();
     } else {
       status.textContent = 'Errore: ' + (d.error || JSON.stringify(d));
@@ -22938,11 +22938,11 @@ async function loadMetabolicProfile() {
         <div><b style="font-size:18px;color:var(--accent);">${fat != null ? fat + ' W' : '—'}</b> <span style="font-size:10px;color:var(--text3);">FatMax (~${d.fatmax_pct_ftp || 58}% FTP)</span></div>
       </div>
       <div style="font-size:11px;color:var(--text2);">
-        CP <b>${d.cp_w ?? '—'}</b> W ┬À W’ <b>${(d.w_prime_j != null) ? Math.round(d.w_prime_j/1000) + ' kJ' : '—'}</b> ┬À FTP <b>${d.ftp_w ?? '—'}</b> W
-        ${d.n_rides != null ? '┬À ' + d.n_rides + ' attivitá (90g)' : ''}
+        CP <b>${d.cp_w ?? '—'}</b> W → W’ <b>${(d.w_prime_j != null) ? Math.round(d.w_prime_j/1000) + ' kJ' : '—'}</b> → FTP <b>${d.ftp_w ?? '—'}</b> W
+        ${d.n_rides != null ? '→ ' + d.n_rides + ' attivitá (90g)' : ''}
       </div>`;
     if (assum && Array.isArray(d.assumptions)) {
-      assum.innerHTML = '⚠´©Å ' + d.assumptions.slice(0, 2).map(a => esc(a)).join(' ┬À ');
+      assum.innerHTML = '⚠´©Å ' + d.assumptions.slice(0, 2).map(a => esc(a)).join(' → ');
     }
   } catch (e) { host.textContent = 'Errore profilo metabolico.'; }
 }
@@ -23011,19 +23011,19 @@ async function loadNutriPlan() {
     if (!res.ok) return;
     const j = await res.json();
     if (src === 'macro' || src === 'micro' || src === 'extra') {
-      let html = `<div style="font-size:10px;color:var(--text3);margin-bottom:6px;">${src==='extra'?'Solo carboidrati extra da sforzo (aggiungi ai pasti)':'Macro '+(src==='micro'?'+ micro':'giornalieri')} ┬À ${j.bodyweight_kg} kg</div>`;
+      let html = `<div style="font-size:10px;color:var(--text3);margin-bottom:6px;">${src==='extra'?'Solo carboidrati extra da sforzo (aggiungi ai pasti)':'Macro '+(src==='micro'?'+ micro':'giornalieri')} → ${j.bodyweight_kg} kg</div>`;
       for (const d of (j.days||[])) {
         const extra = (src==='extra') ? ` +${Math.round(d.total_carb*0.15)}g carb` : '';
-        html += `<div style="font-size:10px;padding:2px 0;border-bottom:1px solid var(--border);"><b>${esc(d.day)}</b> <span style="color:var(--text3);">${esc(d.day_type)}</span> <span style="color:var(--accent);">${d.total_kcal} kcal</span> ┬À C ${d.total_carb}g P ${d.total_protein}g F ${d.total_fat}g${extra}</div>`;
+        html += `<div style="font-size:10px;padding:2px 0;border-bottom:1px solid var(--border);"><b>${esc(d.day)}</b> <span style="color:var(--text3);">${esc(d.day_type)}</span> <span style="color:var(--accent);">${d.total_kcal} kcal</span> → C ${d.total_carb}g P ${d.total_protein}g F ${d.total_fat}g${extra}</div>`;
       }
       host.innerHTML = html; return;
     }
-    let html = `<div style="font-size:10px;color:var(--text3);margin-bottom:6px;">${esc(j.calorie_source)} ┬À ${j.bodyweight_kg} kg</div>`;
+    let html = `<div style="font-size:10px;color:var(--text3);margin-bottom:6px;">${esc(j.calorie_source)} → ${j.bodyweight_kg} kg</div>`;
     for (const d of (j.days||[])) {
-      html += `<div style="background:var(--surface2);border-radius:6px;padding:6px 8px;margin-bottom:6px;"><div style="font-weight:600;">${esc(d.day)} <span style="color:var(--text3);font-size:10px;">┬À ${esc(d.day_type)}</span> <span style="color:var(--accent);font-size:10px;">${d.total_kcal} kcal</span></div>`;
+      html += `<div style="background:var(--surface2);border-radius:6px;padding:6px 8px;margin-bottom:6px;"><div style="font-weight:600;">${esc(d.day)} <span style="color:var(--text3);font-size:10px;">→ ${esc(d.day_type)}</span> <span style="color:var(--accent);font-size:10px;">${d.total_kcal} kcal</span></div>`;
       for (const m of (d.meals||[])) {
         const grams = Object.entries(m.food_grams||{}).map(([k,v])=>`${esc(k)} ${v}g`).join(', ');
-        html += `<div style="margin:3px 0;font-size:10px;"><span style="font-weight:600;">${esc(m.name)}</span> <span style="color:var(--text3);">${esc(m.timing)}</span><div style="color:var(--text2);">${esc((m.foods||[]).join(', '))}${grams?' — <b>'+grams+'</b>':''}</div><div style="color:var(--text3);">C ${Math.round(m.carb_g)}g ┬À P ${Math.round(m.protein_g)}g ┬À F ${Math.round(m.fat_g)}g</div></div>`;
+        html += `<div style="margin:3px 0;font-size:10px;"><span style="font-weight:600;">${esc(m.name)}</span> <span style="color:var(--text3);">${esc(m.timing)}</span><div style="color:var(--text2);">${esc((m.foods||[]).join(', '))}${grams?' — <b>'+grams+'</b>':''}</div><div style="color:var(--text3);">C ${Math.round(m.carb_g)}g → P ${Math.round(m.protein_g)}g → F ${Math.round(m.fat_g)}g</div></div>`;
         if (m.note) html += `<div style="color:var(--text3);font-style:italic;">${esc(m.note)}</div>`;
       }
       if (d.avoid && d.avoid.length) html += `<div style="font-size:10px;color:var(--red);margin-top:2px;">🌲 Evita: ${esc(d.avoid.join(', '))}</div>`;
@@ -23046,16 +23046,16 @@ async function importNutriPDF() {
     const j = await res.json();
     window.__nutriPdf = j;
     if ($('nutri-source-tab')) $('nutri-source-tab').value = 'nutritionist';
-    meta.textContent = `${j.day_count} giorni ┬À ${j.pages} pagine` + (j.unknown_foods && j.unknown_foods.length ? ` ┬À ⚠ ${j.unknown_foods.length} alimenti sconosciuti` : '');
+    meta.textContent = `${j.day_count} giorni → ${j.pages} pagine` + (j.unknown_foods && j.unknown_foods.length ? ` → ⚠ ${j.unknown_foods.length} alimenti sconosciuti` : '');
     loadNutriPlan();
     renderNutriCompare();
   } catch (e) { meta.textContent = 'Errore'; }
 }
 
 function renderNutriPdf(host, j) {
-  let html = `<div style="font-size:10px;color:var(--text3);margin-bottom:6px;">Dieta nutrizionista ┬À ${j.day_count} giorni ┬À clicca un'alternativa per selezionarla</div>`;
+  let html = `<div style="font-size:10px;color:var(--text3);margin-bottom:6px;">Dieta nutrizionista → ${j.day_count} giorni → clicca un'alternativa per selezionarla</div>`;
   for (const d of (j.summary||[])) {
-    html += `<div style="background:var(--surface2);border-radius:6px;padding:6px 8px;margin-bottom:6px;"><div style="font-weight:600;">${esc(d.day)} <span style="color:var(--accent);font-size:10px;">${d.kcal} kcal</span> ┬À C${d.carb_g}g P${d.protein_g}g G${d.fat_g}g</div>`;
+    html += `<div style="background:var(--surface2);border-radius:6px;padding:6px 8px;margin-bottom:6px;"><div style="font-weight:600;">${esc(d.day)} <span style="color:var(--accent);font-size:10px;">${d.kcal} kcal</span> → C${d.carb_g}g P${d.protein_g}g G${d.fat_g}g</div>`;
     for (const m of (d.meals||[])) {
       html += `<div style="margin:3px 0;font-size:10px;"><b>${esc(m.name)}</b></div>`;
       for (const it of (m.items||[])) {
@@ -23083,7 +23083,7 @@ async function renderNutriCompare() {
     const pccK = pcc.target_kcal, dietK = (window.__nutriPdf && window.__nutriPdf.summary) ? Math.round(window.__nutriPdf.summary.reduce((a,b)=>a+b.kcal,0)/window.__nutriPdf.summary.length) : 0;
     box.innerHTML = `
       <div class="card"><h3>Target PCC</h3>
-        <div style="font-size:12px;"> <b>${pccK}</b> kcal ┬À C ${pcc.macros.carb_g}g ┬À P ${pcc.macros.protein_g}g ┬À G ${pcc.macros.fat_g}g</div>
+        <div style="font-size:12px;"> <b>${pccK}</b> kcal → C ${pcc.macros.carb_g}g → P ${pcc.macros.protein_g}g → G ${pcc.macros.fat_g}g</div>
         <div style="font-size:10px;color:var(--text3);margin-top:4px;">Carico richiesto (GSSI SSE 231): range carb ${pcc.load_compensation.carb_g_per_kg_range[0]}-${pcc.load_compensation.carb_g_per_kg_range[1]} g/kg</div>
       </div>
       <div class="card"><h3>Dieta nutrizionista</h3>
@@ -23233,7 +23233,7 @@ async function loadBIAHistory() {
       if (h.smm_kg) f.push(`SMM ${h.smm_kg} kg`);
       if (h.bmi) f.push(`BMI ${h.bmi}`);
       if (h.phase_angle!=null) f.push(`PhA ${h.phase_angle}┬░`);
-      html += `<div style="padding:3px 0;border-bottom:1px solid var(--border);"><b>${h.date}</b> — ${f.join(' ┬À ') || 'dati grezzi'}</div>`;
+      html += `<div style="padding:3px 0;border-bottom:1px solid var(--border);"><b>${h.date}</b> — ${f.join(' → ') || 'dati grezzi'}</div>`;
     }
     host.innerHTML = html;
   } catch (e) { host.textContent = 'Storico non disponibile'; }
@@ -23459,7 +23459,7 @@ async function loadDailyAdapt() {
         <span style="font-size:20px;font-weight:800;color:${col};">×${f}</span>
         <span>${esc(a.recommendation || tip)}${sig ? '<span style="color:var(--text3);"> — ' + esc(sig) + '</span>' : ''}</span>
       </div>
-      <div style="font-size:10px;color:var(--text3);margin-top:4px;">HRV ${j.hrv_ms != null ? j.hrv_ms + ' ms' : '—'} ┬À DFA ╬▒1 ${j.dfa_alpha1 != null ? j.dfa_alpha1 : '—'} ┬À Sonno ${j.sleep_score != null ? j.sleep_score : '—'} ┬À TSB ${j.tsb != null ? j.tsb : '—'} ┬À Hooper ${j.hooper != null ? j.hooper : '—'}</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:4px;">HRV ${j.hrv_ms != null ? j.hrv_ms + ' ms' : '—'} → DFA ╬▒1 ${j.dfa_alpha1 != null ? j.dfa_alpha1 : '—'} → Sonno ${j.sleep_score != null ? j.sleep_score : '—'} → TSB ${j.tsb != null ? j.tsb : '—'} → Hooper ${j.hooper != null ? j.hooper : '—'}</div>
       <div style="font-size:10px;color:var(--text3);margin-top:2px;"> ${esc(tip)}</div>`;
   } catch (e) { /* non bloccare il resto */ }
 }
@@ -23504,7 +23504,7 @@ async function loadStrength() {
         if (!wk.sessions.length) return `<div style="font-size:11px;color:var(--text3);">Sett. ${wk.week}: scarico / nessuna seduta</div>`;
         const rows = wk.sessions.map(s =>
           `<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;border-bottom:1px solid var(--border);">
-             <span>${esc(s.exercise)}</span><span style="color:var(--text3);">${s.sets}×${s.reps} @ ${s.pct_1rm}%${s.load_kg ? ` ┬À <b style="color:var(--accent);">${s.load_kg} kg</b>` : ''}</span>
+             <span>${esc(s.exercise)}</span><span style="color:var(--text3);">${s.sets}×${s.reps} @ ${s.pct_1rm}%${s.load_kg ? ` → <b style="color:var(--accent);">${s.load_kg} kg</b>` : ''}</span>
            </div>`).join('');
         return `<div style="background:var(--surface2);border-radius:6px;padding:6px 8px;"><div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:2px;">Settimana ${wk.week}</div>${rows}</div>`;
       }).join('');
@@ -23512,7 +23512,7 @@ async function loadStrength() {
       weeksEl.innerHTML = '<span style="color:var(--text3);">Forza disabilitata</span>';
     }
     if (mp && mp.routine && wantMobility) {
-      const names = mp.routine[0].sequence.map(x => x.exercise).join(' ┬À ');
+      const names = mp.routine[0].sequence.map(x => x.exercise).join(' → ');
       mobEl.innerHTML = `Mobilitá quotidiana (${mp.routine[0].minutes} min): ${esc(names)} <span style="color:var(--text3);">(Warneke 2025)</span>`;
     } else {
       mobEl.innerHTML = '<span style="color:var(--text3);">Mobilitá disabilitata</span>';
@@ -23550,14 +23550,14 @@ async function loadMyCalendar() {
       return `<div style="margin:6px 0;">
         <div style="font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           ${esc(r.week_label)} <span style="color:${flagColor[r.flag]||'var(--text2)'};">📅{r.flag}</span>
-          <span style="color:var(--text3);font-size:10px;"> ┬À ${esc(r.phase)} ┬À aderenza ${Math.round(r.tss_ratio*100)}%</span>
+          <span style="color:var(--text3);font-size:10px;"> → ${esc(r.phase)} → aderenza ${Math.round(r.tss_ratio*100)}%</span>
           ${icuBtn}
         </div>
         <div style="background:var(--surface2);border-radius:4px;height:10px;margin:2px 0;position:relative;">
           <div style="background:#3b82f6;height:10px;border-radius:4px;width:${pW}%;opacity:.5;"></div>
           <div style="background:#2d9d5f;height:10px;border-radius:4px;width:${aW}%;position:relative;top:-10px;"></div>
         </div>
-        <div style="font-size:10px;color:var(--text3);">Pianif ${Math.round(r.planned_tss)} TSS ┬À Eseguito ${Math.round(r.actual_tss)} TSS (╬ö${r.delta_tss>=0?'+':''}${r.delta_tss})</div>
+        <div style="font-size:10px;color:var(--text3);">Pianif ${Math.round(r.planned_tss)} TSS → Eseguito ${Math.round(r.actual_tss)} TSS (╬ö${r.delta_tss>=0?'+':''}${r.delta_tss})</div>
       </div>`;
     }).join('');
     host.innerHTML = `<div style="font-size:10px;color:var(--text3);margin-bottom:4px;">📍 pianificato &nbsp; 📍 eseguito</div>` + body + (j.note? `<div style="font-size:10px;color:var(--text3);margin-top:6px;">${esc(j.note)}</div>`:'');
