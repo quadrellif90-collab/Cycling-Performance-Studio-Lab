@@ -80,3 +80,4 @@ montis_linked/
 
 # Copia build della UI fork (rigenerata da MontisFork/dist)
 web/
+e2e-report/
