@@ -405,16 +405,24 @@
             }
         }
 
-        document.getElementById('startBtn').addEventListener('click', startWorkout);
-        document.getElementById('pauseBtn').addEventListener('click', () => playerAction('pause'));
-        document.getElementById('resumeBtn').addEventListener('click', () => playerAction('resume'));
-        document.getElementById('stopBtn').addEventListener('click', () => playerAction('stop'));
-        document.getElementById('skipNextBtn').addEventListener('click', () => playerAction('skip-next'));
-        document.getElementById('skipPrevBtn').addEventListener('click', () => playerAction('skip-prev'));
+        const startBtn = document.getElementById('startBtn');
+        if (startBtn) startBtn.addEventListener('click', startWorkout);
+        const pauseBtn = document.getElementById('pauseBtn');
+        if (pauseBtn) pauseBtn.addEventListener('click', () => playerAction('pause'));
+        const resumeBtn = document.getElementById('resumeBtn');
+        if (resumeBtn) resumeBtn.addEventListener('click', () => playerAction('resume'));
+        const stopBtn = document.getElementById('stopBtn');
+        if (stopBtn) stopBtn.addEventListener('click', () => playerAction('stop'));
+        const skipNextBtn = document.getElementById('skipNextBtn');
+        if (skipNextBtn) skipNextBtn.addEventListener('click', () => playerAction('skip-next'));
+        const skipPrevBtn = document.getElementById('skipPrevBtn');
+        if (skipPrevBtn) skipPrevBtn.addEventListener('click', () => playerAction('skip-prev'));
 
-        document.getElementById('intensitySlider').addEventListener('input', function() {
+        const intensitySlider = document.getElementById('intensitySlider');
+        if (intensitySlider) intensitySlider.addEventListener('input', function() {
             const pct = this.value;
-            document.getElementById('intensityValue').textContent = `${pct}%`;
+            const intensityValue = document.getElementById('intensityValue');
+            if (intensityValue) intensityValue.textContent = `${pct}%`;
             if (sessionId) {
                 fetch(`/api/player/intensity/${sessionId}`, {
                     method: 'POST',

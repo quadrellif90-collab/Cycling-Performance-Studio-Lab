@@ -1,4 +1,25 @@
-#!/usr/bin/env python3
-"""Minimal cpsl_ui.css placeholder — both pages using it are self-styled
-via inline <style>; this file only prevents the 404 and provides shared
-theme variables for future use."""
+/*
+ * Cycling Performance Studio Lab - Base UI (cpsl_ui.css)
+ * Definisce le variabili del design system e lo stile base del <body>
+ * così le pagine che lo linkano (hrv_monitor, workout_player) non
+ * cascano sul default del browser (Times New Roman / sfondo trasparente).
+ * I colori dei componenti rimangono definiti inline nei singoli template.
+ */
+:root {
+  --bg: #0a0e14; --surface: #131a24; --surface2: #1a2332; --border: #2d3f52;
+  --card: #1a2332;
+  --text: #e6edf3; --text2: #b8c8d8; --text3: #8a9bb0;
+  --accent: #4f9cf7; --accent2: #6366f1;
+  --green: #22c55e; --yellow: #eab308; --orange: #f97316; --red: #ef4444; --purple: #a855f7;
+  --z1: #64748b; --z2: #3b82f6; --z3: #22c55e; --z4: #eab308; --z5: #f97316; --z6: #ef4444; --z7: #e2e8f0;
+  --radius: 10px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
