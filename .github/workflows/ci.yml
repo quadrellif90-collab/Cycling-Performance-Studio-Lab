@@ -68,6 +68,19 @@ jobs:
           python e2e_full.py
         continue-on-error: true
 
+      - name: Visual smoke (CSS regression guard, Windows only, Chromium)
+        if: matrix.os == 'windows-latest'
+        run: |
+          pip install playwright
+          python -m playwright install chromium
+          python app.py > app_ci.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -s http://127.0.0.1:22400/api/version >/dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          python tests/visual_smoke.py
+        continue-on-error: true
+
   smoke-test:
     name: Live smoke test
     runs-on: ubuntu-latest
