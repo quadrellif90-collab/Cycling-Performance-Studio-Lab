@@ -59,6 +59,12 @@
 *.eot binary
 *.otf binary
 
+# Encode guard: text files MUST be UTF-8 without BOM. If a tool saves as
+# UTF-16/UTF-8-BOM, forbid the BOM so Jinja2/FastAPI never fail to decode.
+*.html -utf8 text eol=lf
+*.js   -utf8 text eol=lf
+*.css  -utf8 text eol=lf
+
 # Line ending exceptions - force CRLF for Windows batch/PowerShell if needed
 *.bat text eol=crlf
 *.cmd text eol=crlf

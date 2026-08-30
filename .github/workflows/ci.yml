@@ -51,6 +51,9 @@ jobs:
         continue-on-error: true
         run: ruff check . || true
 
+      - name: Encoding guard (block mojibake / BOM regression)
+        run: python scripts/check_encoding.py
+
       - name: Run tests
         continue-on-error: true
         run: pytest tests/ -q --tb=short -p no:cacheprovider || true
