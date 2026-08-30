@@ -24690,7 +24690,8 @@ def workout_player_page(request: Request, workout_filename: str = ""):
     from workout_player import resolve_workout_path, ZWOParser
     from profile_manager import ProfileManager
     pm = ProfileManager.get()
-    ftp = pm.active_profile.get("ftp", 250.0) if pm.active_profile else 250.0
+    _entry = _active_profile_entry(pm)
+    ftp = _entry.get("ftp", 250.0) if _entry else 250.0
 
     workout_data = None
     if workout_filename:
