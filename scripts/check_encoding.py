@@ -22,9 +22,27 @@ MOJIBAKE = [
     chr(0x00C3),                # accented-char double-encode
     chr(0x00C2),
     chr(0x00E2) + chr(0x20AC),  # ellipsis/quote double-encode
-    # arrow (rightwards-arrow U+2192) double-encode: its UTF-8 bytes mis-read
-    # as latin1 then re-encoded produce a two-glyph artifact
+    # arrow (rightwards-arrow U+2192) double-encode
     chr(0x252C) + chr(0x00C0),
+    chr(0x252C) + chr(0x2591),  # degree sign U+00B0 double-encode artifact
+    # section sign / ordinal: c2 ba double-encode — used in MASTER section refs
+    chr(0x252C) + chr(0x00BA),
+    # superscript two (r²), plus-minus (±), registered (®): c2 b2 / b1 / ae
+    chr(0x252C) + chr(0x00B2),
+    chr(0x252C) + chr(0x00B1),
+    chr(0x252C) + chr(0x00AE),
+    # greek alpha (α), o-umlaut (ö): box-drawing + filler double-encode
+    chr(0x256C) + chr(0x2592),
+    chr(0x256C) + chr(0x00F6),
+    # e-macron (ē, Garmin Fēnix), e-acute (é): box-drawing / acute + char
+    chr(0x2500) + chr(0x00F4),
+    chr(0x00B4) + chr(0x00A9),
+    # BOM mis-read as the 3-glyph B-O-M artifact
+    chr(0x00B4) + chr(0x2557) + chr(0x2510),
+    # bare C-with-cedilla is mojibake of E-acute in this codebase
+    chr(0x00C7),
+    # left-box char used in the [À-ÿ] filename-strip range
+    chr(0x2560),
     chr(0xFFFD),                # replacement char (already-lost data)
 ]
 

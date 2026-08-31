@@ -1446,7 +1446,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; h
 }
 /* v1.8.9 Bug 5 — global chevron marker for every <details> summary.
    Replaces the native triangle (which is invisible on some themes / Safari).
-   Rotates 90┬░ when the panel is open. */
+   Rotates 90° when the panel is open. */
 /* v3.7.1 — `list-style: none` is what actually suppresses the native
    disclosure triangle. ::-webkit-details-marker is a legacy pseudo the
    current engine no longer honours and ::marker { content: "" } does not
@@ -3874,7 +3874,7 @@ window.addEventListener('unhandledrejection', function(e) {
       <div class="form-group"><label>Acqua totale (L)</label><input type="number" step="0.1" id="bia-tbw"></div>
       <div class="form-group"><label>SMM (kg)</label><input type="number" step="0.1" id="bia-smm"></div>
       <div class="form-group"><label>BCM (kg)</label><input type="number" step="0.1" id="bia-bcm"></div>
-      <div class="form-group"><label>Angolo di fase (┬░)</label><input type="number" step="0.1" id="bia-pha"></div>
+      <div class="form-group"><label>Angolo di fase (°)</label><input type="number" step="0.1" id="bia-pha"></div>
       <div class="form-group"><label>BMI</label><input type="number" step="0.1" id="bia-bmi"></div>
     </div>
     <button class="btn" style="font-size:11px;padding:4px 12px;margin-top:6px;" onclick="saveBIAmanual()">Salva misurazione</button>
@@ -23232,7 +23232,7 @@ async function loadBIAHistory() {
       if (h.fat_mass_kg) f.push(`(${h.fat_mass_kg} kg)`);
       if (h.smm_kg) f.push(`SMM ${h.smm_kg} kg`);
       if (h.bmi) f.push(`BMI ${h.bmi}`);
-      if (h.phase_angle!=null) f.push(`PhA ${h.phase_angle}┬░`);
+      if (h.phase_angle!=null) f.push(`PhA ${h.phase_angle}°`);
       html += `<div style="padding:3px 0;border-bottom:1px solid var(--border);"><b>${h.date}</b> — ${f.join(' → ') || 'dati grezzi'}</div>`;
     }
     host.innerHTML = html;
