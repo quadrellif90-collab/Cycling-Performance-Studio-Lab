@@ -5,11 +5,11 @@
 </p>
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Release](https://img.shields.io/badge/release-v1.5.0-green.svg)](https://github.com/quadrellif90-collab/Cycling-Performance-Studio-Lab/releases/latest)
+[![Release](https://img.shields.io/badge/release-v1.8.0-green.svg)](https://github.com/quadrellif90-collab/Cycling-Performance-Studio-Lab/releases/latest)
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.119+-009688.svg)](https://fastapi.tiangolo.com/)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
-[![Tests](https://img.shields.io/badge/tests-304%20passing-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-270%20passing-brightgreen.svg)]()
 
 **Cycling Performance Studio Lab** è una piattaforma professionale di analisi e allenamento per ciclismo, self-hosted, che unisce il meglio di **Domestique** e **PCC** in un'unica applicazione desktop — senza cloud obbligatorio, senza abbonamenti, senza setup di server. I tuoi dati restano su `~/.cpsl`.
 

@@ -441,6 +441,19 @@ recupero e allenamento della forza: `docs/SCIENCE_UPDATES_2025.md`.
 - Comparative report: `ANALISI_COMPARATIVA_3_APP.md` generated
 - Test infrastructure: 239/239 CPSL tests passing
 
+## [1.8.0] — 2026-10-27 — 1.x Finale
+
+### Added
+- **Version bump a 1.8.0** — segna il rilascio finale della serie 1.x di CPSL
+- **Refactor config.py** — type hints migliorati, docstring organizzative per ogni gruppo di configurazione
+- **Metadata progetto aggiornati** — pyproject.toml aggiornato a v1.8.0 con classifiers Production/Stable, keywords e home-page
+
+### Changed
+- **README.md** — badge versione aggiornata a v1.8.0
+
+### Fixed
+- **Configurazione strutturata** — raggruppamento logico delle costanti in config.py con organizzazione chiara per dominio (ICU, Training, AI Coach)
+
 ## [Unreleased]
 
 ### Planned

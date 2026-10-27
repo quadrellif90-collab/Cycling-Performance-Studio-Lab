@@ -3,7 +3,15 @@
 Global constants stay here. Per-profile values (athlete data, ICU creds,
 paths) are resolved dynamically via __getattr__ which proxies to
 ProfileManager.
+
+Module-level attributes are categorized by domain:
+  - ICU integration (OAuth, API credentials)
+  - Training planning (mesocycle parameters, load thresholds)
+  - AI Coach (LLM provider settings, feature flags)
+  - Per-profile dynamic values (resolved at access time)
 """
+from __future__ import annotations
+
 import os
 from pathlib import Path
 
@@ -132,9 +140,12 @@ AI_LLM_SYSTEM_PROMPT = """Sei un coach ciclistico esperto. Usa i dati nativi di 
 analisi personalate e suggerimenti per l'allenamento. Sii conciso, tecnico ma 
 accessibile, e basa tutto sui dati misurati."""
 
+# ── Version ──────────────────────────────────────────────────────────────────
+VERSION = "1.8.0"
+
 # ── Dynamic proxy for per-profile values ─────────────────────────────────────
 
-def __getattr__(name: str):
+def __getattr__(name: str) -> object:
     """Resolve per-profile values on access via ProfileManager.
 
     Only evaluates the REQUESTED attribute (not all 16) for performance.
